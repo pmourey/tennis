@@ -1,0 +1,54 @@
+<!-- tennis/templates/players.html -->
+
+{% extends 'base.html' %}
+
+{% block main %}
+<script>
+    function confirmDelete(playerId) {
+        var result = confirm("Êtes-vous sûr de vouloir supprimer ce joueur: ?");
+        if (result) {
+            window.location.href = "delete/" + playerId;
+        }
+    }
+</script>
+<main>
+    {% if players %}
+    <table class="players">
+        <thead>
+        <tr>
+            <th>Update</th>
+            <th>Delete</th>
+            <th>Nom</th>
+            <th>Age</th>
+            <th>Taille</th>
+            <th>Poids</th>
+            <th>Equipe</th>
+            <th>Capitaine</th>
+            <th>Valide</th>
+        </tr>
+        </thead>
+        {% for player in players %}
+        <div id="player">
+            <tr>
+                <td align="center">
+                    <a href="{{ url_for('update', id=player.id) }}">{{player.id}}</a>
+                </td>
+                <td align="center">
+                    <button onclick="confirmDelete({{ player.id }})">{{player.id}}</button>
+                </td>
+                <td>{{ player.name }}</td>
+                <td>{{ player.age }}</td>
+                <td>{{ player.height }}</td>
+                <td>{{ player.weight }}</td>
+                <td>{{ player.team }}</td>
+                <td>{{ player.isCaptain }}</td>
+                <td>{{ player.isActive}}</td>
+            </tr>
+        </div>
+        {%endfor %}
+    </table>
+    {% else %}
+    <p style="font-size: 16px; text-align: center;">Pas de joueur disponible ✌️</p>
+    {% endif %}
+</main>
+{% endblock main %}

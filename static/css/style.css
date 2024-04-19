@@ -1,0 +1,169 @@
+body {
+    background-color: #F7FAFC;
+    justify-content: center;
+    margin-top: 10%;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+form {
+    display: flexbox;
+    width: 100%;
+}
+
+input {
+    padding: 16px 32px;
+    margin: 1px;
+    box-sizing: border-box;
+    width: 100%;
+    font-size: 16px;
+}
+
+input::placeholder {
+    font-size: 16px;
+}
+
+input:focus {
+    outline: none;
+}
+
+input[type="submit"] {
+    background-color: darkblue;
+    border: none;
+    color: white;
+    padding: 16px 32px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* not used
+#jobs {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+*/
+
+.players {
+    width: 100%;
+    border-collapse: collapse;
+    grid-template-columns: repeat(10, 1fr); /* Trois colonnes égales */
+}
+
+a {
+    color: #1E1E2D;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+p {
+    font-size: 16px;
+}
+
+button {
+  color: darkblue;
+  background-color: lightgray;
+  padding: 7px;
+  border: 1px solid pink;
+  border-radius: 5px;
+  border-collapse: collapse;
+}
+
+ /* This is important for block-level elements */
+/*
+table.menu {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+ } */
+
+table.menu tr td {
+  display: inline;
+  text-align: center;
+  color: darkblue;
+  background-color: lightgray;
+  padding: 7px;
+  margin-bottom: 20px;
+  border: 3px solid pink;
+  border-radius: 5px;
+  border-collapse: collapse;
+}
+
+table.sessions tr th td {
+  color: darkblue;
+  background-color: lightgray;
+  padding: 7px;
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+table.accounts tr th td {
+  color: darkblue;
+  padding: 7px;
+  margin-bottom: 20px;
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+
+table.sessions tr:nth-child(odd) {
+  background-color: lightblue;
+}
+table.sessions tr:nth-child(even) {
+  background-color: orange;
+}
+
+table.accounts tr:nth-child(odd) {
+  background-color: lightgreen;
+}
+table.accounts tr:nth-child(even) {
+  background-color: yellow;
+}
+
+
+table.welcome tr td {
+  color: darkblue;
+  background-color: lightgray;
+  padding: 7px;
+  margin-bottom: 20px;
+  border: 3px solid pink;
+  border-radius: 5px;
+  border-collapse: collapse;
+}
+
+
+table.add-form tr td {
+  background-color: lightgray;
+  padding: 7px;
+  border: none;
+  border-collapse: collapse;
+}
+
+
+table.update-form tr td select {
+  color: darkblue;
+  background-color: lightgray;
+  padding: 7px;
+  border: none;
+  border-collapse: collapse;
+}
+
+
+ /* Centre le contenu horizontalement dans le conteneur de grille */
+main {
+    display: grid;
+    justify-items: center;
+}
+
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
