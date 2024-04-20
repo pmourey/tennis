@@ -110,7 +110,8 @@ def update_player(id):
         app.logger.debug(f'is_captain: {player.isCaptain}')
         player.teamId = request.form.get('team_id')
         db.session.commit()
-        flash(f'Infos joueur {player.name} mise à jour avec succès!')
+        player_type: str = 'capitaine' if player.isCaptain else 'joueur'
+        flash(f'Infos {player_type} {player.name} mises à jour avec succès!')
         return redirect(url_for('show_players'))
     else:
         teams = Team.query.all()
