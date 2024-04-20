@@ -13,7 +13,7 @@ from flask import Flask, request, flash, url_for, redirect, render_template, ses
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import DateTime, desc
 
-from TennisModel import Player, db
+from TennisModel import Player, db, Team
 
 from flask import render_template, redirect, url_for, flash
 
@@ -53,29 +53,66 @@ def show_players():
     app.logger.debug(f'players: {players}')
     return render_template('players.html', players=players)
 
+
 @app.route('/teams')
 def show_teams():
-    app.logger.debug('This is a debug message.')
-    pass
-    # Reverse order query
-    # players = Player.query.filter(Player.active).order_by(desc(Player.birthDate)).all()
-    # return render_template('teams.html', players=players)
+    # Récupérer toutes les équipes avec le nombre de joueurs
+    teams = Team.query.all()
+    team_info = []
+    for team in teams:
+        # Compter le nombre de joueurs dans l'équipe
+        num_players = Player.query.filter_by(teamId=team.id).count()
+        # Récupérer le nom du capitaine s'il existe
+        captain = Player.query.filter_by(teamId=team.id, isCaptain=True).first()
+        captain_name = captain.name if captain else None
+        # Ajouter les informations de l'équipe à la liste
+        team_info.append({'team_name': team.name, 'num_players': num_players, 'captain_name': captain_name})
+
+    return render_template('teams.html', team_info=team_info)
+
 
 @app.route('/new_player/', methods=['GET', 'POST'])
 def new_player():
+    app.logger.debug(f'request.method: {request.method}')
     if request.method == 'POST':
         if not (request.form['name'] and request.form['birth_date']):
             flash('Please enter all the fields', 'error')
         else:
-            player = Player(name=request.form['name'], birthDate=request.form['birth_date'],
-                            height=request.form['height'], weight=request.form['weight'],
-                            is_captain=request.form['is_captain'], is_active=True)
+            birth_date: datetime = datetime.strptime(request.form['birth_date'], '%Y-%m-%d')
+            # is_captain: bool = request.form.get('is_captain') == 'on'
+            is_captain = False if request.form.get('is_captain') is None else True
+            app.logger.debug(f'is_captain: {is_captain}')
+            player = Player(name=request.form['name'], birthDate=birth_date,
+                            height=request.form['height'], weight=request.form['weight'], teamId=request.form['team_id'],
+                            isCaptain=is_captain, isActive=True)
             # logging.warning("See this message in Flask Debug Toolbar!")
             db.session.add(player)
             db.session.commit()
             flash('Record was successfully added')
-    return redirect(url_for('show_players'))
+            return redirect(url_for('show_players'))
+    teams = Team.query.all()
+    app.logger.debug(f'teams: {teams}')
+    return render_template('new_player.html', teams=teams)
 
+@app.route('/update_player/<int:id>', methods=['GET', 'POST'])
+def update_player(id):
+    player: Player = Player.query.get_or_404(id)
+    if request.method == 'POST':
+        player.name = request.form.get('name')
+        birth_date = request.form.get('birth_date')
+        app.logger.debug(f'birthDate: {birth_date}')
+        player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
+        player.height = request.form.get('height')
+        player.weight = request.form.get('weight')
+        player.isCaptain = False if request.form.get('is_captain') is None else True
+        app.logger.debug(f'is_captain: {player.isCaptain}')
+        player.teamId = request.form.get('team_id')
+        db.session.commit()
+        flash('Record was successfully updated')
+        return redirect(url_for('show_players'))
+    else:
+        teams = Team.query.all()
+        return render_template('update_player.html', player=player, teams=teams)
 
 @app.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id):
@@ -88,24 +125,6 @@ def delete(id):
         db.session.commit()
         flash(f'Joueur \"{player.name}\" supprimé de l\'équipe  \"{player.team}\"!')
         return redirect(url_for('show_players'))
-
-
-@app.route('/update/<int:id>', methods=['GET', 'POST'])
-def update(id):
-    player: Player = Player.query.get_or_404(id)
-    if request.method == 'POST':
-        player.name = request.form.get('name')
-        birth_date = request.form.get('birthDate')
-        app.logger.debug(f'birthDate: {birth_date}')
-        player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
-        player.height = request.form.get('height')
-        player.weight = request.form.get('weight')
-        player.is_captain = request.form.get('is_captain')
-        db.session.commit()
-        flash('Record was successfully updated')
-        return redirect(url_for('show_all'))
-    else:
-        return render_template('update.html', player=player)
 
 
 @app.before_request

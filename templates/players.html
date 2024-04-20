@@ -1,6 +1,7 @@
 <!-- tennis/templates/players.html -->
 
 {% extends 'base.html' %}
+{% include './partials/_menu.html' %}
 
 {% block main %}
 <script>
@@ -31,7 +32,7 @@
         <div id="player">
             <tr>
                 <td align="center">
-                    <a href="{{ url_for('update', id=player.id) }}">{{player.id}}</a>
+                    <a href="{{ url_for('update_player', id=player.id) }}">{{player.id}}</a>
                 </td>
                 <td align="center">
                     <button onclick="confirmDelete({{ player.id }})">{{player.id}}</button>

@@ -54,14 +54,14 @@ class Player(db.Model):
     height = db.Column(db.Integer, nullable=False)
     weight = db.Column(db.Integer, nullable=False)
     teamId = db.Column(db.Integer, ForeignKey('team.id'), nullable=False)  # Add ForeignKey for team
-    clubId = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)  # Add ForeignKey for club
+    # clubId = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)  # Add ForeignKey for club
     isCaptain = db.Column(db.Boolean, default=False)
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the relationship with Team
     team = relationship('Team', back_populates='players')
-    # Define the relationship with Club
-    club = relationship('Club')
+    # # Define the relationship with Club
+    # club = relationship('Club')
 
     @property
     def age(self):
@@ -84,15 +84,15 @@ class Team(db.Model):
         return f'{self.name}'
 
 
-class Club(db.Model):
-    __tablename__ = 'club'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(20), unique=True, nullable=False)
-    city = db.Column(db.String(20), nullable=False)
-    logo = db.Column(db.String(20), nullable=False)
-
-    # Define the relationship with Player
-    players = relationship('Player', back_populates='club')
-
-    def __repr__(self):
-        return f'{self.name}'
+# class Club(db.Model):
+#     __tablename__ = 'club'
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     name = db.Column(db.String(20), unique=True, nullable=False)
+#     city = db.Column(db.String(20), nullable=False)
+#     logo = db.Column(db.String(20), nullable=False)
+#
+#     # Define the relationship with Player
+#     players = relationship('Player', back_populates='club')
+#
+#     def __repr__(self):
+#         return f'{self.name}'

@@ -1,14 +1,27 @@
-<!-- tennis/templates/new.html -->
+<!-- tennis/templates/new_player.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
 
-<form action="{{ url_for('new_player') }}" , method="POST">
-    <table class="add-form">
-        <tr>
-            <td><input type="text" name="name" placeholder="Nom"></td>
-            <td><input type="date" name="birth_date" placeholder="Date de naissance"></td>
-            <td><input type="text" name="height" placeholder="Taille"></td>
-            <td><input type="text" name="weight" placeholder="Poids"></td>
-            <td><input type="checkbox" name="is_captain" placeholder="Capitaine"></td>
-            <td><input type="submit" value="Ajout joueur"></td>
-        </tr>
-    </table>
-</form>
+{% block main %}
+<main>
+    <form action="{{ url_for('new_player') }}" , method="POST">
+        <table class="add-form">
+            <tr>
+                <td><input type="text" name="name" placeholder="Nom"></td>
+                <td><input type="date" name="birth_date" placeholder="Date de naissance"></td>
+                <td><input type="text" name="height" placeholder="Taille"></td>
+                <td><input type="text" name="weight" placeholder="Poids"></td>
+                <td><input type="checkbox" name="is_captain" placeholder="Capitaine"></td>
+                <td>
+                    <select name="team_id">
+                        {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input type="submit" value="Ajout joueur"></td>
+            </tr>
+        </table>
+    </form>
+</main>
+{% endblock main %}

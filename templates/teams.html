@@ -1,0 +1,37 @@
+<!-- tennis/templates/players.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<script>
+    function confirmDelete(playerId) {
+        var result = confirm("Êtes-vous sûr de vouloir supprimer ce joueur: ?");
+        if (result) {
+            window.location.href = "delete/" + playerId;
+        }
+    }
+</script>
+<main>
+    {% if team_info %}
+    <table class="teams">
+        <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Nb joueurs</th>
+            <th>Capitaine</th>
+        </tr>
+        </thead>
+        {% for team in team_info %}
+        <tr>
+            <td>{{ team.team_name }}</td>
+            <td>{{ team.num_players }}</td>
+            <td>{{ team.captain_name or 'Pas de capitaine défini!' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+    <p style="font-size: 16px; text-align: center;">Pas de joueur disponible ✌️</p>
+    {% endif %}
+</main>
+{% endblock main %}

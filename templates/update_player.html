@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block main %}
+{% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
+{% set isCaptain = 'on' if player.isCaptain else 'off' %}
+
+<main>
+    <form action="{{ url_for('update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">
+        <table class="update-form">
+            <tr>
+                <td><label for="name">Nom</label></td>
+                <td><input type="text" name="name" id="player" value="{{ player.name }}"></td>
+            </tr>
+            <tr>
+                <td><label for="birth_date">Date de naissance</label></td>
+                <td><input type="date" name="birth_date" value="{{ birthDate }}"></td>
+            </tr>
+            <tr>
+                <td><label for="height">Taille</label></td>
+                <td><input type="text" name="height" value="{{ player.height }}"></td>
+            </tr>
+            <tr>
+                <td><label for="weight">Poids</label></td>
+                <td><input type="text" name="weight" value="{{ player.weight }}"></td>
+            </tr>
+            <tr>
+                <td><label for="is_captain">Capitaine</label></td>
+                <td><input type="checkbox" name="is_captain" value="{{ player.isCaptain }}"></td>
+            </tr>
+            <tr>
+                <td>
+                    <select name="team_id">
+                        {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td><input type="submit" value="Update"></td>
+            </tr>
+        </table>
+    </form>
+    <script>
+        function confirmSubmit() {
+            var result = confirm("Are you sure you want to submit the form?");
+            return result;
+        }
+    </script>
+</main>
+{% endblock main %}
