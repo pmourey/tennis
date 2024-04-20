@@ -133,7 +133,8 @@ table.welcome tr td {
 }
 
 
-table.add-form tr td {
+table.add-form tr td select {
+  text-align: center;
   background-color: lightgray;
   padding: 7px;
   border: none;
@@ -142,6 +143,7 @@ table.add-form tr td {
 
 
 table.update-form tr td select {
+  text-align: center;
   color: darkblue;
   background-color: lightgray;
   padding: 7px;

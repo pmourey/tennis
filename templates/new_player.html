@@ -7,12 +7,12 @@
     <form action="{{ url_for('new_player') }}" , method="POST">
         <table class="add-form">
             <tr>
-                <td><input type="text" name="name" placeholder="Nom"></td>
-                <td><input type="date" name="birth_date" placeholder="Date de naissance"></td>
-                <td><input type="text" name="height" placeholder="Taille"></td>
-                <td><input type="text" name="weight" placeholder="Poids"></td>
-                <td><input type="checkbox" name="is_captain" placeholder="Capitaine"></td>
-                <td>
+                <td><label for="name">Nom patronymique</label><input type="text" name="name" placeholder="Nom"></td>
+                <td><label for="birth_date">Date de naissance</label><input type="date" name="birth_date" placeholder="Date de naissance"></td>
+                <td><label for="height">Taille</label><input type="text" name="height" placeholder="Taille"></td>
+                <td><label for="weight">Poids</label><input type="text" name="weight" placeholder="Poids"></td>
+                <td><label for="is_captain">Capitaine</label><input type="checkbox" name="is_captain" placeholder="Capitaine"></td>
+                <td><label for="team_id">Equipe</label>
                     <select name="team_id">
                         {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>

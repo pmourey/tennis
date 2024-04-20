@@ -76,7 +76,7 @@ def new_player():
     app.logger.debug(f'request.method: {request.method}')
     if request.method == 'POST':
         if not (request.form['name'] and request.form['birth_date']):
-            flash('Please enter all the fields', 'error')
+            flash('Veuillez renseigner tous les champs, svp!', 'error')
         else:
             birth_date: datetime = datetime.strptime(request.form['birth_date'], '%Y-%m-%d')
             # is_captain: bool = request.form.get('is_captain') == 'on'
@@ -88,7 +88,9 @@ def new_player():
             # logging.warning("See this message in Flask Debug Toolbar!")
             db.session.add(player)
             db.session.commit()
-            flash('Record was successfully added')
+            team = Team.query.get(player.teamId)
+            player_type: str =  'capitaine' if player.isCaptain else 'joueur'
+            flash(f'{player.name} ajouté avec succès à l\'équipe {team.name} en tant que {player_type}!')
             return redirect(url_for('show_players'))
     teams = Team.query.all()
     app.logger.debug(f'teams: {teams}')
@@ -108,7 +110,7 @@ def update_player(id):
         app.logger.debug(f'is_captain: {player.isCaptain}')
         player.teamId = request.form.get('team_id')
         db.session.commit()
-        flash('Record was successfully updated')
+        flash(f'Infos joueur {player.name} mise à jour avec succès!')
         return redirect(url_for('show_players'))
     else:
         teams = Team.query.all()
