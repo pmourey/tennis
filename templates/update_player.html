@@ -24,14 +24,19 @@
             </tr>
             <tr>
                 <td><label for="is_captain">Capitaine</label></td>
-                <td><input type="checkbox" name="is_captain" value="{{ player.isCaptain }}"></td>
+                <td><input type="checkbox" name="is_captain" {% if player.isCaptain %}checked{% endif %}></td>
+
             </tr>
             <tr>
                 <td><label for="team_id">Equipe</label></td>
                 <td>
                     <select name="team_id">
                         {% for team in teams %}
+                        {% if team.id == player.teamId %}
+                        <option value="{{ team.id }}" selected>{{ team.name }}</option>
+                        {% else %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
+                        {% endif %}
                         {% endfor %}
                     </select>
                 </td>
