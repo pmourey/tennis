@@ -50,7 +50,7 @@ def show_players():
     players = Player.query.filter(Player.isActive).all()
     # players = Player.query.all()
     app.logger.debug(f'players: {players}')
-    return render_template('players.html', players=players, statut='actifs')
+    return render_template('players.html', players=players, active_players=True)
 
 @app.route('/invalid_players')
 def show_invalid_players():
@@ -59,7 +59,7 @@ def show_invalid_players():
     inactive_players = Player.query.filter(not_(Player.isActive)).all()
     # players = Player.query.all()
     app.logger.debug(f'invalid players: {inactive_players}')
-    return render_template('players.html', players=inactive_players, statut='inactifs')
+    return render_template('players.html', players=inactive_players, active_players=False)
 
 @app.route('/teams')
 def show_teams():

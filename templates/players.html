@@ -19,7 +19,9 @@
         <thead>
         <tr>
             <th>Update</th>
+            {% if active_players %}
             <th>Delete</th>
+            {% endif %}
             <th>Nom</th>
             <th>Age</th>
             <th>Taille</th>
@@ -34,9 +36,11 @@
                 <td align="center">
                     <a href="{{ url_for('update_player', id=player.id) }}">{{player.id}}</a>
                 </td>
+                {% if active_players %}
                 <td align="center">
                     <button onclick="confirmDelete({{ player.id }})">{{player.id}}</button>
                 </td>
+                {% endif %}
                 <td>{{ player.name }}</td>
                 <td>{{ player.age }}</td>
                 <td>{{ player.height }}</td>
