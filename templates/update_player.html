@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% block main %}
 {% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
-{% set isCaptain = 'on' if player.isCaptain else 'off' %}
 
 <main>
     <form action="{{ url_for('update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">

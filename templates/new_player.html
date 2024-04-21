@@ -7,19 +7,37 @@
     <form action="{{ url_for('new_player') }}" , method="POST">
         <table class="update-form">
             <tr>
-                <td><label for="name">Nom patronymique</label></td><td><input type="text" name="name" placeholder="Nom"></td></tr><tr>
-                <td><label for="birth_date">Date de naissance</label></td><td><input type="date" name="birth_date" placeholder="Date de naissance"></td></tr><tr>
-                <td><label for="height">Taille</label></td><td><input type="text" name="height" placeholder="Taille"></td></tr><tr>
-                <td><label for="weight">Poids</label></td><td><input type="text" name="weight" placeholder="Poids"></td></tr><tr>
-                <td><label for="is_captain">Capitaine</label></td><td><input type="checkbox" name="is_captain" placeholder="Capitaine"></td></tr><tr>
-                <td><label for="team_id">Equipe</label></td><td>
+                <td><label for="name">Nom patronymique</label></td>
+                <td><input type="text" name="name" placeholder="Nom"></td>
+            </tr>
+            <tr>
+                <td><label for="birth_date">Date de naissance</label></td>
+                <td><input type="date" name="birth_date" placeholder="Date de naissance"></td>
+            </tr>
+            <tr>
+                <td><label for="height">Taille</label></td>
+                <td><input type="text" name="height" placeholder="Taille"></td>
+            </tr>
+            <tr>
+                <td><label for="weight">Poids</label></td>
+                <td><input type="text" name="weight" placeholder="Poids"></td>
+            </tr>
+            <tr>
+                <td><label for="is_captain">Capitaine</label></td>
+                <td><input type="checkbox" name="is_captain" placeholder="Capitaine"></td>
+            </tr>
+            <tr>
+                <td><label for="team_id">Equipe</label></td>
+                <td>
                     <select name="team_id">
                         {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
                         {% endfor %}
                     </select>
-                </td></tr><tr>
-            <td colspan="2"><input type="submit" value="Ajout joueur"></td>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><input type="submit" value="Ajout joueur"></td>
             </tr>
         </table>
     </form>
