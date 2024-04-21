@@ -113,6 +113,10 @@ table.update-form tr td select {
   border-collapse: collapse;
 }
 
+table.update-form select {
+  font-size: 16px;
+ }
+
 
  /* Centre le contenu horizontalement dans le conteneur de grille */
 main {
