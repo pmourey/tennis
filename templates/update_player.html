@@ -1,10 +1,14 @@
+<!-- tennis/templates/update_player.html -->
 {% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
 {% block main %}
 {% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
 
 <main>
     <form action="{{ url_for('update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">
         <table class="update-form">
+            <caption class="table-caption">Fiche joueur</caption> <!-- Titre ajouté ici -->
             <tr>
                 <td><label for="name">Nom</label></td>
                 <td><input type="text" name="name" id="player" value="{{ player.name }}"></td>
@@ -46,7 +50,7 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="2"><input type="submit" value="Update"></td>
+                <td colspan="2"><input type="submit" value="Mettre à jour"></td>
             </tr>
         </table>
     </form>
