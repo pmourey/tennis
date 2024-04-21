@@ -68,12 +68,12 @@ def show_teams():
     team_info = []
     for team in teams:
         # Compter le nombre de joueurs dans l'équipe
-        num_players = Player.query.filter_by(teamId=team.id).count()
+        num_active_players = Player.query.filter_by(teamId=team.id, isActive=True).count()
         # Récupérer le nom du capitaine s'il existe
-        captain = Player.query.filter_by(teamId=team.id, isCaptain=True).first()
+        captain = Player.query.filter_by(teamId=team.id, isCaptain=True, isActive=True).first()
         captain_name = captain.name if captain else None
         # Ajouter les informations de l'équipe à la liste
-        team_info.append({'team_name': team.name, 'num_players': num_players, 'captain_name': captain_name})
+        team_info.append({'team_name': team.name, 'num_players': num_active_players, 'captain_name': captain_name})
 
     return render_template('teams.html', team_info=team_info)
 
