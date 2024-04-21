@@ -36,13 +36,6 @@ input[type="submit"] {
     font-size: 16px;
 }
 
-/* not used
-#jobs {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-*/
 
 .players {
     width: 100%;
@@ -88,37 +81,6 @@ table.menu tr td {
   border: 3px solid pink;
   border-radius: 5px;
   border-collapse: collapse;
-}
-
-table.sessions tr th td {
-  color: darkblue;
-  background-color: lightgray;
-  padding: 7px;
-  border: 1px solid black;
-  border-collapse: collapse;
-}
-
-table.accounts tr th td {
-  color: darkblue;
-  padding: 7px;
-  margin-bottom: 20px;
-  border: 1px solid black;
-  border-collapse: collapse;
-}
-
-
-table.sessions tr:nth-child(odd) {
-  background-color: lightblue;
-}
-table.sessions tr:nth-child(even) {
-  background-color: orange;
-}
-
-table.accounts tr:nth-child(odd) {
-  background-color: lightgreen;
-}
-table.accounts tr:nth-child(even) {
-  background-color: yellow;
 }
 
 
@@ -167,5 +129,13 @@ th, td {
 
 th {
     background-color: #f2f2f2;
+}
+
+.table-caption {
+    font-weight: bold;
+    font-size: 18px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
 }
 

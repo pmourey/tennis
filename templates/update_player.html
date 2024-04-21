@@ -28,6 +28,11 @@
 
             </tr>
             <tr>
+                <td><label for="is_active">Actif</label></td>
+                <td><input type="checkbox" name="is_active" {% if player.isActive %}checked{% endif %}></td>
+
+            </tr>
+            <tr>
                 <td><label for="team_id">Equipe</label></td>
                 <td>
                     <select name="team_id">

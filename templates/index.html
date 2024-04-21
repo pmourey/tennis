@@ -5,13 +5,16 @@
 <main>
     <table class="welcome">
         <tr>
-            <td> <a href="{{ url_for('show_players') }}">Liste joueurs</a></td>
+            <td><a href="{{ url_for('show_players') }}">Liste joueurs actifs</a></td>
         </tr>
         <tr>
-            <td> <a href="{{ url_for('show_teams') }}">Liste équipes</a></td>
+            <td><a href="{{ url_for('show_teams') }}">Liste équipes</a></td>
         </tr>
         <tr>
             <td><a href="{{ url_for('new_player') }}">Nouveau joueur</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('show_invalid_players') }}">Liste joueurs inactifs</a></td>
         </tr>
     </table>
 </main>

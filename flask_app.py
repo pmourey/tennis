@@ -11,7 +11,7 @@ import locale
 from datetime import datetime, timedelta
 from flask import Flask, request, flash, url_for, redirect, render_template, session, send_file
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy import DateTime, desc
+from sqlalchemy import DateTime, desc, not_
 
 from TennisModel import Player, db, Team
 
@@ -45,14 +45,21 @@ def welcome():
 
 @app.route('/players')
 def show_players():
-    app.logger.debug('This is a debug message.')
     # Reverse order query
     # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
-    # players = Player.query.filter(Player.isActive).all()
-    players = Player.query.all()
+    players = Player.query.filter(Player.isActive).all()
+    # players = Player.query.all()
     app.logger.debug(f'players: {players}')
-    return render_template('players.html', players=players)
+    return render_template('players.html', players=players, statut='actifs')
 
+@app.route('/invalid_players')
+def show_invalid_players():
+    # Reverse order query
+    # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
+    inactive_players = Player.query.filter(not_(Player.isActive)).all()
+    # players = Player.query.all()
+    app.logger.debug(f'invalid players: {inactive_players}')
+    return render_template('players.html', players=inactive_players, statut='inactifs')
 
 @app.route('/teams')
 def show_teams():
@@ -107,6 +114,7 @@ def update_player(id):
         player.height = request.form.get('height')
         player.weight = request.form.get('weight')
         player.isCaptain = False if request.form.get('is_captain') is None else True
+        player.isActive = False if request.form.get('is_active') is None else True
         app.logger.debug(f'is_captain: {player.isCaptain}')
         player.teamId = request.form.get('team_id')
         db.session.commit()
