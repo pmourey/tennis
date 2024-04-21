@@ -4,7 +4,7 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
-{% set status = 'actifs' if active_players else 'inactifs' %}
+{% set status = 'disponibles' if active_players else 'indisponibles' %}
 
 <script>
     function confirmDelete(playerId) {
