@@ -58,7 +58,7 @@ button {
   color: darkblue;
   background-color: lightgray;
   padding: 7px;
-  border: 1px solid pink;
+  border: none; /* Modification de la propriété border */
   border-radius: 5px;
   border-collapse: collapse;
 }
@@ -71,25 +71,29 @@ table.menu {
     display: block;
  } */
 
-table.menu tr td {
+table.menu tr, table.menu td {
+  border: none; /* Modification de la propriété border */
   display: inline;
   text-align: center;
   color: darkblue;
   background-color: lightgray;
   padding: 7px;
   margin-bottom: 20px;
-  border: 3px solid pink;
   border-radius: 5px;
   border-collapse: collapse;
+  font-size: 16px;
 }
 
 
-table.welcome tr td {
+table.welcome tr {
+  margin-bottom: 20px; /* Augmentation de l'espacement entre les lignes */
+}
+
+table.welcome tr, table.welcome td{
   color: darkblue;
   background-color: lightgray;
   padding: 7px;
-  margin-bottom: 20px;
-  border: 3px solid pink;
+  border: none; /* Suppression du contour des cellules */
   border-radius: 5px;
   border-collapse: collapse;
 }
