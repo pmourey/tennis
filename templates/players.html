@@ -4,6 +4,8 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
+{% set status = 'actifs' if active_players else 'inactifs' %}
+
 <script>
     function confirmDelete(playerId) {
         var result = confirm("Êtes-vous sûr de vouloir supprimer ce joueur: ?");
@@ -15,7 +17,7 @@
 <main>
     {% if players %}
     <table class="players">
-        <caption class="table-caption">Liste des joueurs {{ statut }}</caption> <!-- Titre ajouté ici -->
+        <caption class="table-caption">Liste des joueurs {{ status }}</caption> <!-- Titre ajouté ici -->
         <thead>
         <tr>
             <th>Update</th>
