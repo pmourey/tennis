@@ -15,7 +15,7 @@
 <main>
     {% if players %}
     <table class="players">
-        <caption class="table-caption">Liste des joueurs {{ statut }} </caption> <!-- Titre ajouté ici -->
+        <caption class="table-caption">Liste des joueurs {{ statut }}</caption> <!-- Titre ajouté ici -->
         <thead>
         <tr>
             <th>Update</th>
@@ -26,7 +26,6 @@
             <th>Poids</th>
             <th>Equipe</th>
             <th>Capitaine</th>
-            <th>Valide</th>
         </tr>
         </thead>
         {% for player in players %}
@@ -43,8 +42,13 @@
                 <td>{{ player.height }}</td>
                 <td>{{ player.weight }}</td>
                 <td>{{ player.team }}</td>
-                <td>{{ player.isCaptain }}</td>
-                <td>{{ player.isActive}}</td>
+                <td>
+                    {% if player.isCaptain %}
+                    <img src="{{ url_for('static', filename='icones/cbx_ok.png') }}" alt="Capitaine">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='icones/cbx_ko.png') }}" alt="Non Capitaine">
+                    {% endif %}
+                </td>
             </tr>
         </div>
         {%endfor %}
