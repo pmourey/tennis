@@ -24,15 +24,11 @@
                 <td><input type="text" name="weight" placeholder="Poids"></td>
             </tr>
             <tr>
-                <td><label for="is_captain">Capitaine</label></td>
-                <td><input type="checkbox" name="is_captain" placeholder="Capitaine"></td>
-            </tr>
-            <tr>
-                <td><label for="team_id">Equipe</label></td>
+                <td><label for="club_id">Club</label></td>
                 <td>
-                    <select name="team_id">
-                        {% for team in teams %}
-                        <option value="{{ team.id }}">{{ team.name }}</option>
+                    <select name="club_id">
+                        {% for club in clubs %}
+                        <option value="{{ club.id }}">{{ club.name }}</option>
                         {% endfor %}
                     </select>
                 </td>

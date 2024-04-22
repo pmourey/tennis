@@ -28,8 +28,8 @@
             <th>Age</th>
             <th>Taille</th>
             <th>Poids</th>
-            <th>Equipe</th>
-            <th>Capitaine</th>
+            <th>Equipes</th>
+<!--            <th>Capitaine</th>-->
         </tr>
         </thead>
         {% for player in players %}
@@ -47,20 +47,20 @@
                 <td>{{ player.age }}</td>
                 <td>{{ player.height }}</td>
                 <td>{{ player.weight }}</td>
-                <td>{{ player.team }}</td>
-                <td>
+                <td>{{ player.teams }}</td>
+<!--                <td>
                     {% if player.isCaptain %}
                     <img src="{{ url_for('static', filename='icones/cbx_ok.png') }}" alt="Capitaine">
                     {% else %}
                     <img src="{{ url_for('static', filename='icones/cbx_ko.png') }}" alt="Non Capitaine">
                     {% endif %}
-                </td>
+                </td>-->
             </tr>
         </div>
         {%endfor %}
     </table>
     {% else %}
-    <p style="font-size: 16px; text-align: center;">Pas de joueur disponible ✌️</p>
+    <p style="font-size: 16px; text-align: center;">Pas de joueurs {{status}} ✌️</p>
     {% endif %}
 </main>
 {% endblock main %}

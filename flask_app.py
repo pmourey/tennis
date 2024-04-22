@@ -13,7 +13,7 @@ from flask import Flask, request, flash, url_for, redirect, render_template, ses
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import DateTime, desc, not_
 
-from TennisModel import Player, db, Team
+from TennisModel import Player, db, Team, Club
 
 from flask import render_template, redirect, url_for, flash
 
@@ -40,6 +40,16 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 @app.route('/')
 def welcome():
+    # Vérifier si le club par défaut existe dans la base de données
+    default_club = Club.query.filter_by(name='USC Tennis').first()
+    if not default_club:
+        # Si le club par défaut n'existe pas, l'ajouter à la base de données
+        default_club = Club(name='USC Tennis', city='Cagnes-sur-Mer')
+        db.session.add(default_club)
+        db.session.commit()
+        message = f'Club {default_club} créé avec succès ! Veuillez créer des joueurs dans le club, avant de créér les équipes :-D'
+        flash(message, 'error')
+
     return render_template('index.html')
 
 
@@ -61,8 +71,8 @@ def show_invalid_players():
     app.logger.debug(f'invalid players: {inactive_players}')
     return render_template('players.html', players=inactive_players, active_players=False)
 
-@app.route('/teams')
-def show_teams():
+@app.route('/teams_old')
+def show_teams_old():
     # Récupérer toutes les équipes avec le nombre de joueurs
     teams = Team.query.all()
     team_info = []
@@ -77,6 +87,57 @@ def show_teams():
 
     return render_template('teams.html', team_info=team_info)
 
+@app.route('/teams')
+def show_teams():
+    teams = Team.query.order_by(desc(Team.name)).all()
+    return render_template('teams.html', teams=teams)
+
+def keys_with_same_value(d):
+    return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
+    # return {value: [key for key, val in d.items() if val == value] for value in set(d.values()) if list(d.values()).count(value) > 1}
+
+
+@app.route('/new_team/', methods=['GET', 'POST'])
+def new_team():
+    players_dict = {}
+    if request.method == 'POST':
+        # Parcourir les données pour récupérer les noms des joueurs
+        for key, value in request.form.items():
+            if value and key.startswith('player_name_'):
+                players_dict[key] = Player.query.get(value)
+        # test doublons
+        duplicates = keys_with_same_value(players_dict)
+        if not request.form['name']:
+            flash('Veuillez renseigner tous les champs, svp!', 'error')
+        elif duplicates:
+            if len(duplicates) == 1:
+                flash(f'Le joueur {duplicates[0]} est en doublon, veuillez en sélectionner un autre!', 'error')
+            else:
+                flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
+        else:
+            # Récupérer les données du formulaire
+            team_name = request.form.get('name')
+            captain_id = request.form.get('captain_id')
+
+            # Créer l'équipe avec les informations fournies
+            # Vous pouvez ajouter le code pour enregistrer l'équipe dans la base de données ici
+
+            team = Team(name=team_name, captainId=captain_id, players=list(players_dict.values()))
+            db.session.add(team)
+            db.session.commit()
+            flash(f'L\'équipe {team.name} a été créée avec succès avec {len(team.players)} joueurs!')
+            return redirect(url_for('show_teams'))
+    default_club = Club.query.filter_by(name='USC Tennis').first()
+    players = Player.query.filter_by(clubId=default_club.id).all()  # US Cagnes only :-)
+    if players:
+        app.logger.debug(f'players: {players}')
+        app.logger.debug(f'request.form: {request.form}')
+        max_players = min(10, len(players))
+        return render_template('new_team.html', players=players, max_players=max_players, form=request.form)
+    else:
+        flash(f'Tâche impossible! Veuillez créer des joueurs dans le club {default_club} au préalable!', 'error')
+        return render_template('index.html')
+
 
 @app.route('/new_player/', methods=['GET', 'POST'])
 def new_player():
@@ -89,19 +150,17 @@ def new_player():
             # is_captain: bool = request.form.get('is_captain') == 'on'
             is_captain = False if request.form.get('is_captain') is None else True
             app.logger.debug(f'is_captain: {is_captain}')
-            player = Player(name=request.form['name'], birthDate=birth_date,
-                            height=request.form['height'], weight=request.form['weight'], teamId=request.form['team_id'],
-                            isCaptain=is_captain, isActive=True)
+            player = Player(name=request.form['name'], birthDate=birth_date, height=request.form['height'],
+                            weight=request.form['weight'], clubId=request.form['club_id'], isActive=True)
             # logging.warning("See this message in Flask Debug Toolbar!")
             db.session.add(player)
             db.session.commit()
-            team = Team.query.get(player.teamId)
-            player_type: str =  'capitaine' if player.isCaptain else 'joueur'
-            flash(f'{player.name} ajouté avec succès à l\'équipe {team.name} en tant que {player_type}!')
+            club = Club.query.get(player.clubId)
+            flash(f'{player.name} ajouté avec succès dans le club {club.name}!')
             return redirect(url_for('show_players'))
-    teams = Team.query.all()
-    app.logger.debug(f'teams: {teams}')
-    return render_template('new_player.html', teams=teams)
+    clubs = Club.query.all()
+    app.logger.debug(f'clubs: {clubs}')
+    return render_template('new_player.html', clubs=clubs)
 
 @app.route('/update_player/<int:id>', methods=['GET', 'POST'])
 def update_player(id):
@@ -113,17 +172,14 @@ def update_player(id):
         player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
         player.height = request.form.get('height')
         player.weight = request.form.get('weight')
-        player.isCaptain = False if request.form.get('is_captain') is None else True
         player.isActive = False if request.form.get('is_active') is None else True
-        app.logger.debug(f'is_captain: {player.isCaptain}')
-        player.teamId = request.form.get('team_id')
+        player.clubId = request.form.get('club_id')
         db.session.commit()
-        player_type: str = 'capitaine' if player.isCaptain else 'joueur'
-        flash(f'Infos {player_type} {player.name} mises à jour avec succès!')
+        flash(f'Infos {player.name} mises à jour avec succès!')
         return redirect(url_for('show_players'))
     else:
-        teams = Team.query.all()
-        return render_template('update_player.html', player=player, teams=teams)
+        clubs = Club.query.all()
+        return render_template('update_player.html', player=player, clubs=clubs)
 
 @app.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id):

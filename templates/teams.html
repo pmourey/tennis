@@ -13,7 +13,7 @@
     }
 </script>
 <main>
-    {% if team_info %}
+    {% if teams %}
     <table class="teams">
         <caption class="table-caption">Liste équipes</caption> <!-- Titre ajouté ici -->
         <thead>
@@ -23,16 +23,16 @@
             <th>Capitaine principal</th>
         </tr>
         </thead>
-        {% for team in team_info %}
+        {% for team in teams %}
         <tr>
-            <td>{{ team.team_name }}</td>
-            <td>{{ team.num_players }}</td>
-            <td>{{ team.captain_name or 'Pas de capitaine défini!' }}</td>
+            <td>{{ team.name }}</td>
+            <td>{{ team.players|length }}</td>
+            <td>{{ team.captainName or 'Pas de capitaine défini!' }}</td>
         </tr>
         {% endfor %}
     </table>
     {% else %}
-    <p style="font-size: 16px; text-align: center;">Pas de joueur disponible ✌️</p>
+    <p style="font-size: 16px; text-align: center;">Pas d'équipe enregistrée ✌️</p>
     {% endif %}
 </main>
 {% endblock main %}
