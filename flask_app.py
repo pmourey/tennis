@@ -224,7 +224,7 @@ def delete_player(id):
         db.session.delete(player)
         db.session.commit()
         app.logger.debug(f'Joueur {player} supprimé!')
-        flash(f'Joueur \"{player.name}\" ne fait plus partie du club \"{player.club}\"!')
+        flash(f"Joueur \"{player.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
         return redirect(url_for('show_players'))
 
 @app.route('/delete_team/<int:id>', methods=['GET', 'POST'])
@@ -234,7 +234,7 @@ def delete_team(id):
         db.session.delete(team)
         db.session.commit()
         app.logger.debug(f'Equipe {team} supprimé!')
-        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club {app.config['DEFAULT_CLUB']['name']}!")
+        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
         return redirect(url_for('show_teams'))
 
 @app.before_request
