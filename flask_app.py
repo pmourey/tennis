@@ -41,10 +41,10 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 @app.route('/')
 def welcome():
     # Vérifier si le club par défaut existe dans la base de données
-    default_club = Club.query.filter_by(name='USC Tennis').first()
+    default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
     if not default_club:
         # Si le club par défaut n'existe pas, l'ajouter à la base de données
-        default_club = Club(name='USC Tennis', city='Cagnes-sur-Mer')
+        default_club = Club(name=app.config['DEFAULT_CLUB']['name'], city=app.config['DEFAULT_CLUB']['city'])
         db.session.add(default_club)
         db.session.commit()
         message = f'Club {default_club} créé avec succès ! Veuillez créer des joueurs dans le club, avant de créér les équipes :-D'
@@ -127,7 +127,7 @@ def new_team():
             db.session.commit()
             flash(f'L\'équipe {team.name} a été créée avec succès avec {len(team.players)} joueurs!')
             return redirect(url_for('show_teams'))
-    default_club = Club.query.filter_by(name='USC Tennis').first()
+    default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
     players = Player.query.filter_by(clubId=default_club.id).all()  # US Cagnes only :-)
     if players:
         app.logger.debug(f'players: {players}')
@@ -138,6 +138,42 @@ def new_team():
         flash(f'Tâche impossible! Veuillez créer des joueurs dans le club {default_club} au préalable!', 'error')
         return render_template('index.html')
 
+@app.route('/update_team/<int:id>', methods=['GET', 'POST'])
+def update_team(id):
+    team: Team = Team.query.get_or_404(id)
+    app.logger.debug(f'team: {(team.id, id, team.name)} - players: {team.players}')
+    players_dict = {}
+    if request.method == 'POST':
+        # Parcourir les données pour récupérer les noms des joueurs
+        for key, value in request.form.items():
+            if value and key.startswith('player_name_'):
+                players_dict[key] = Player.query.get(value)
+        # test doublons
+        duplicates = keys_with_same_value(players_dict)
+        if not request.form['name']:
+            flash('Veuillez renseigner tous les champs, svp!', 'error')
+        elif duplicates:
+            if len(duplicates) == 1:
+                flash(f'Le joueur {duplicates[0]} est en doublon, veuillez en sélectionner un autre!', 'error')
+            else:
+                flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
+        else:
+            team.name = request.form.get('name')
+            team.captainId = request.form.get('captain_id')
+            team.players = list(players_dict.values())
+            db.session.commit()
+            flash(f'Equipe {team.name} mise à jour avec succès!')
+            return redirect(url_for('show_teams'))
+    default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
+    app.logger.debug(f'default_club: {default_club}')
+    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
+    app.logger.debug(f'active players: {active_players}')
+    if active_players:
+        max_players = min(10, len(active_players))
+        return render_template('update_team.html', team=team, active_players=active_players, max_players=max_players)
+    else:
+        flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {default_club}!', 'error')
+        return render_template('index.html')
 
 @app.route('/new_player/', methods=['GET', 'POST'])
 def new_player():
@@ -181,18 +217,25 @@ def update_player(id):
         clubs = Club.query.all()
         return render_template('update_player.html', player=player, clubs=clubs)
 
-@app.route('/delete/<int:id>', methods=['GET', 'POST'])
-def delete(id):
-    app.logger.debug(f'Delete job #{id}')
+@app.route('/delete_player/<int:id>', methods=['GET', 'POST'])
+def delete_player(id):
     if request.method == 'GET':
         player = Player.query.get_or_404(id)
-        app.logger.debug(f'Player debug: {player}')
-        # db.session.delete(job)
-        player.isActive = False
+        db.session.delete(player)
         db.session.commit()
-        flash(f'Joueur \"{player.name}\" supprimé de l\'équipe  \"{player.team}\"!')
+        app.logger.debug(f'Joueur {player} supprimé!')
+        flash(f'Joueur \"{player.name}\" ne fait plus partie du club \"{player.club}\"!')
         return redirect(url_for('show_players'))
 
+@app.route('/delete_team/<int:id>', methods=['GET', 'POST'])
+def delete_team(id):
+    if request.method == 'GET':
+        team = Team.query.get_or_404(id)
+        db.session.delete(team)
+        db.session.commit()
+        app.logger.debug(f'Equipe {team} supprimé!')
+        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club {app.config['DEFAULT_CLUB']['name']}!")
+        return redirect(url_for('show_teams'))
 
 @app.before_request
 def create_tables():

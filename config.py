@@ -7,6 +7,7 @@ class Config:
     # TESTING = True
     SECRET_KEY = 'fifa 2022'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///tennis.sqlite3'
+    DEFAULT_CLUB = {'name': 'USC Tennis', 'city': 'Cagnes-sur-Mer'}
     PARIS = timezone('Europe/Paris')
 
 

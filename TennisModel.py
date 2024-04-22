@@ -22,9 +22,7 @@ class Player(db.Model):
     birthDate = db.Column(db.DateTime, nullable=False)
     height = db.Column(db.Integer, nullable=False)
     weight = db.Column(db.Integer, nullable=False)
-    # teamId = db.Column(db.Integer, db.ForeignKey('team.id'))
     clubId = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
-    # isCaptain = db.Column(db.Boolean, default=False)
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the relationship with Club

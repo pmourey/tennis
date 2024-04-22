@@ -1,0 +1,54 @@
+<!-- tennis/templates/update_team.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+
+<main>
+    <form action="{{ url_for('update_team', id=team.id) }}" method="POST">
+        <table class="update-form">
+            <caption class="table-caption">Fiche équipe</caption>
+            <tr>
+                <td><label for="name">Nom équipe</label></td>
+                <td><input type="text" name="name" value="{{ team.name }}"</td>
+            </tr>
+            {% for player_num in range(1, max_players + 1) %}
+            {% set team_player = team.players[player_num - 1] if player_num <= max_players else None %}
+            <tr>
+                <td><label for="player_name_{{ player_num }}">Joueur {{ player_num }}</label></td>
+                <td>
+                    <select name="player_name_{{ player_num }}">
+                        <option value="">Sélectionnez un joueur</option> <!-- Option vide -->
+                        {% for player in active_players %}
+                            {% if team_player and team_player.id == player.id %}
+                                <option value="{{ player.id }}" selected>{{ player.name }}</option>
+                            {% else %}
+                                <option value="{{ player.id }}">{{ player.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td><label for="captain_id">Capitaine</label></td>
+                <td>
+                    <select name="captain_id">
+                        <option value="">Sélectionnez un capitaine</option> <!-- Option vide -->
+                        {% for player in active_players %}
+                        {% if team.captainId == player.id %}
+                        <option value="{{ player.id }}" selected>{{ player.name }}</option>
+                        {% else %}
+                        <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><input type="submit" value="Mettre à jour"></td>
+            </tr>
+        </table>
+    </form>
+</main>
+{% endblock main %}

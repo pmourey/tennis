@@ -8,9 +8,9 @@
 
 <script>
     function confirmDelete(playerId) {
-        var result = confirm("Êtes-vous sûr de vouloir supprimer ce joueur: ?");
+        var result = confirm("Êtes-vous sûr de vouloir supprimer ce joueur?");
         if (result) {
-            window.location.href = "delete/" + playerId;
+            window.location.href = "delete_player/" + playerId;
         }
     }
 </script>
@@ -21,40 +21,24 @@
         <thead>
         <tr>
             <th>Update</th>
-            {% if active_players %}
             <th>Delete</th>
-            {% endif %}
             <th>Nom</th>
             <th>Age</th>
             <th>Taille</th>
             <th>Poids</th>
             <th>Equipes</th>
-<!--            <th>Capitaine</th>-->
         </tr>
         </thead>
         {% for player in players %}
         <div id="player">
             <tr>
-                <td align="center">
-                    <a href="{{ url_for('update_player', id=player.id) }}">{{player.id}}</a>
-                </td>
-                {% if active_players %}
-                <td align="center">
-                    <button onclick="confirmDelete({{ player.id }})">{{player.id}}</button>
-                </td>
-                {% endif %}
+                <td><a href="{{ url_for('update_player', id=player.id) }}">{{player.id}}</a></td>
+                <td><button onclick="confirmDelete({{ player.id }})">{{player.id}}</button></td>
                 <td>{{ player.name }}</td>
                 <td>{{ player.age }}</td>
                 <td>{{ player.height }}</td>
                 <td>{{ player.weight }}</td>
                 <td>{{ player.teams }}</td>
-<!--                <td>
-                    {% if player.isCaptain %}
-                    <img src="{{ url_for('static', filename='icones/cbx_ok.png') }}" alt="Capitaine">
-                    {% else %}
-                    <img src="{{ url_for('static', filename='icones/cbx_ko.png') }}" alt="Non Capitaine">
-                    {% endif %}
-                </td>-->
             </tr>
         </div>
         {%endfor %}
