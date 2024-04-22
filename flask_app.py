@@ -128,12 +128,12 @@ def new_team():
             flash(f'L\'équipe {team.name} a été créée avec succès avec {len(team.players)} joueurs!')
             return redirect(url_for('show_teams'))
     default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
-    players = Player.query.filter_by(clubId=default_club.id).all()  # US Cagnes only :-)
-    if players:
-        app.logger.debug(f'players: {players}')
+    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
+    if active_players:
+        app.logger.debug(f'players: {active_players}')
         app.logger.debug(f'request.form: {request.form}')
-        max_players = min(10, len(players))
-        return render_template('new_team.html', players=players, max_players=max_players, form=request.form)
+        max_players = min(10, len(active_players))
+        return render_template('new_team.html', active_players=active_players, max_players=max_players, form=request.form)
     else:
         flash(f'Tâche impossible! Veuillez créer des joueurs dans le club {default_club} au préalable!', 'error')
         return render_template('index.html')

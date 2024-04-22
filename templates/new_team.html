@@ -18,7 +18,7 @@
                 <td>
                     <select name="player_name_{{ player_num }}">
                          <option value="">Sélectionnez un joueur</option> <!-- Option vide -->
-                        {% for player in players %}
+                        {% for player in active_players %}
                         <option value="{{ player.id }}" {% if form['player_name_' + '%d'|format(player_num)] == player.id ~ '' %} selected {% endif %}>{{ player.name }}</option>
                         {% endfor %}
                     </select>
@@ -30,7 +30,7 @@
                 <td>
                     <select name="captain_id">
                         <option value="">Sélectionnez un capitaine</option> <!-- Option vide -->
-                        {% for player in players %}
+                        {% for player in active_players %}
                         <option value="{{ player.id }}" {% if form['captain_id'] == player.id ~ '' %} selected {% endif %}>{{ player.name }}</option>
                         {% endfor %}
                     </select>
