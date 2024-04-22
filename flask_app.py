@@ -13,7 +13,7 @@ from flask import Flask, request, flash, url_for, redirect, render_template, ses
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import DateTime, desc, not_
 
-from TennisModel import Player, db, Team, Club
+from TennisModel import Player, db, Team, Club, Championship
 
 from flask import render_template, redirect, url_for, flash
 
@@ -216,6 +216,32 @@ def update_player(id):
     else:
         clubs = Club.query.all()
         return render_template('update_player.html', player=player, clubs=clubs)
+
+@app.route('/new_championship', methods=['GET', 'POST'])
+def new_championship():
+    if request.method == 'POST':
+        name = request.form['name']
+        start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
+        end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d')
+        gender = int(request.form['gender'])
+        age_category = request.form['age_category']
+        singles_count = int(request.form['singles_count'])
+        doubles_count = int(request.form['doubles_count'])
+
+        championship = Championship(name=name, startDate=start_date, endDate=end_date, gender=gender, ageCategory=age_category, singlesCount=singles_count, doublesCount=doubles_count)
+        db.session.add(championship)
+        db.session.commit()
+
+        flash('Championnat créé avec succès!', 'success')
+        return render_template('index.html')
+
+    return render_template('new_championship.html')
+
+@app.route('/list_championships')
+def list_championships():
+    championships = Championship.query.all()
+    app.logger.debug(f'championships: {championships}')
+    return render_template('list_championships.html', championships=championships)
 
 @app.route('/delete_player/<int:id>', methods=['GET', 'POST'])
 def delete_player(id):

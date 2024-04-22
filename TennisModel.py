@@ -52,6 +52,7 @@ class Club(db.Model):
     def __repr__(self):
         return f'{self.name}'
 
+
 class Team(db.Model):
     __tablename__ = 'team'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -59,7 +60,7 @@ class Team(db.Model):
     captainId = db.Column(db.Integer, db.ForeignKey('player.id'))
 
     # Define the relationship with Player using many-to-many association
-    players = relationship('Player', secondary=player_team_association, back_populates='teams')
+    players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
 
     @property
     def club(self):
@@ -81,12 +82,30 @@ class Championship(db.Model):
     name = db.Column(db.String(50), nullable=False)
     startDate = db.Column(db.Date, nullable=False)
     endDate = db.Column(db.Date, nullable=False)
+    gender = db.Column(db.Integer, nullable=False)  # Champ masculin/féminin (0 pour masculin, 1 pour féminin)
     ageCategory = db.Column(db.String(20), nullable=False)
     singlesCount = db.Column(db.Integer, nullable=False)
     doublesCount = db.Column(db.Integer, nullable=False)
 
-    # Relation avec les rencontres (matchs) du championnat
-    matches = relationship('Match', back_populates='championship')
+    # Relation avec les poules du championnat
+    pools = relationship('Pool', back_populates='championship')
+
+    def __repr__(self):
+        return f'{self.name}'
+
+class Pool(db.Model):
+    __tablename__ = 'pool'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+
+    # Clé étrangère vers le championnat auquel appartient la poule
+    championshipId = db.Column(db.Integer, ForeignKey('championship.id'))
+    championship = relationship('Championship', back_populates='pools')
+
+    # Relation avec les matchs de la poule
+    matches = relationship('Match', back_populates='pool')
+
 
 
 class Match(db.Model):
@@ -95,9 +114,9 @@ class Match(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
 
-    # Clé étrangère vers le championnat auquel appartient le match
-    championship_id = db.Column(db.Integer, ForeignKey('championship.id'))
-    championship = relationship('Championship', back_populates='matches')
+    # Clé étrangère vers la poule auquelle appartient le match
+    poolId = db.Column(db.Integer, ForeignKey('pool.id'))
+    pool = relationship('Pool', back_populates='matches')
 
     # Clé étrangère vers l'équipe à domicile
     homeTeamId = db.Column(db.Integer, ForeignKey('team.id'))
