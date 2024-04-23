@@ -75,23 +75,72 @@ class Team(db.Model):
         return f'{self.name}'
 
 
+class AgeCategory(db.Model):
+    __tablename__ = 'age_category'
+
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.Integer, nullable=False)  # Champ Jeunes/Seniors/Vétérans (0 pour jeunes, 1 pour seniors, 2 pour vétérans)
+    minAge = db.Column(db.Integer, nullable=False)
+    maxAge = db.Column(db.Integer, nullable=False)
+
+    @property
+    def name(self) -> str:
+        categories = {0: 'Jeunes', 1: 'Seniors', 2: 'Seniors Plus'}
+        if self.type == 0:
+            return f'U{self.minAge}'
+        elif self.type == 1:
+            return categories[self.type]
+        else:
+            return f'{categories[self.type]} {self.minAge}'
+
+    def __repr__(self):
+        return f'{self.name}'
+
+
+class Division(db.Model):
+    __tablename__ = 'division'
+
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.Integer, nullable=False)  # Champ National/Prenational/Regional/Departmental
+    number = db.Column(db.Integer, nullable=True)  # Niveau de division dans la catégorie définie dans type
+    gender = db.Column(db.Integer, nullable=False)  # Champ masculin/féminin (0 pour masculin, 1 pour féminin, 2 pour mixte)
+
+    # Référence vers AgeCategory
+    ageCategoryId = db.Column(db.Integer, db.ForeignKey('age_category.id'), nullable=False)
+    ageCategory = relationship('AgeCategory')
+
+    @property
+    def name(self) -> str:
+        categories = {0: 'National', 1: 'Prénational', 2: 'Régional', 3: 'Départemental'}
+        gender = {0: 'Masculin', 1: 'Féminin', 2: 'Mixte'}
+        level = f' {self.number}' if self.number else ''
+        return f'{categories[self.type]}{level} - {self.ageCategory} - {gender[self.gender]}'
+
+    def __repr__(self):
+        return f'{self.name}'
+
+
 class Championship(db.Model):
     __tablename__ = 'championship'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
     startDate = db.Column(db.Date, nullable=False)
     endDate = db.Column(db.Date, nullable=False)
-    gender = db.Column(db.Integer, nullable=False)  # Champ masculin/féminin (0 pour masculin, 1 pour féminin)
-    ageCategory = db.Column(db.String(20), nullable=False)
     singlesCount = db.Column(db.Integer, nullable=False)
     doublesCount = db.Column(db.Integer, nullable=False)
+    divisionId = db.Column(db.Integer, db.ForeignKey('division.id'))  # Ajout de la clé étrangère vers la division
 
-    # Relation avec les poules du championnat
-    pools = relationship('Pool', back_populates='championship')
+    division = relationship('Division')  # Relation avec la division
+    pools = relationship('Pool', back_populates='championship')  # Relation avec les poules du championnat
+
+    @property
+    def name(self):
+        division = Division.query.get(self.divisionId)
+        return f'{division.name}'
 
     def __repr__(self):
         return f'{self.name}'
+
 
 class Pool(db.Model):
     __tablename__ = 'pool'
@@ -105,7 +154,6 @@ class Pool(db.Model):
 
     # Relation avec les matchs de la poule
     matches = relationship('Match', back_populates='pool')
-
 
 
 class Match(db.Model):

@@ -13,9 +13,11 @@ from flask import Flask, request, flash, url_for, redirect, render_template, ses
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import DateTime, desc, not_
 
-from TennisModel import Player, db, Team, Club, Championship
+from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division
 
 from flask import render_template, redirect, url_for, flash
+
+from common import CatType, DivType
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 # Set the environment (development, production, etc.)
@@ -50,6 +52,62 @@ def welcome():
         message = f'Club {default_club} créé avec succès ! Veuillez créer des joueurs dans le club, avant de créér les équipes :-D'
         flash(message, 'error')
 
+    # Vérifier si les catégories d'âge existent en base de données
+    age_categories = AgeCategory.query.all()
+    if not age_categories:
+        # Si aucune catégorie d'âge n'existe, créer les catégories d'âge
+        age_categories = [
+            AgeCategory(type=CatType.Youth.value, minAge=10, maxAge=11),
+            AgeCategory(type=CatType.Youth.value, minAge=12, maxAge=13),
+            AgeCategory(type=CatType.Youth.value, minAge=15, maxAge=16),
+            AgeCategory(type=CatType.Youth.value, minAge=17, maxAge=18),
+            AgeCategory(type=CatType.Senior.value, minAge=18, maxAge=99),
+            AgeCategory(type=CatType.Veteran.value, minAge=35, maxAge=99),
+            AgeCategory(type=CatType.Veteran.value, minAge=45, maxAge=99),
+            AgeCategory(type=CatType.Veteran.value, minAge=55, maxAge=99),
+            AgeCategory(type=CatType.Veteran.value, minAge=65, maxAge=99),
+            AgeCategory(type=CatType.Veteran.value, minAge=75, maxAge=99),
+        ]
+        db.session.add_all(age_categories)
+        db.session.commit()
+
+    # Vérifier si les divisions existent en base de données
+    divisions = Division.query.all()
+    if not divisions:
+        # Si aucune division n'existe, créer les divisions
+        divisions = []
+        # TODO: rajouter les compétitions mixtes
+        # Catégorie d'âge: SENIORS
+        age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Senior.value).all()
+        app.logger.info(age_categories)
+        for age_category in age_categories:
+            for gender in range(2):
+                for i in range(4):
+                    divisions += [Division(type=DivType.National.value, number=i + 1, ageCategoryId=age_category.id, gender=gender)]
+                divisions += [Division(type=DivType.Prenational.value, ageCategoryId=age_category.id, gender=gender)]
+                for i in range(3):
+                    divisions += [Division(type=DivType.Regional.value, number=i + 1, ageCategoryId=age_category.id, gender=gender)]
+                for i in range(5):
+                    divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, number=i + 1, gender=gender)]
+        # Catégorie d'âge: JEUNES
+        age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Youth.value).all()
+        for age_category in age_categories:
+            for gender in range(2):
+                divisions += [Division(type=DivType.National.value, ageCategoryId=age_category.id, gender=gender)]
+                divisions += [Division(type=DivType.Regional.value, ageCategoryId=age_category.id, gender=gender)]
+                divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, gender=gender)]
+        # Catégorie d'âge: VETERANS
+        age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Veteran.value).all()
+        for age_category in age_categories:
+            for gender in range(2):
+                divisions += [Division(type=DivType.National.value, ageCategoryId=age_category.id, gender=gender)]
+                divisions += [Division(type=DivType.Prenational.value, ageCategoryId=age_category.id, gender=gender)]
+                divisions += [Division(type=DivType.Regional.value, ageCategoryId=age_category.id, gender=gender)]
+                for i in range(2):
+                    divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, number=i + 1, gender=gender)]
+        db.session.add_all(divisions)
+        db.session.commit()
+
     return render_template('index.html')
 
 
@@ -62,6 +120,7 @@ def show_players():
     app.logger.debug(f'players: {players}')
     return render_template('players.html', players=players, active_players=True)
 
+
 @app.route('/invalid_players')
 def show_invalid_players():
     # Reverse order query
@@ -71,26 +130,13 @@ def show_invalid_players():
     app.logger.debug(f'invalid players: {inactive_players}')
     return render_template('players.html', players=inactive_players, active_players=False)
 
-@app.route('/teams_old')
-def show_teams_old():
-    # Récupérer toutes les équipes avec le nombre de joueurs
-    teams = Team.query.all()
-    team_info = []
-    for team in teams:
-        # Compter le nombre de joueurs dans l'équipe
-        num_active_players = Player.query.filter_by(teamId=team.id, isActive=True).count()
-        # Récupérer le nom du capitaine s'il existe
-        captain = Player.query.filter_by(teamId=team.id, isCaptain=True, isActive=True).first()
-        captain_name = captain.name if captain else None
-        # Ajouter les informations de l'équipe à la liste
-        team_info.append({'team_name': team.name, 'num_players': num_active_players, 'captain_name': captain_name})
 
-    return render_template('teams.html', team_info=team_info)
 
 @app.route('/teams')
 def show_teams():
     teams = Team.query.order_by(desc(Team.name)).all()
     return render_template('teams.html', teams=teams)
+
 
 def keys_with_same_value(d):
     return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
@@ -138,6 +184,7 @@ def new_team():
         flash(f'Tâche impossible! Veuillez créer des joueurs dans le club {default_club} au préalable!', 'error')
         return render_template('index.html')
 
+
 @app.route('/update_team/<int:id>', methods=['GET', 'POST'])
 def update_team(id):
     team: Team = Team.query.get_or_404(id)
@@ -175,6 +222,7 @@ def update_team(id):
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {default_club}!', 'error')
         return render_template('index.html')
 
+
 @app.route('/new_player/', methods=['GET', 'POST'])
 def new_player():
     app.logger.debug(f'request.method: {request.method}')
@@ -198,6 +246,7 @@ def new_player():
     app.logger.debug(f'clubs: {clubs}')
     return render_template('new_player.html', clubs=clubs)
 
+
 @app.route('/update_player/<int:id>', methods=['GET', 'POST'])
 def update_player(id):
     player: Player = Player.query.get_or_404(id)
@@ -217,31 +266,80 @@ def update_player(id):
         clubs = Club.query.all()
         return render_template('update_player.html', player=player, clubs=clubs)
 
+
+# @app.route('/select_age_category', methods=['GET', 'POST'])
+# def select_age_category():
+#     if request.method == 'POST':
+#         selected_age_category_id = request.form['age_category']
+#         selected_age_category = AgeCategory.query.get(selected_age_category_id)
+#         # Utilisez l'identifiant de la catégorie d'âge sélectionnée pour générer la liste des divisions possibles
+#         divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).all()
+#         return redirect(url_for('select_division', divisions))
+#         return render_template('select_division.html', divisions=divisions, selected_age_category=selected_age_category)
+#     age_categories = AgeCategory.query.all()
+#     return render_template('select_age_category.html', age_categories=age_categories)
+#
+# @app.route('/select_division', methods=['GET', 'POST'])
+# def select_division():
+#     if request.method == 'POST':
+#         selected_division_id = request.form['division']
+#         selected_division = Division.query.get(selected_division_id)
+#         return render_template('new_championship.html', selected_division=selected_division)
+#     divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).all()
+#     return render_template('select_division.html', divisions=divisions)
+
+
+@app.route('/select_age_category', methods=['GET', 'POST'])
+def select_age_category():
+    if request.method == 'POST':
+        selected_age_category_id = request.form['age_category']
+        return redirect(url_for('select_division', selected_age_category_id=selected_age_category_id))
+    age_categories = AgeCategory.query.all()
+    return render_template('select_age_category.html', age_categories=age_categories)
+
+
+@app.route('/select_division', methods=['GET', 'POST'])
+def select_division():
+    if request.method == 'POST':
+        selected_division_id = request.form['division']
+        selected_division = Division.query.get(selected_division_id)
+        return render_template('new_championship.html', selected_division=selected_division)
+
+    # Retrieve the selected age category ID from the URL parameters
+    selected_age_category_id = request.args.get('selected_age_category_id')
+
+    divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).order_by(desc(Division.type)).all()
+    # divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).all()
+    app.logger.debug(f'divisions: {divisions}')
+    return render_template('select_division.html', divisions=divisions)
+
+
 @app.route('/new_championship', methods=['GET', 'POST'])
 def new_championship():
     if request.method == 'POST':
-        name = request.form['name']
         start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
         end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d')
-        gender = int(request.form['gender'])
-        age_category = request.form['age_category']
         singles_count = int(request.form['singles_count'])
         doubles_count = int(request.form['doubles_count'])
+        division_id = int(request.form['division'])  # Récupérer l'identifiant de la division sélectionnée
 
-        championship = Championship(name=name, startDate=start_date, endDate=end_date, gender=gender, ageCategory=age_category, singlesCount=singles_count, doublesCount=doubles_count)
+        championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count,
+                                    divisionId=division_id)
         db.session.add(championship)
         db.session.commit()
 
         flash('Championnat créé avec succès!', 'success')
         return render_template('index.html')
+    divisions = AgeCategory.query.all()
+    return render_template('new_championship.html', divisions=divisions)
 
-    return render_template('new_championship.html')
 
 @app.route('/list_championships')
 def list_championships():
     championships = Championship.query.all()
     app.logger.debug(f'championships: {championships}')
     return render_template('list_championships.html', championships=championships)
+
 
 @app.route('/delete_player/<int:id>', methods=['GET', 'POST'])
 def delete_player(id):
@@ -253,6 +351,7 @@ def delete_player(id):
         flash(f"Joueur \"{player.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
         return redirect(url_for('show_players'))
 
+
 @app.route('/delete_team/<int:id>', methods=['GET', 'POST'])
 def delete_team(id):
     if request.method == 'GET':
@@ -262,6 +361,7 @@ def delete_team(id):
         app.logger.debug(f'Equipe {team} supprimé!')
         flash(f"L'équipe \"{team.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
         return redirect(url_for('show_teams'))
+
 
 @app.before_request
 def create_tables():

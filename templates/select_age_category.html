@@ -1,0 +1,22 @@
+<!-- templates/select_age_category.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<form action="{{ url_for('select_age_category') }}" method="POST">
+    <table class="update-form">
+        <caption class="table-caption">Fiche création championnat</caption>
+        <tr>
+            <td><label for="age_category">Catégorie d'âge :</label></td>
+            <td><select name="age_category" required>
+                <option value="">Sélectionnez une catégorie d'âge</option>
+                {% for age_category in age_categories %}
+                <option value="{{ age_category.id }}">{{ age_category.name }}</option>
+                {% endfor %}
+            </select>
+            </td>
+        <tr>
+            <td colspan="2"><input type="submit" value="Continuer"></td>
+        </tr>
+</form>
+{% endblock %}

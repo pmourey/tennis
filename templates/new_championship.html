@@ -4,33 +4,40 @@
 
 {% block main %}
 <main>
-    <h1>Création d'un championnat</h1>
     <form action="{{ url_for('new_championship') }}" method="POST">
-        <label for="name">Nom :</label>
-        <input type="text" id="name" name="name" required><br><br>
-        
-        <label for="start_date">Date de début :</label>
-        <input type="date" id="start_date" name="start_date" required><br><br>
-        
-        <label for="end_date">Date de fin :</label>
-        <input type="date" id="end_date" name="end_date" required><br><br>
-        
-        <label for="age_category">Catégorie d'âge :</label>
-        <input type="text" id="age_category" name="age_category" required><br><br>
-        
-        <label for="singles_count">Nombre de matchs simples :</label>
-        <input type="number" id="singles_count" name="singles_count" min="0" required><br><br>
-        
-        <label for="doubles_count">Nombre de matchs doubles :</label>
-        <input type="number" id="doubles_count" name="doubles_count" min="0" required><br><br>
-        
-        <label for="gender">Genre :</label><br>
-        <input type="radio" id="male" name="gender" value="0" required checked>
-        <label for="male">Homme</label><br>
-        <input type="radio" id="female" name="gender" value="1" required>
-        <label for="female">Femme</label><br><br>
+        <table class="update-form">
+            <caption class="table-caption">Fiche création championnat {{selected_division}}</caption>
+            <!-- Hidden field for division_id -->
+            <input type="hidden" name="division" value="{{ selected_division.id }}">
+<!--            <tr>
+                <td><label for="name">Nom :</label></td>
+                <td><input type="text" id="name" name="name" required></td>
+            </tr>-->
+            <td><label for="start_date">Date de début :</label></td>
+            <td><input type="date" id="start_date" name="start_date" required></td>
+            </tr>
 
-        <input type="submit" value="Créer championnat">
+            <tr>
+                <td><label for="end_date">Date de fin :</label></td>
+                <td><input type="date" id="end_date" name="end_date" required></td>
+            </tr>
+
+            <tr>
+                <td><label for="singles_count">Nombre de matchs simples :</label>
+                </td>
+                <td><input type="number" id="singles_count" name="singles_count" min="0" required></td>
+            </tr>
+
+            <tr>
+                <td><label for="doubles_count">Nombre de matchs doubles :</label>
+                </td>
+                <td><input type="number" id="doubles_count" name="doubles_count" min="0" required></td>
+            </tr>
+
+            <tr>
+                <td colspan="2"><input type="submit" value="Créer championnat"></td>
+            </tr>
+        </table>
     </form>
 </main>
 {% endblock %}

@@ -1,0 +1,22 @@
+<!-- templates/select_division.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<table class="update-form">
+    <caption class="table-caption">Fiche création championnat</caption>
+    <tr>
+        <td>
+            <form action="{{ url_for('select_division') }}" method="POST">
+                <select name="division" required>
+                    <option value="">Sélectionnez une division</option>
+                    {% for division in divisions %}
+                        <option value="{{ division.id }}">{{ division.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" value="Créer championnat" class="submit-button">
+            </form>
+        </td>
+    </tr>
+</table>
+{% endblock %}
