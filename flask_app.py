@@ -13,7 +13,7 @@ from flask import Flask, request, flash, url_for, redirect, render_template, ses
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import DateTime, desc, not_
 
-from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool
+from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool, Matchday
 
 from flask import render_template, redirect, url_for, flash
 
@@ -167,9 +167,12 @@ def new_team():
             championship_id = request.form.get('championship')
             championship = Championship.query.get(championship_id)
             pool = Pool(championshipId=championship_id) # poule non connue lors de la phase d'inscription de l'équipe au championnat
-            db.session.add(pool)
-            db.session.commit()
-            app.logger.debug(f'pool: {pool.name}')
+            # Création des journées de championnat pour la saison en cours
+            for date in championship.match_dates:
+                matchday = Matchday(date=date, poolId=pool.id)
+                # pool.matchdays.append(matchday)
+                db.session.add(matchday)
+                db.session.add(pool)
             # Créer l'équipe avec les informations fournies
             # Vous pouvez ajouter le code pour enregistrer l'équipe dans la base de données ici
 

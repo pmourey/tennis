@@ -25,6 +25,7 @@
             <th>Capitaine principal</th>
             <th>Championnat</th>
             <th>N° de poule</th>
+            <th>Nb journées</th>
         </tr>
         </thead>
         {% for team in teams %}
@@ -36,6 +37,24 @@
             <td>{{ team.captainName or 'Pas de capitaine défini!' }}</td>
             <td>{{ team.championship_name }}</td>
             <td>{{ team.pool.letter or 'Pas de poule définie!' }}</td>
+            <td>
+                <!-- Tooltip container -->
+                <div class="tooltip">
+                    {{ team.match_days|length}}
+                    <!-- Tooltip with championship match days -->
+                    <span class="tooltiptext">
+                        {% for match_day in team.match_days %}
+                        {{ match_day.date.strftime('%a. %d %b %Y') }}{% if not loop.last %}<br> {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+            </td>
+<!--            <td>
+                &lt;!&ndash; Tooltip with championship match days &ndash;&gt;
+                <span data-toggle="tooltip" data-placement="top" title="Journées de championnat pour {{ team.name }}">
+                    {{ team.match_days|length }}
+                </span>
+            </td>-->
         </tr>
         {% endfor %}
     </table>
@@ -43,4 +62,10 @@
     <p style="font-size: 16px; text-align: center;">Pas d'équipe enregistrée ✌️</p>
     {% endif %}
 </main>
+<script>
+    // Initialize tooltips
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
 {% endblock main %}

@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, Table
+from sqlalchemy import ForeignKey, Table, ForeignKeyConstraint
 from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
@@ -66,6 +66,10 @@ class Team(db.Model):
     @property
     def championship_name(self):
         return self.pool.championship.name if self.pool else None
+
+    @property
+    def match_days(self):
+        return Matchday.query.filter_by(poolId=self.poolId).all()
 
     @property
     def pool(self):
@@ -147,8 +151,19 @@ class Championship(db.Model):
         division = Division.query.get(self.divisionId)
         return f'{division.name}'
 
+    @property
+    def match_dates(self):
+        sundays = []
+        current_date = self.startDate
+        while current_date <= self.endDate:
+            if current_date.weekday() == 6:  # Sunday has index 6
+                sundays.append(current_date)
+            current_date += timedelta(days=1)
+        return sundays
+
     def __repr__(self):
         return f'{self.name}'
+
 
 
 class Pool(db.Model):
@@ -160,6 +175,9 @@ class Pool(db.Model):
     # Clé étrangère vers le championnat auquel appartient la poule
     championshipId = db.Column(db.Integer, ForeignKey('championship.id'))
     championship = relationship('Championship', back_populates='pools')
+
+    # Define the one-to-many relationship with Matchday
+    matchdays = relationship('Matchday', back_populates='pool')
 
     # Relation avec les matchs de la poule
     matches = relationship('Match', back_populates='pool')
@@ -173,11 +191,37 @@ class Pool(db.Model):
     def __repr__(self):
         return self.letter
 
+
+class Matchday(db.Model):
+    __tablename__ = 'matchday'
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+
+    # Define the many-to-one relationship with Pool
+    poolId = db.Column(db.Integer, db.ForeignKey('pool.id'))
+    pool = relationship('Pool', back_populates='matchdays')
+
+    # Define the one-to-many relationship with Match
+    matches = relationship('Match', back_populates='matchday')
+
+# matchday_match_association = Table(
+#     'matchday_match_association',
+#     db.Model.metadata,
+#     db.Column('matchday_id', db.Integer, db.ForeignKey('matchday.id')),
+#     db.Column('match_id', db.Integer, db.ForeignKey('match.id'))
+# )
+
+
 class Match(db.Model):
     __tablename__ = 'match'
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
+
+    # Clé étrangère vers la journée de match
+    matchdayId = db.Column(db.Integer, db.ForeignKey('matchday.id'))
+    matchday = relationship('Matchday', back_populates='matches')
 
     # Clé étrangère vers la poule auquelle appartient le match
     poolId = db.Column(db.Integer, ForeignKey('pool.id'))
