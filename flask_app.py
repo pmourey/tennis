@@ -13,7 +13,7 @@ from flask import Flask, request, flash, url_for, redirect, render_template, ses
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy import DateTime, desc, not_
 
-from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division
+from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool
 
 from flask import render_template, redirect, url_for, flash
 
@@ -164,25 +164,34 @@ def new_team():
             # Récupérer les données du formulaire
             team_name = request.form.get('name')
             captain_id = request.form.get('captain_id')
-
+            championship_id = request.form.get('championship')
+            championship = Championship.query.get(championship_id)
+            pool = Pool(championshipId=championship_id) # poule non connue lors de la phase d'inscription de l'équipe au championnat
+            db.session.add(pool)
+            db.session.commit()
+            app.logger.debug(f'pool: {pool.name}')
             # Créer l'équipe avec les informations fournies
             # Vous pouvez ajouter le code pour enregistrer l'équipe dans la base de données ici
 
-            team = Team(name=team_name, captainId=captain_id, players=list(players_dict.values()))
+            team = Team(name=team_name, captainId=captain_id, poolId=pool.id, players=list(players_dict.values()))
             db.session.add(team)
             db.session.commit()
-            flash(f'L\'équipe {team.name} a été créée avec succès avec {len(team.players)} joueurs!')
+            flash(f'L\'équipe "{team.name}" a été créée avec succès avec {len(team.players)} joueurs et associé au championnat {championship} qui a lieu du {championship.startDate} au {championship.endDate}!')
             return redirect(url_for('show_teams'))
     default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
     active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
-    if active_players:
+    championships = Championship.query.all()
+    if not active_players:
+        flash(f'Tâche impossible! Vous devez ajouter des joueurs dans le club {default_club} au préalable!', 'error')
+        return render_template('index.html')
+    elif not championships:
+        flash(f'Tâche impossible! Vous devez ajouter un type de championnat pour la saison en cours!', 'error')
+        return render_template('index.html')
+    else:
         app.logger.debug(f'players: {active_players}')
         app.logger.debug(f'request.form: {request.form}')
         max_players = min(10, len(active_players))
-        return render_template('new_team.html', active_players=active_players, max_players=max_players, form=request.form)
-    else:
-        flash(f'Tâche impossible! Veuillez créer des joueurs dans le club {default_club} au préalable!', 'error')
-        return render_template('index.html')
+        return render_template('new_team.html', championships=championships, active_players=active_players, max_players=max_players, form=request.form)
 
 
 @app.route('/update_team/<int:id>', methods=['GET', 'POST'])
@@ -208,6 +217,8 @@ def update_team(id):
             team.name = request.form.get('name')
             team.captainId = request.form.get('captain_id')
             team.players = list(players_dict.values())
+            pool = Pool.query.get(team.poolId)
+            pool.letter = request.form.get('letter')
             db.session.commit()
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('show_teams'))
@@ -215,9 +226,10 @@ def update_team(id):
     app.logger.debug(f'default_club: {default_club}')
     active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
     app.logger.debug(f'active players: {active_players}')
+    championships = Championship.query.all()
     if active_players:
         max_players = min(10, len(active_players))
-        return render_template('update_team.html', team=team, active_players=active_players, max_players=max_players)
+        return render_template('update_team.html', team=team, active_players=active_players, max_players=max_players, championships=championships)
     else:
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {default_club}!', 'error')
         return render_template('index.html')

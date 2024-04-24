@@ -12,12 +12,22 @@
                 <td><label for="name">Nom équipe</label></td>
                 <td><input type="text" name="name" placeholder="Nom" {% if form['name'] %} value="{{ form['name'] }}" {% endif %}></td>
             </tr>
+            <tr>
+                <td><label for="championship">Championnat :</label></td>
+                <td><select name="championship" required>
+                    <option value="">Sélectionnez un championnat</option>
+                    {% for championship in championships %}
+                    <option value="{{ championship.id }}" {% if form['championship'] == championship.id ~ '' %} selected {% endif %}>{{ championship.name }}</option>
+                    {% endfor %}
+                </select>
+                </td>
+            </tr>
             {% for player_num in range(1, max_players + 1) %}
             <tr>
                 <td><label for="player_name_{{ player_num }}">Joueur {{ player_num }}</label></td>
                 <td>
                     <select name="player_name_{{ player_num }}">
-                         <option value="">Sélectionnez un joueur</option> <!-- Option vide -->
+                        <option value="">Sélectionnez un joueur</option> <!-- Option vide -->
                         {% for player in active_players %}
                         <option value="{{ player.id }}" {% if form['player_name_' + '%d'|format(player_num)] == player.id ~ '' %} selected {% endif %}>{{ player.name }}</option>
                         {% endfor %}

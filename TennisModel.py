@@ -58,9 +58,18 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(20), unique=True, nullable=False)
     captainId = db.Column(db.Integer, db.ForeignKey('player.id'))
+    poolId = db.Column(db.Integer, db.ForeignKey('pool.id'))
 
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
+
+    @property
+    def championship_name(self):
+        return self.pool.championship.name if self.pool else None
+
+    @property
+    def pool(self):
+        return Pool.query.get(self.poolId) if self.poolId else None
 
     @property
     def club(self):
@@ -145,8 +154,8 @@ class Championship(db.Model):
 class Pool(db.Model):
     __tablename__ = 'pool'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    letter = db.Column(db.String(1), nullable=True)
 
     # Clé étrangère vers le championnat auquel appartient la poule
     championshipId = db.Column(db.Integer, ForeignKey('championship.id'))
@@ -155,6 +164,14 @@ class Pool(db.Model):
     # Relation avec les matchs de la poule
     matches = relationship('Match', back_populates='pool')
 
+    @property
+    def name(self):
+        pool = f'non définie' if not self.letter else self.letter
+        # return f'id #{self.id} - poule {pool} - championnat: {self.championship.name}'
+        return f'id #{self.id} - poule {pool}'
+
+    def __repr__(self):
+        return self.letter
 
 class Match(db.Model):
     __tablename__ = 'match'

@@ -12,6 +12,31 @@
                 <td><label for="name">Nom équipe</label></td>
                 <td><input type="text" name="name" value="{{ team.name }}"</td>
             </tr>
+            <tr>
+                <td><label for="championship">Championnat :</label></td>
+                <td><select name="championship" required>
+                    <option value="">Sélectionnez un championnat</option>
+                    {% for championship in championships %}
+                    {% if championship.name == team.championship_name %}
+                    <option value="{{ championship.id }}" selected>{{ championship.name }}</option>
+                    {% else %}
+                    <option value="{{ championship.id }}">{{ championship.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="pool">N° de poule :</label></td>
+                <td>
+                    <select name="letter">
+                        {% for letter in ['A', 'B', 'C', 'D', 'E', 'F'] %}
+                        <option value="{{ letter }}" {% if team and team.pool.letter == letter %} selected {% endif %}>{{ letter }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+
             {% for player_num in range(1, max_players + 1) %}
             {% set team_player = team.players[player_num - 1] if player_num <= max_players else None %}
             <tr>
@@ -20,11 +45,11 @@
                     <select name="player_name_{{ player_num }}">
                         <option value="">Sélectionnez un joueur</option> <!-- Option vide -->
                         {% for player in active_players %}
-                            {% if team_player and team_player.id == player.id %}
-                                <option value="{{ player.id }}" selected>{{ player.name }}</option>
-                            {% else %}
-                                <option value="{{ player.id }}">{{ player.name }}</option>
-                            {% endif %}
+                        {% if team_player and team_player.id == player.id %}
+                        <option value="{{ player.id }}" selected>{{ player.name }}</option>
+                        {% else %}
+                        <option value="{{ player.id }}">{{ player.name }}</option>
+                        {% endif %}
                         {% endfor %}
                     </select>
                 </td>

@@ -23,6 +23,8 @@
             <th>Nom</th>
             <th>Nb joueurs disponibles</th>
             <th>Capitaine principal</th>
+            <th>Championnat</th>
+            <th>N° de poule</th>
         </tr>
         </thead>
         {% for team in teams %}
@@ -32,6 +34,8 @@
             <td>{{ team.name }}</td>
             <td>{{ team.players|length }}</td>
             <td>{{ team.captainName or 'Pas de capitaine défini!' }}</td>
+            <td>{{ team.championship_name }}</td>
+            <td>{{ team.pool.letter or 'Pas de poule définie!' }}</td>
         </tr>
         {% endfor %}
     </table>
