@@ -173,6 +173,7 @@ def new_team():
                 # pool.matchdays.append(matchday)
                 db.session.add(matchday)
                 db.session.add(pool)
+                db.session.commit()
             # Créer l'équipe avec les informations fournies
             # Vous pouvez ajouter le code pour enregistrer l'équipe dans la base de données ici
 
