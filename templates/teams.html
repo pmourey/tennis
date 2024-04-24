@@ -11,6 +11,24 @@
             window.location.href = "delete_team/" + teamId;
         }
     }
+    // Fonction pour afficher ou masquer l'info-bulle
+    function toggleTooltip(element) {
+        // Récupérer l'élément de l'info-bulle
+        var tooltip = element.querySelector('.tooltiptext');
+
+        // Si l'info-bulle est déjà affichée, la cacher
+        if (tooltip.classList.contains('show')) {
+            tooltip.classList.remove('show');
+        } else {
+            // Sinon, l'afficher
+            tooltip.classList.add('show');
+
+            // Cacher l'info-bulle après quelques secondes (par exemple, 3 secondes)
+            setTimeout(function() {
+                tooltip.classList.remove('show');
+            }, 3000); // 3000 ms = 3 secondes
+        }
+    }
 </script>
 <main>
     {% if teams %}
@@ -38,8 +56,20 @@
             <td>{{ team.championship_name }}</td>
             <td>{{ team.pool.letter or 'Pas de poule définie!' }}</td>
             <td>
-                <!-- Tooltip container -->
+<!--
+                &lt;!&ndash; Tooltip container &ndash;&gt;
                 <div class="tooltip">
+                    {{ team.match_days|length}}
+                    &lt;!&ndash; Tooltip with championship match days &ndash;&gt;
+                    <span class="tooltiptext">
+                        {% for match_day in team.match_days %}
+                        {{ match_day.date.strftime('%a. %d %b %Y') }}{% if not loop.last %}<br> {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+-->
+                <!-- Tooltip container -->
+                <div class="tooltip" onclick="toggleTooltip(this)">
                     {{ team.match_days|length}}
                     <!-- Tooltip with championship match days -->
                     <span class="tooltiptext">
@@ -49,12 +79,6 @@
                     </span>
                 </div>
             </td>
-<!--            <td>
-                &lt;!&ndash; Tooltip with championship match days &ndash;&gt;
-                <span data-toggle="tooltip" data-placement="top" title="Journées de championnat pour {{ team.name }}">
-                    {{ team.match_days|length }}
-                </span>
-            </td>-->
         </tr>
         {% endfor %}
     </table>
@@ -62,10 +86,4 @@
     <p style="font-size: 16px; text-align: center;">Pas d'équipe enregistrée ✌️</p>
     {% endif %}
 </main>
-<script>
-    // Initialize tooltips
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip();
-    });
-</script>
 {% endblock main %}
