@@ -240,7 +240,6 @@ def new_player():
 def update_player(id):
     player: Player = Player.query.get_or_404(id)
     if request.method == 'POST':
-        player.name = request.form.get('name')
         birth_date = request.form.get('birth_date')
         app.logger.debug(f'birthDate: {birth_date}')
         player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
