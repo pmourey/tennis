@@ -156,7 +156,8 @@ def new_team():
                 f'L\'équipe "{team.name}" a été créée avec succès avec {len(team.players)} joueurs et associé au championnat {championship} qui a lieu du {championship.startDate} au {championship.endDate}!')
             return redirect(url_for('show_teams'))
     default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
-    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
+    # active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
+    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).join(Player.license).order_by(asc(License.firstName)).all()
     championships = Championship.query.all()
     if not active_players:
         flash(f'Tâche impossible! Vous devez ajouter des joueurs dans le club {default_club} au préalable!', 'error')
@@ -201,7 +202,9 @@ def update_team(id):
             return redirect(url_for('show_teams'))
     default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
     app.logger.debug(f'default_club: {default_club}')
-    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
+    # active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
+    # players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive).order_by(asc(Ranking.id)).all()
+    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).join(Player.license).order_by(asc(License.firstName)).all()
     app.logger.debug(f'active players: {active_players}')
     championships = Championship.query.all()
     if active_players:

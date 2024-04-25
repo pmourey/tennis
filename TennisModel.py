@@ -91,6 +91,8 @@ class Player(db.Model):
     __tablename__ = 'player'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     birthDate = db.Column(db.DateTime, nullable=False)
+    weight = db.Column(db.Integer, nullable=True)
+    height = db.Column(db.Integer, nullable=True)
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the foreign key relationship with Club
