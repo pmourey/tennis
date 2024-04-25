@@ -17,15 +17,15 @@
 <main>
     {% if players %}
     <table class="players">
-        <caption class="table-caption">Liste des joueurs {{ status }}</caption> <!-- Titre ajouté ici -->
+        <caption class="table-caption">Liste des {{ players|length }} licencié(e)s {{ status }} du club </caption> <!-- Titre ajouté ici -->
         <thead>
         <tr>
             <th>Update</th>
             <th>Delete</th>
             <th>Nom</th>
             <th>Age</th>
-            <th>Taille</th>
-            <th>Poids</th>
+            <th>Classement</th>
+            <th>Genre</th>
             <th>Equipes</th>
         </tr>
         </thead>
@@ -36,8 +36,8 @@
                 <td><button onclick="confirmDelete({{ player.id }})">{{player.id}}</button></td>
                 <td>{{ player.name }}</td>
                 <td>{{ player.age }}</td>
-                <td>{{ player.height }}</td>
-                <td>{{ player.weight }}</td>
+                <td>{{ player.ranking }}</td>
+                <td>{{ 'F' if player.gender else 'H' }}</td>
                 <td>{{ player.teams }}</td>
             </tr>
         </div>

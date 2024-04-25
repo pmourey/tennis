@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey, Table, ForeignKeyConstraint
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref
 
 db = SQLAlchemy()
 
@@ -15,26 +16,127 @@ player_team_association = Table(
 )
 
 
+class Ranking(db.Model):
+    __tablename__ = 'ranking'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    value = db.Column(db.String(10), nullable=False)  # Valeur du classement (par exemple, "15/4")
+    series = db.Column(db.Integer, nullable=True)  # 1ère, 2ème, 3ème, 4ème série
+
+    # Define the relationship with License
+    # licenseId = db.Column(db.Integer, db.ForeignKey('license.id'), nullable=False)
+    license = relationship('License', back_populates='rankings')
+    #license = relationship('License', back_populates='rankings', primaryjoin='Ranking.licenseId == License.id')
+    # license = relationship('License', primaryjoin='Ranking.licenseId == License.id', back_populates='rankings')
+
+    def __repr__(self):
+        return self.value
+
+
+class License(db.Model):
+    __tablename__ = 'license'
+    id = db.Column(db.Integer, primary_key=True)
+    firstName = db.Column(db.String(20), nullable=False)
+    lastName = db.Column(db.String(20), nullable=False)
+    letter = db.Column(db.String(1), nullable=False)
+    year = db.Column(db.Integer, nullable=False)  # Année de la licence
+    gender = db.Column(db.Integer, nullable=False)  # Champ masculin/féminin (0 pour masculin, 1 pour féminin, 2 pour mixte)
+
+    # # Define the relationship with Ranking using rankingId
+    # rankingId = db.Column(db.Integer, db.ForeignKey('ranking.id'), nullable=False)
+    # # ranking = relationship('Ranking', foreign_keys=[rankingId], backref=backref("ranking", uselist=False))
+    # # ranking = relationship('Ranking', foreign_keys="[Ranking.rankingId]", backref=backref("ranking", uselist=False))
+    # ranking = relationship('Ranking', foreign_keys="[Ranking.rankingId]")
+    #
+    # # Define the relationship with Ranking using bestRankingId
+    # bestRankingId = db.Column(db.Integer, db.ForeignKey('ranking.id'), nullable=True)
+    # #bestRanking = relationship('Ranking', foreign_keys=[bestRankingId], backref=backref("best_ranking", uselist=False))
+    # # bestRanking = relationship('Ranking', foreign_keys="[Ranking.bestRankingId]", backref=backref("best_ranking", uselist=False))
+    # bestRanking = relationship('Ranking', foreign_keys="[Ranking.bestRankingId]")
+
+
+    # Define the relationship with Ranking using rankingId
+    rankingId = db.Column(db.Integer, ForeignKey('ranking.id'), nullable=False)
+    ranking = relationship('Ranking', foreign_keys=[rankingId], back_populates='license')
+    # ranking = relationship('Ranking', foreign_keys=[rankingId], back_populates='license', uselist=False,
+    #                         primaryjoin='License.rankingId == Ranking.id')
+
+    # Define the relationship with Ranking using bestRankingId
+    # bestRankingId = db.Column(db.Integer, ForeignKey('ranking.id'), nullable=True)
+    # bestRanking = relationship('Ranking', foreign_keys=[bestRankingId], uselist=False,
+    #                         primaryjoin='License.bestRankingId == Ranking.id')
+    # bestRanking = relationship('Ranking', foreign_keys=[bestRankingId])
+    # # bestRanking = relationship('Ranking', foreign_keys=[bestRankingId], uselist=False,
+    # #                            primaryjoin='License.bestRankingId == Ranking.id')
+    # bestRanking = relationship('Ranking', foreign_keys=[bestRankingId], remote_side=[Ranking.id])
+
+    # Define the back reference to rankings
+    # rankings = relationship('Ranking', back_populates='license')
+    rankings = relationship('Ranking', back_populates='license', foreign_keys=[rankingId])
+
+    # Define the back reference to rankings with remote_side parameter
+    #rankings = relationship('Ranking', back_populates='license', remote_side=[Ranking.licenseId])
+
+    # Define the relationship with Player
+    players = relationship('Player', back_populates='license')
+
+    @property
+    def name(self):
+        return f'{self.firstName} {self.lastName}'
+
+    def __repr__(self):
+        return f'{self.id} - {self.name}'
+
+
 class Player(db.Model):
     __tablename__ = 'player'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(20), unique=True, nullable=False)
     birthDate = db.Column(db.DateTime, nullable=False)
-    height = db.Column(db.Integer, nullable=False)
-    weight = db.Column(db.Integer, nullable=False)
-    clubId = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
     isActive = db.Column(db.Boolean, default=True)
 
-    # Define the relationship with Club
-    club = relationship('Club')
+    # Define the foreign key relationship with Club
+    clubId = db.Column(db.String(10), db.ForeignKey('club.id'), nullable=False)  # Add this line
+    club = relationship('Club', back_populates='players')  # Add this line
+
+    # Define the relationship with License
+    licenseId = db.Column(db.Integer, db.ForeignKey('license.id'), nullable=False)
+    license = relationship('License', back_populates='players')
 
     # Define the relationship with Team using many-to-many association
     teams = relationship('Team', secondary=player_team_association, back_populates='players')
 
     @property
+    def gender(self):
+        return self.license.gender
+
+    @property
+    def ranking_id(self):
+        license = License.query.get(self.licenseId)
+        ranking = Ranking.query.get(license.rankingId)
+        return ranking.id
+
+    @property
+    def ranking(self):
+        return self.license.ranking.value
+
+    @property
+    def last_name(self):
+        license = License.query.get(self.licenseId)
+        return license.lastName
+
+    @property
+    def name(self):
+        return f'{self.license.firstName} {self.license.lastName[0]}.'
+
+    # Add a property to calculate the age of the player
+    @property
     def age(self):
         today = datetime.now()
         return today.year - self.birthDate.year - ((today.month, today.day) < (self.birthDate.month, self.birthDate.day))
+
+    # Add a property to format the birth date (based on license info)
+    @property
+    def formatted_birth_date(self):
+        return self.birthDate.replace(month=1, day=1).strftime('%Y-%m-%d')
 
     def __repr__(self):
         return f'{self.name}'
@@ -42,7 +144,7 @@ class Player(db.Model):
 
 class Club(db.Model):
     __tablename__ = 'club'
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.String(10), primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)
     city = db.Column(db.String(20), nullable=False)
 
@@ -141,9 +243,10 @@ class Championship(db.Model):
     endDate = db.Column(db.Date, nullable=False)
     singlesCount = db.Column(db.Integer, nullable=False)
     doublesCount = db.Column(db.Integer, nullable=False)
-    divisionId = db.Column(db.Integer, db.ForeignKey('division.id'))  # Ajout de la clé étrangère vers la division
 
+    divisionId = db.Column(db.Integer, db.ForeignKey('division.id'))  # Ajout de la clé étrangère vers la division
     division = relationship('Division')  # Relation avec la division
+
     pools = relationship('Pool', back_populates='championship')  # Relation avec les poules du championnat
 
     @property
@@ -163,7 +266,6 @@ class Championship(db.Model):
 
     def __repr__(self):
         return f'{self.name}'
-
 
 
 class Pool(db.Model):
@@ -204,6 +306,7 @@ class Matchday(db.Model):
 
     # Define the one-to-many relationship with Match
     matches = relationship('Match', back_populates='matchday')
+
 
 # matchday_match_association = Table(
 #     'matchday_match_association',

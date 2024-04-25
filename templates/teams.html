@@ -66,25 +66,13 @@
             <td>{{ team.championship_name }}</td>
             <td>{{ team.pool.letter or 'Pas de poule définie!' }}</td>
             <td>
-<!--
-                &lt;!&ndash; Tooltip container &ndash;&gt;
-                <div class="tooltip">
-                    {{ team.match_days|length}}
-                    &lt;!&ndash; Tooltip with championship match days &ndash;&gt;
-                    <span class="tooltiptext">
-                        {% for match_day in team.match_days %}
-                        {{ match_day.date.strftime('%a. %d %b %Y') }}{% if not loop.last %}<br> {% endif %}
-                        {% endfor %}
-                    </span>
-                </div>
--->
                 <!-- Tooltip container -->
                 <div class="tooltip" onclick="toggleTooltip(this)">
                     {{ team.match_days|length}}
                     <!-- Tooltip with championship match days -->
                     <span class="tooltiptext">
                         {% for match_day in team.match_days %}
-                        {{ match_day.date.strftime('%a. %d %b %Y') }}{% if not loop.last %}<br> {% endif %}
+                        {{ match_day.date.strftime('%a %d %b %Y') }}{% if not loop.last %}<br> {% endif %}
                         {% endfor %}
                     </span>
                 </div>

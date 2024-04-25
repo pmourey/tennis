@@ -14,3 +14,4 @@ https://godot70.pythonanywhere.com
   - [ ] Formulaire d'ajout des équipes adverses présentes dans la poule et du planning des rencontres pour l'équipe (domicile/extérieur/exempt) (utilisé après envoi par la ligue du calendrier des rencontres)
   - [ ] Gestion des disponibilités joueurs
 
+https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys

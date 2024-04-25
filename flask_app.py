@@ -11,13 +11,13 @@ import locale
 from datetime import datetime, timedelta
 from flask import Flask, request, flash, url_for, redirect, render_template, session, send_file
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy import DateTime, desc, not_
+from sqlalchemy import DateTime, desc, not_, desc, asc
 
-from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool, Matchday
+from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool, Matchday, Ranking, License
 
 from flask import render_template, redirect, url_for, flash
 
-from common import CatType, DivType
+from common import CatType, DivType, load_age_categories, load_divisions, import_players, load_rankings
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 # Set the environment (development, production, etc.)
@@ -46,7 +46,8 @@ def welcome():
     default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
     if not default_club:
         # Si le club par défaut n'existe pas, l'ajouter à la base de données
-        default_club = Club(name=app.config['DEFAULT_CLUB']['name'], city=app.config['DEFAULT_CLUB']['city'])
+        default_club = Club(id=app.config['DEFAULT_CLUB']['id'], name=app.config['DEFAULT_CLUB']['name'], city=app.config['DEFAULT_CLUB']['city'])
+        app.logger.debug(f'default_club: {default_club}')
         db.session.add(default_club)
         db.session.commit()
         message = f'Club {default_club} créé avec succès ! Veuillez créer des joueurs dans le club, avant de créér les équipes :-D'
@@ -56,57 +57,26 @@ def welcome():
     age_categories = AgeCategory.query.all()
     if not age_categories:
         # Si aucune catégorie d'âge n'existe, créer les catégories d'âge
-        age_categories = [
-            AgeCategory(type=CatType.Youth.value, minAge=10, maxAge=11),
-            AgeCategory(type=CatType.Youth.value, minAge=12, maxAge=13),
-            AgeCategory(type=CatType.Youth.value, minAge=15, maxAge=16),
-            AgeCategory(type=CatType.Youth.value, minAge=17, maxAge=18),
-            AgeCategory(type=CatType.Senior.value, minAge=18, maxAge=99),
-            AgeCategory(type=CatType.Veteran.value, minAge=35, maxAge=99),
-            AgeCategory(type=CatType.Veteran.value, minAge=45, maxAge=99),
-            AgeCategory(type=CatType.Veteran.value, minAge=55, maxAge=99),
-            AgeCategory(type=CatType.Veteran.value, minAge=65, maxAge=99),
-            AgeCategory(type=CatType.Veteran.value, minAge=75, maxAge=99),
-        ]
-        db.session.add_all(age_categories)
-        db.session.commit()
+        load_age_categories(db)
 
     # Vérifier si les divisions existent en base de données
     divisions = Division.query.all()
     if not divisions:
         # Si aucune division n'existe, créer les divisions
-        divisions = []
-        # TODO: rajouter les compétitions mixtes
-        # Catégorie d'âge: SENIORS
-        age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Senior.value).all()
-        app.logger.info(age_categories)
-        for age_category in age_categories:
-            for gender in range(2):
-                for i in range(4):
-                    divisions += [Division(type=DivType.National.value, number=i + 1, ageCategoryId=age_category.id, gender=gender)]
-                divisions += [Division(type=DivType.Prenational.value, ageCategoryId=age_category.id, gender=gender)]
-                for i in range(3):
-                    divisions += [Division(type=DivType.Regional.value, number=i + 1, ageCategoryId=age_category.id, gender=gender)]
-                for i in range(5):
-                    divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, number=i + 1, gender=gender)]
-        # Catégorie d'âge: JEUNES
-        age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Youth.value).all()
-        for age_category in age_categories:
-            for gender in range(2):
-                divisions += [Division(type=DivType.National.value, ageCategoryId=age_category.id, gender=gender)]
-                divisions += [Division(type=DivType.Regional.value, ageCategoryId=age_category.id, gender=gender)]
-                divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, gender=gender)]
-        # Catégorie d'âge: VETERANS
-        age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Veteran.value).all()
-        for age_category in age_categories:
-            for gender in range(2):
-                divisions += [Division(type=DivType.National.value, ageCategoryId=age_category.id, gender=gender)]
-                divisions += [Division(type=DivType.Prenational.value, ageCategoryId=age_category.id, gender=gender)]
-                divisions += [Division(type=DivType.Regional.value, ageCategoryId=age_category.id, gender=gender)]
-                for i in range(2):
-                    divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, number=i + 1, gender=gender)]
-        db.session.add_all(divisions)
-        db.session.commit()
+        load_divisions(db)
+
+    # Vérifier si les classements de tennis existent en base de données
+    rankings = Ranking.query.all()
+    if not rankings:
+        load_rankings(db)
+
+    # Vérifier si les joueurs existent en base de données
+    players = Player.query.all()
+    if not players:
+        # Si aucun joueur n'existe, les importer des fichiers csv du club par défaut
+        men_players_csvfile = f'static/data/uscagnes_men.csv'
+        women_players_csvfile = f'static/data/uscagnes_women.csv'
+        import_players(app, men_players_csvfile, women_players_csvfile, default_club, db)
 
     return render_template('index.html')
 
@@ -115,7 +85,10 @@ def welcome():
 def show_players():
     # Reverse order query
     # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
-    players = Player.query.filter(Player.isActive).all()
+    # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(Player.license.lastName)).all()
+    # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(License.lastName)).all()
+    players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive).order_by(asc(Ranking.id)).all()
+    #players = Player.query.filter(Player.isActive).all()
     # players = Player.query.all()
     app.logger.debug(f'players: {players}')
     return render_template('players.html', players=players, active_players=True)
@@ -129,7 +102,6 @@ def show_invalid_players():
     # players = Player.query.all()
     app.logger.debug(f'invalid players: {inactive_players}')
     return render_template('players.html', players=inactive_players, active_players=False)
-
 
 
 @app.route('/teams')
@@ -166,7 +138,7 @@ def new_team():
             captain_id = request.form.get('captain_id')
             championship_id = request.form.get('championship')
             championship = Championship.query.get(championship_id)
-            pool = Pool(championshipId=championship_id) # poule non connue lors de la phase d'inscription de l'équipe au championnat
+            pool = Pool(championshipId=championship_id)  # poule non connue lors de la phase d'inscription de l'équipe au championnat
             # Création des journées de championnat pour la saison en cours
             for date in championship.match_dates:
                 matchday = Matchday(date=date, poolId=pool.id)
@@ -180,7 +152,8 @@ def new_team():
             team = Team(name=team_name, captainId=captain_id, poolId=pool.id, players=list(players_dict.values()))
             db.session.add(team)
             db.session.commit()
-            flash(f'L\'équipe "{team.name}" a été créée avec succès avec {len(team.players)} joueurs et associé au championnat {championship} qui a lieu du {championship.startDate} au {championship.endDate}!')
+            flash(
+                f'L\'équipe "{team.name}" a été créée avec succès avec {len(team.players)} joueurs et associé au championnat {championship} qui a lieu du {championship.startDate} au {championship.endDate}!')
             return redirect(url_for('show_teams'))
     default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
     active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
