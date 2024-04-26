@@ -1,0 +1,33 @@
+<!-- templates/select_age_category.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<form action="{{ url_for('select_gender') }}" method="POST">
+    <table class="update-form">
+        <caption class="table-caption">Select Gender</caption>
+        <tr>
+            <td><label for="male">Male</label></td>
+            <td><input type="radio" id="male" name="gender" value=0 required></td>
+        </tr>
+        <tr>
+            <td><label for="female">Female</label></td>
+            <td><input type="radio" id="female" name="gender" value=1 required checked></td>
+        </tr>
+        <tr>
+            <td><label for="mixte">Mixte</label></td>
+            <td><input type="radio" id="mixte" name="gender" value=2 required></td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="Continuer"></td>
+        </tr>
+</form>
+{% endblock %}
+
+<form method="post">
+    <label for="male">Male</label>
+    <input type="radio" id="male" name="gender" value="male">
+    <label for="female">Female</label>
+    <input type="radio" id="female" name="gender" value="female">
+    <button type="submit">Submit</button>
+</form>

@@ -17,7 +17,7 @@ from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Divis
 
 from flask import render_template, redirect, url_for, flash
 
-from common import CatType, DivType, load_age_categories, load_divisions, import_players, load_rankings
+from common import CatType, DivType, load_age_categories, load_divisions, import_players, load_rankings, Gender
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 # Set the environment (development, production, etc.)
@@ -81,17 +81,41 @@ def welcome():
     return render_template('index.html')
 
 
-@app.route('/players')
-def show_players():
-    # Reverse order query
-    # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
-    # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(Player.license.lastName)).all()
-    # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(License.lastName)).all()
-    players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive).order_by(asc(Ranking.id)).all()
-    #players = Player.query.filter(Player.isActive).all()
-    # players = Player.query.all()
-    app.logger.debug(f'players: {players}')
-    return render_template('players.html', players=players, active_players=True)
+@app.route('/select_gender', methods=['GET', 'POST'])
+def select_gender():
+    if request.method == 'POST':
+        gender = int(request.form['gender'])
+        if gender in [Gender.Male.value, Gender.Female.value]:
+            app.logger.debug(f'gender: {gender}')
+            players = Player.query \
+                .join(Player.license) \
+                .join(License.ranking) \
+                .filter(Player.isActive == True, License.gender == gender) \
+                .order_by(asc(Ranking.id)) \
+                .all()
+        else:
+            players = Player.query \
+                .join(Player.license) \
+                .join(License.ranking) \
+                .filter(Player.isActive) \
+                .order_by(asc(Ranking.id)) \
+                .all()
+        return render_template('players.html', gender=gender, players=players, active_players=True)
+    return render_template('select_gender.html')
+
+
+# @app.route('/players')
+# def show_players():
+#     # Reverse order query
+#     # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
+#     # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(Player.license.lastName)).all()
+#     # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(License.lastName)).all()
+#     # players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive).order_by(asc(Ranking.id)).all()
+#     players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive, License.gender == 0).order_by(asc(Ranking.id)).all()
+#     #players = Player.query.filter(Player.isActive).all()
+#     # players = Player.query.all()
+#     app.logger.debug(f'players: {len(players)}')
+#     return render_template('players.html', players=players, active_players=True)
 
 
 @app.route('/invalid_players')
