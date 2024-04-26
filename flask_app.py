@@ -276,7 +276,7 @@ def update_player(id):
         player.clubId = request.form.get('club_id')
         db.session.commit()
         flash(f'Infos {player.name} mises à jour avec succès!')
-        return redirect(url_for('show_players'))
+        return redirect(url_for('welcome'))
     else:
         clubs = Club.query.all()
         return render_template('update_player.html', player=player, clubs=clubs)
