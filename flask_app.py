@@ -8,16 +8,19 @@ from __future__ import annotations
 
 from logging import basicConfig, DEBUG
 import locale
-from datetime import datetime, timedelta
+from datetime import datetime
+
 from flask import Flask, request, flash, url_for, redirect, render_template, session, send_file
 from flask_debugtoolbar import DebugToolbarExtension
-from sqlalchemy import DateTime, desc, not_, desc, asc
-
-from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool, Matchday, Ranking, License
+from sqlalchemy import not_, desc
 
 from flask import render_template, redirect, url_for, flash
+from sqlalchemy.orm import joinedload
 
-from common import CatType, DivType, load_age_categories, load_divisions, import_players, load_rankings, Gender
+from TennisModel import *
+# from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool, Matchday, Ranking
+
+from common import load_age_categories, load_divisions, import_players, load_rankings, get_players_order_by_ranking, get_championships
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 # Set the environment (development, production, etc.)
@@ -85,37 +88,29 @@ def welcome():
 def select_gender():
     if request.method == 'POST':
         gender = int(request.form['gender'])
-        if gender in [Gender.Male.value, Gender.Female.value]:
-            app.logger.debug(f'gender: {gender}')
-            players = Player.query \
-                .join(Player.license) \
-                .join(License.ranking) \
-                .filter(Player.isActive == True, License.gender == gender) \
-                .order_by(asc(Ranking.id)) \
-                .all()
-        else:
-            players = Player.query \
-                .join(Player.license) \
-                .join(License.ranking) \
-                .filter(Player.isActive) \
-                .order_by(asc(Ranking.id)) \
-                .all()
+        players = get_players_order_by_ranking(gender=gender)
         return render_template('players.html', gender=gender, players=players, active_players=True)
     return render_template('select_gender.html')
 
 
-# @app.route('/players')
-# def show_players():
-#     # Reverse order query
-#     # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
-#     # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(Player.license.lastName)).all()
-#     # players = Player.query.join(Player.license).filter(Player.isActive).order_by(desc(License.lastName)).all()
-#     # players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive).order_by(asc(Ranking.id)).all()
-#     players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive, License.gender == 0).order_by(asc(Ranking.id)).all()
-#     #players = Player.query.filter(Player.isActive).all()
-#     # players = Player.query.all()
-#     app.logger.debug(f'players: {len(players)}')
-#     return render_template('players.html', players=players, active_players=True)
+@app.route('/select_championship_new_team', methods=['GET', 'POST'])
+def select_championship_new_team():
+    if request.method == 'POST':
+        app.logger.debug(f"gender = {request.form['gender']}")
+        gender = int(request.form['gender'])
+        championship_id = request.form['championship']
+        return redirect(url_for('new_team', championship_id=championship_id, gender=gender))
+    selected_gender = int(request.args.get('gender'))
+    championships = get_championships(gender=selected_gender)
+    return render_template('select_championship_new_team.html', championships=championships, gender=selected_gender)
+
+
+@app.route('/select_gender_new_team', methods=['GET', 'POST'])
+def select_gender_new_team():
+    if request.method == 'POST':
+        gender = int(request.form['gender'])
+        return redirect(url_for('select_championship_new_team', gender=gender))
+    return render_template('select_gender_new_team.html')
 
 
 @app.route('/invalid_players')
@@ -158,9 +153,10 @@ def new_team():
                 flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
         else:
             # Récupérer les données du formulaire
+            gender = int(request.form['gender'])
+            championship_id = request.form.get('championship_id')
             team_name = request.form.get('name')
             captain_id = request.form.get('captain_id')
-            championship_id = request.form.get('championship')
             championship = Championship.query.get(championship_id)
             pool = Pool(championshipId=championship_id)  # poule non connue lors de la phase d'inscription de l'équipe au championnat
             # Création des journées de championnat pour la saison en cours
@@ -171,29 +167,28 @@ def new_team():
                 db.session.add(pool)
                 db.session.commit()
             # Créer l'équipe avec les informations fournies
-            # Vous pouvez ajouter le code pour enregistrer l'équipe dans la base de données ici
-
             team = Team(name=team_name, captainId=captain_id, poolId=pool.id, players=list(players_dict.values()))
             db.session.add(team)
             db.session.commit()
             flash(
-                f'L\'équipe "{team.name}" a été créée avec succès avec {len(team.players)} joueurs et associé au championnat {championship} qui a lieu du {championship.startDate} au {championship.endDate}!')
+                f"L'équipe '{team.name}' a été créée avec succès avec {len(team.players)} {'joueuses' if gender else 'joueurs'} et associé au championnat {championship} qui a lieu du {championship.startDate} au {championship.endDate}!")
             return redirect(url_for('show_teams'))
-    default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
-    # active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
-    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).join(Player.license).order_by(asc(License.firstName)).all()
-    championships = Championship.query.all()
+    championship_id = int(request.args.get('championship_id'))
+    gender = int(request.args.get('gender'))
+    championship = Championship.query.get(championship_id)
+    age_category = championship.division.ageCategory
+    app.logger.debug(f"championship = {championship} - age_category = {age_category}")
+    active_players = get_players_order_by_ranking(gender=gender, age_category=age_category)
+    app.logger.debug(f"{len(active_players)} players = {active_players}")
     if not active_players:
+        default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
         flash(f'Tâche impossible! Vous devez ajouter des joueurs dans le club {default_club} au préalable!', 'error')
-        return render_template('index.html')
-    elif not championships:
-        flash(f'Tâche impossible! Vous devez ajouter un type de championnat pour la saison en cours!', 'error')
         return render_template('index.html')
     else:
         app.logger.debug(f'players: {active_players}')
         app.logger.debug(f'request.form: {request.form}')
         max_players = min(10, len(active_players))
-        return render_template('new_team.html', championships=championships, active_players=active_players, max_players=max_players, form=request.form)
+        return render_template('new_team.html', gender=gender, championship=championship, players=active_players, max_players=max_players, form=request.form)
 
 
 @app.route('/update_team/<int:id>', methods=['GET', 'POST'])
@@ -216,6 +211,7 @@ def update_team(id):
             else:
                 flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
         else:
+            # Récupérer les données du formulaire
             team.name = request.form.get('name')
             team.captainId = request.form.get('captain_id')
             team.players = list(players_dict.values())
@@ -224,17 +220,16 @@ def update_team(id):
             db.session.commit()
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('show_teams'))
-    default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
-    app.logger.debug(f'default_club: {default_club}')
-    # active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).all()  # US Cagnes only :-)
-    # players = Player.query.join(Player.license).join(License.ranking).filter(Player.isActive).order_by(asc(Ranking.id)).all()
-    active_players = Player.query.filter_by(clubId=default_club.id, isActive=True).join(Player.license).order_by(asc(License.firstName)).all()
-    app.logger.debug(f'active players: {active_players}')
-    championships = Championship.query.all()
+    championship = team.pool.championship
+    age_category = team.pool.championship.division.ageCategory
+    app.logger.debug(f"gender = {team.gender} - championship = {championship} - age_category = {age_category}")
+    active_players = get_players_order_by_ranking(gender=team.gender, age_category=age_category)
+    app.logger.debug(f"{len(active_players)} players = {active_players}")
     if active_players:
         max_players = min(10, len(active_players))
-        return render_template('update_team.html', team=team, active_players=active_players, max_players=max_players, championships=championships)
+        return render_template('update_team.html', team=team, players=active_players, max_players=max_players, form=request.form)
     else:
+        default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {default_club}!', 'error')
         return render_template('index.html')
 
@@ -282,28 +277,6 @@ def update_player(id):
         return render_template('update_player.html', player=player, clubs=clubs)
 
 
-# @app.route('/select_age_category', methods=['GET', 'POST'])
-# def select_age_category():
-#     if request.method == 'POST':
-#         selected_age_category_id = request.form['age_category']
-#         selected_age_category = AgeCategory.query.get(selected_age_category_id)
-#         # Utilisez l'identifiant de la catégorie d'âge sélectionnée pour générer la liste des divisions possibles
-#         divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).all()
-#         return redirect(url_for('select_division', divisions))
-#         return render_template('select_division.html', divisions=divisions, selected_age_category=selected_age_category)
-#     age_categories = AgeCategory.query.all()
-#     return render_template('select_age_category.html', age_categories=age_categories)
-#
-# @app.route('/select_division', methods=['GET', 'POST'])
-# def select_division():
-#     if request.method == 'POST':
-#         selected_division_id = request.form['division']
-#         selected_division = Division.query.get(selected_division_id)
-#         return render_template('new_championship.html', selected_division=selected_division)
-#     divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).all()
-#     return render_template('select_division.html', divisions=divisions)
-
-
 @app.route('/select_age_category', methods=['GET', 'POST'])
 def select_age_category():
     if request.method == 'POST':
@@ -318,15 +291,23 @@ def select_division():
     if request.method == 'POST':
         selected_division_id = request.form['division']
         selected_division = Division.query.get(selected_division_id)
-        return render_template('new_championship.html', selected_division=selected_division)
-
+        championship = Championship.query.filter_by(divisionId=selected_division.id).first()
+        if championship:
+            flash(f"Le championnat {championship} a déjà été créé dans l'application!")
+            return redirect(url_for('select_division', selected_age_category_id=selected_division.ageCategoryId))
+        else:
+            return render_template('new_championship.html', selected_division=selected_division)
     # Retrieve the selected age category ID from the URL parameters
     selected_age_category_id = request.args.get('selected_age_category_id')
-
     divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).order_by(desc(Division.type)).all()
-    # divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).all()
-    app.logger.debug(f'divisions: {divisions}')
-    return render_template('select_division.html', divisions=divisions)
+    new_divisions = []
+    for division in divisions:
+        championship_with_division = Championship.query.filter_by(divisionId=division.id).first()
+        if championship_with_division:
+            continue
+        new_divisions.append(division)
+    app.logger.debug(f'divisions: {new_divisions}')
+    return render_template('select_division.html', divisions=new_divisions)
 
 
 @app.route('/new_championship', methods=['GET', 'POST'])

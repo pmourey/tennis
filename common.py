@@ -1,12 +1,15 @@
+import os
 import csv
 import logging
 import re
 from datetime import datetime
 from enum import Enum
+from typing import List
 
-from TennisModel import AgeCategory, Division, License, Player, Ranking
+from sqlalchemy import desc, asc, and_
 
-import os
+# from TennisModel import AgeCategory, Division, License, Player, Ranking, Championship
+from TennisModel import Player, AgeCategory, Division, Ranking, License, Championship
 
 
 class CatType(Enum):
@@ -27,6 +30,7 @@ class Series(Enum):
     Second = 2
     Third = 3
     Fourth = 4
+
 
 class Gender(Enum):
     Male = 0
@@ -149,8 +153,52 @@ def import_players(app, men_players_csvfile, women_players_csvfile, default_club
                 year_start_date = year_date.replace(month=1, day=1)
                 # logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
                 license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=lic_number,
-                                  rankingId=current_ranking.id)#, bestRankingId=best_ranking.id)
+                                  rankingId=current_ranking.id)  # , bestRankingId=best_ranking.id)
                 player = Player(birthDate=year_start_date, clubId=default_club.id, isActive=True, licenseId=license.id)
                 db.session.add(license)
                 db.session.add(player)
             db.session.commit()
+
+
+def get_players_order_by_ranking(gender: int, asc_param=True, age_category=None) -> List[Player]:
+    logger = logging.getLogger(__name__)
+    # logger.info(f'age_category: {age_category}')
+    order = asc if asc_param else desc
+    if gender in [Gender.Male.value, Gender.Female.value]:
+        players = Player.query \
+            .join(Player.license) \
+            .join(License.ranking) \
+            .filter(Player.isActive, License.gender == gender) \
+            .order_by(order(Ranking.id)) \
+            .all()
+        if age_category:
+            # Filter players based on age category using Python
+            players = [player for player in players if player.has_valid_age(age_category)]
+    else:
+        players = Player.query \
+            .join(Player.license) \
+            .join(License.ranking) \
+            .filter(Player.isActive) \
+            .order_by(order(Ranking.id)) \
+            .all()
+        if age_category:
+            # Filter players based on age category using Python
+            players = [player for player in players if player.has_valid_age(age_category)]
+    return players
+
+
+def get_championships(gender: int) -> List[Championship]:
+    if gender in [Gender.Male.value, Gender.Female.value]:
+        championships = Championship.query \
+            .join(Championship.division) \
+            .filter(Division.gender == gender) \
+            .order_by(desc(Division.id)) \
+            .all()
+    else:
+        championships = Championship.query \
+            .order_by(desc(Division.id)) \
+            .all()
+    return championships
+
+def ranking(player: Player) -> Ranking:
+    return Ranking.query.get(player.license.rankingId)

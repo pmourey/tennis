@@ -3,28 +3,15 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
+{% set gender_label = 'joueuses' if team.gender else 'joueurs' %}
 
 <main>
     <form action="{{ url_for('update_team', id=team.id) }}" method="POST">
         <table class="update-form">
-            <caption class="table-caption">Fiche équipe</caption>
+            <caption class="table-caption">Fiche modification équipe {{ team.championship.name }} - ({{ players|length }} {{ gender_label }} disponibles!) </caption>
             <tr>
                 <td><label for="name">Nom équipe</label></td>
-                <td><input type="text" name="name" value="{{ team.name }}"</td>
-            </tr>
-            <tr>
-                <td><label for="championship">Championnat :</label></td>
-                <td><select name="championship" required>
-                    <option value="">Sélectionnez un championnat</option>
-                    {% for championship in championships %}
-                    {% if championship.name == team.championship_name %}
-                    <option value="{{ championship.id }}" selected>{{ championship.name }}</option>
-                    {% else %}
-                    <option value="{{ championship.id }}">{{ championship.name }}</option>
-                    {% endif %}
-                    {% endfor %}
-                </select>
-                </td>
+                <td><input type="text" name="name" value="{{ team.name }}"></td>
             </tr>
             <tr>
                 <td><label for="pool">N° de poule :</label></td>
@@ -36,7 +23,6 @@
                     </select>
                 </td>
             </tr>
-
             {% for player_num in range(1, max_players + 1) %}
             {% set team_player = team.players[player_num - 1] if player_num <= max_players else None %}
             <tr>
@@ -44,11 +30,15 @@
                 <td>
                     <select name="player_name_{{ player_num }}">
                         <option value="">Sélectionnez un joueur</option> <!-- Option vide -->
-                        {% for player in active_players %}
+                        {% for player in players %}
                         {% if team_player and team_player.id == player.id %}
-                        <option value="{{ player.id }}" selected>{{ player.name }}</option>
+                        <option value="{{ player.id }}" selected>
+                            {{ player.name }} [{{ player.ranking }}] ({{ player.age }} ans)
+                        </option>
                         {% else %}
-                        <option value="{{ player.id }}">{{ player.name }}</option>
+                        <option value="{{ player.id }}">
+                            {{ player.name }} [{{ player.ranking }}] ({{ player.age }} ans)
+                        </option>
                         {% endif %}
                         {% endfor %}
                     </select>
@@ -60,7 +50,7 @@
                 <td>
                     <select name="captain_id">
                         <option value="">Sélectionnez un capitaine</option> <!-- Option vide -->
-                        {% for player in active_players %}
+                        {% for player in players %}
                         {% if team.captainId == player.id %}
                         <option value="{{ player.id }}" selected>{{ player.name }}</option>
                         {% else %}

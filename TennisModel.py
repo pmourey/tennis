@@ -1,9 +1,9 @@
+import logging
 from datetime import datetime, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, Table, ForeignKeyConstraint
+from sqlalchemy import ForeignKey, Table
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import backref
 
 db = SQLAlchemy()
 
@@ -25,7 +25,8 @@ class Ranking(db.Model):
     # Define the relationship with License
     # licenseId = db.Column(db.Integer, db.ForeignKey('license.id'), nullable=False)
     license = relationship('License', back_populates='rankings')
-    #license = relationship('License', back_populates='rankings', primaryjoin='Ranking.licenseId == License.id')
+
+    # license = relationship('License', back_populates='rankings', primaryjoin='Ranking.licenseId == License.id')
     # license = relationship('License', primaryjoin='Ranking.licenseId == License.id', back_populates='rankings')
 
     def __repr__(self):
@@ -53,7 +54,6 @@ class License(db.Model):
     # # bestRanking = relationship('Ranking', foreign_keys="[Ranking.bestRankingId]", backref=backref("best_ranking", uselist=False))
     # bestRanking = relationship('Ranking', foreign_keys="[Ranking.bestRankingId]")
 
-
     # Define the relationship with Ranking using rankingId
     rankingId = db.Column(db.Integer, ForeignKey('ranking.id'), nullable=False)
     ranking = relationship('Ranking', foreign_keys=[rankingId], back_populates='license')
@@ -74,7 +74,7 @@ class License(db.Model):
     rankings = relationship('Ranking', back_populates='license', foreign_keys=[rankingId])
 
     # Define the back reference to rankings with remote_side parameter
-    #rankings = relationship('Ranking', back_populates='license', remote_side=[Ranking.licenseId])
+    # rankings = relationship('Ranking', back_populates='license', remote_side=[Ranking.licenseId])
 
     # Define the relationship with Player
     players = relationship('Player', back_populates='license')
@@ -106,6 +106,12 @@ class Player(db.Model):
     # Define the relationship with Team using many-to-many association
     teams = relationship('Team', secondary=player_team_association, back_populates='players')
 
+    def __init__(self, birthDate, weight, height, isActive):
+        self.birthDate = birthDate
+        self.weight = weight
+        self.height = height
+        self.isActive = isActive
+
     @property
     def gender(self):
         return self.license.gender
@@ -118,7 +124,9 @@ class Player(db.Model):
 
     @property
     def ranking(self):
-        return self.license.ranking.value
+        license = License.query.get(self.licenseId)
+        ranking = Ranking.query.get(license.rankingId)
+        return ranking.value
 
     @property
     def last_name(self):
@@ -131,9 +139,14 @@ class Player(db.Model):
 
     # Add a property to calculate the age of the player
     @property
-    def age(self):
+    def age(self) -> int:
         today = datetime.now()
         return today.year - self.birthDate.year - ((today.month, today.day) < (self.birthDate.month, self.birthDate.day))
+
+    def has_valid_age(self, age_category) -> bool:
+        # logger = logging.getLogger(__name__)
+        # logger.info(f'prout - age_category: {age_category}')
+        return age_category.minAge <= self.age <= age_category.maxAge
 
     # Add a property to format the birth date (based on license info)
     @property
@@ -166,6 +179,27 @@ class Team(db.Model):
 
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
+
+    @property
+    def gender(self) -> int:
+        if all(p.gender == 0 for p in self.players):
+            return 0
+        elif all(p.gender == 1 for p in self.players):
+            return 1
+        else:
+            return 2
+
+    @property
+    def age_category(self):
+        age_categories = AgeCategory.query.all()
+        for age_category in age_categories:
+            if all(p.has_valid_age(age_category) for p in self.players):
+                return age_category
+        return None
+
+    @property
+    def championship(self):
+        return self.pool.championship if self.pool else None
 
     @property
     def championship_name(self):
