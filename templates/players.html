@@ -17,7 +17,7 @@
 <main>
     {% if players %}
     <table class="players">
-        <caption class="table-caption">Liste des {{ players|length }} {{'joueuses' if gender else 'joueurs'}} {{ status }} du club </caption> <!-- Titre ajouté ici -->
+        <caption class="table-caption">Liste des {{ players|length }} {{'joueuses' if gender == 0 else 'joueurs'}} {{ status }} du club </caption> <!-- Titre ajouté ici -->
         <thead>
         <tr>
             <th>Update</th>
