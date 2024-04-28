@@ -167,7 +167,9 @@ def new_team():
                 db.session.add(pool)
                 db.session.commit()
             # Créer l'équipe avec les informations fournies
-            team = Team(name=team_name, captainId=captain_id, poolId=pool.id, players=list(players_dict.values()))
+            team_players = list(players_dict.values())
+            team_players.sort(key=lambda p: p.ranking_id)
+            team = Team(name=team_name, captainId=captain_id, poolId=pool.id, players=team_players)
             db.session.add(team)
             db.session.commit()
             flash(
@@ -194,13 +196,14 @@ def new_team():
 @app.route('/update_team/<int:id>', methods=['GET', 'POST'])
 def update_team(id):
     team: Team = Team.query.get_or_404(id)
-    app.logger.debug(f'team: {(team.id, id, team.name)} - players: {team.players}')
+    app.logger.debug(f'team in database: {(team.id, id, team.name)} - players: {team.players}')
     players_dict = {}
     if request.method == 'POST':
         # Parcourir les données pour récupérer les noms des joueurs
         for key, value in request.form.items():
             if value and key.startswith('player_name_'):
                 players_dict[key] = Player.query.get(value)
+        app.logger.debug(f'players_dict: {players_dict}')
         # test doublons
         duplicates = keys_with_same_value(players_dict)
         if not request.form['name']:
@@ -215,33 +218,24 @@ def update_team(id):
             team.name = request.form.get('name')
             team.captainId = request.form.get('captain_id')
             team.players = list(players_dict.values())
+            app.logger.debug(f'PROUT -> {len(team.players)} players: {team.players}')
             pool = Pool.query.get(team.poolId)
             pool.letter = request.form.get('letter')
             db.session.commit()
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('show_teams'))
-    championship = team.pool.championship
-    age_category = team.pool.championship.division.ageCategory
-    app.logger.debug(f"gender = {team.gender} - championship = {championship} - age_category = {age_category}")
+    age_category = team.age_category
+    app.logger.debug(f"gender = {team.gender} - age_category = {age_category}")
     active_players = get_players_order_by_ranking(gender=team.gender, age_category=age_category)
     app.logger.debug(f"{len(active_players)} players = {active_players}")
+    sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
     if active_players:
         max_players = min(10, len(active_players))
-        return render_template('update_team.html', team=team, players=active_players, max_players=max_players, form=request.form)
+        return render_template('update_team.html', team=team, sorted_team_players=sorted_team_players, players=active_players, max_players=max_players, form=request.form)
     else:
         default_club = Club.query.filter_by(name=app.config['DEFAULT_CLUB']['name']).first()
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {default_club}!', 'error')
         return render_template('index.html')
-
-        birth_date = request.form.get('birth_date')
-        app.logger.debug(f'birthDate: {birth_date}')
-        player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
-        player.height = request.form.get('height')
-        player.weight = request.form.get('weight')
-        player.isActive = False if request.form.get('is_active') is None else True
-        player.clubId = request.form.get('club_id')
-
-
 
 
 

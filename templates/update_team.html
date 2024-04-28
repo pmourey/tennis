@@ -24,7 +24,7 @@
                 </td>
             </tr>
             {% for player_num in range(1, max_players + 1) %}
-            {% set team_player = team.players[player_num - 1] if player_num <= max_players else None %}
+            {% set team_player = sorted_team_players[player_num - 1] if player_num <= max_players else None %}
             <tr>
                 <td><label for="player_name_{{ player_num }}">Joueur {{ player_num }}</label></td>
                 <td>

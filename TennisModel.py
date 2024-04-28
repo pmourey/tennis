@@ -29,6 +29,15 @@ class Ranking(db.Model):
     # license = relationship('License', back_populates='rankings', primaryjoin='Ranking.licenseId == License.id')
     # license = relationship('License', primaryjoin='Ranking.licenseId == License.id', back_populates='rankings')
 
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __lt__(self, other):
+        return self.id < other.id
+
+    def __gt__(self, other):
+        return self.id > other.id
+
     def __repr__(self):
         return self.value
 
@@ -125,8 +134,7 @@ class Player(db.Model):
     @property
     def ranking(self):
         license = License.query.get(self.licenseId)
-        ranking = Ranking.query.get(license.rankingId)
-        return ranking.value
+        return Ranking.query.get(license.rankingId)
 
     @property
     def last_name(self):
