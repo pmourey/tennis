@@ -4,7 +4,7 @@ import logging
 import re
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import desc, asc, and_
 
@@ -202,3 +202,18 @@ def get_championships(gender: int) -> List[Championship]:
 
 def ranking(player: Player) -> Ranking:
     return Ranking.query.get(player.license.rankingId)
+
+def check_license(license_number: str) -> Optional[tuple[int, str]]:
+    """
+        Check if the license number is valid
+    :param license_number: 
+    :return: 
+    """""
+    # Utilisation d'une expression régulière pour vérifier le format
+    pattern = r'^(\d{1,10})([A-Za-z])$'
+    # Vérification si la license_number correspond au format
+    match = re.match(pattern, license_number.replace(' ', ''))
+    if match:
+        return int(match.group(1)), match.group(2)
+    else:
+        return None

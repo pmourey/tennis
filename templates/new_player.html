@@ -8,20 +8,44 @@
         <table class="update-form">
             <caption class="table-caption">Fiche joueur</caption> <!-- Titre ajouté ici -->
             <tr>
-                <td><label for="name">Nom patronymique</label></td>
-                <td><input type="text" name="name" placeholder="Nom"></td>
+                <td><label for="last_name">Nom</label></td>
+                <td><input type="text" name="last_name" placeholder="Nom"></td>
+            </tr>
+            <tr>
+                <td><label for="first_name">Prénom</label></td>
+                <td><input type="text" name="first_name" placeholder="Prénom"></td>
+            </tr>
+            <tr>
+                <td><label for="license_number">N° licence (avec lettre)</label></td>
+                <td><input type="text" name="license_number" placeholder="N° licence"></td>
             </tr>
             <tr>
                 <td><label for="birth_date">Date de naissance</label></td>
                 <td><input type="date" name="birth_date" placeholder="Date de naissance"></td>
             </tr>
             <tr>
-                <td><label for="height">Taille</label></td>
-                <td><input type="text" name="height" placeholder="Taille"></td>
+                <td><label for=ranking">Classement</label></td>
+                <td>
+                    <select name="ranking">
+                        {% for ranking in rankings %}
+                        <option value="{{ ranking.id }}">{{ ranking.value }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
             </tr>
             <tr>
-                <td><label for="weight">Poids</label></td>
-                <td><input type="text" name="weight" placeholder="Poids"></td>
+                <td><label for="is_active">Disponible</label></td>
+                <td><input type="checkbox" name="is_active" checked></td>
+            </tr>
+            <tr>
+                <td><label for="gender">Sexe</label></td>
+                <td>
+                    <select name="gender">
+                        {% for gender in genders %}
+                        <option value="{{ gender }}">{{ 'Femmes' if gender else 'Hommes' }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
             </tr>
             <tr>
                 <td><label for="club_id">Club</label></td>

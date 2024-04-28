@@ -20,7 +20,7 @@ from sqlalchemy.orm import joinedload
 from TennisModel import *
 # from TennisModel import Player, db, Team, Club, Championship, AgeCategory, Division, Pool, Matchday, Ranking
 
-from common import load_age_categories, load_divisions, import_players, load_rankings, get_players_order_by_ranking, get_championships
+from common import load_age_categories, load_divisions, import_players, load_rankings, get_players_order_by_ranking, get_championships, Gender, check_license
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 # Set the environment (development, production, etc.)
@@ -233,29 +233,65 @@ def update_team(id):
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {default_club}!', 'error')
         return render_template('index.html')
 
+        birth_date = request.form.get('birth_date')
+        app.logger.debug(f'birthDate: {birth_date}')
+        player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
+        player.height = request.form.get('height')
+        player.weight = request.form.get('weight')
+        player.isActive = False if request.form.get('is_active') is None else True
+        player.clubId = request.form.get('club_id')
+
+
+
+
 
 @app.route('/new_player/', methods=['GET', 'POST'])
 def new_player():
     app.logger.debug(f'request.method: {request.method}')
     if request.method == 'POST':
-        if not (request.form['name'] and request.form['birth_date']):
+        license_number = request.form['license_number']
+        license_info = check_license(license_number)
+        if not (request.form['first_name'] and request.form['last_name'] and request.form['birth_date'] and request.form['license_number']):
             flash('Veuillez renseigner tous les champs, svp!', 'error')
         else:
-            birth_date: datetime = datetime.strptime(request.form['birth_date'], '%Y-%m-%d')
-            # is_captain: bool = request.form.get('is_captain') == 'on'
-            is_captain = False if request.form.get('is_captain') is None else True
-            app.logger.debug(f'is_captain: {is_captain}')
-            player = Player(name=request.form['name'], birthDate=birth_date, height=request.form['height'],
-                            weight=request.form['weight'], clubId=request.form['club_id'], isActive=True)
-            # logging.warning("See this message in Flask Debug Toolbar!")
-            db.session.add(player)
-            db.session.commit()
-            club = Club.query.get(player.clubId)
-            flash(f'{player.name} ajouté avec succès dans le club {club.name}!')
-            return redirect(url_for('show_players'))
+            if not license_info:
+                flash('N° de license invalide!', 'error')
+            else:
+                lic_num, lic_letter = license_info
+                existing_license = License.query.filter_by(id=lic_num).first()
+                if existing_license:
+                    player = Player.query.filter_by(licenseId=existing_license.id).first()
+                    club = Club.query.get(player.clubId)
+                    gender = Gender(existing_license.gender)
+                    if gender == Gender.Male:
+                        flash(f"N° de license <{lic_num} {lic_letter}> déjà utilisé par le joueur {player.name} classé {player.ranking}, âgé de {player.age} ans et licencié au club de {club.name}!", 'error')
+                    else:
+                        flash(f"N° de license <{lic_num} {lic_letter}> déjà utilisée par la joueuse {player.name} classée {player.ranking}, âgée de {player.age} ans et licenciée au club de {club.name}!", 'error')
+                else:
+                    first_name = request.form['first_name']
+                    last_name = request.form['last_name']
+                    birth_date: datetime = datetime.strptime(request.form['birth_date'], '%Y-%m-%d')
+                    height = request.form.get('height')
+                    weight = request.form.get('weight')
+                    ranking_id = int(request.form['ranking'])
+                    is_active = False if request.form.get('is_active') is None else True
+                    gender = int(request.form['gender'])
+                    club_id = request.form['club_id']
+                    license = License(id=lic_num, firstName=first_name, lastName=last_name, letter=lic_letter, gender=gender, year=birth_date.year)
+                    license.rankingId = ranking_id
+                    db.session.add(license)
+                    player = Player(birthDate=birth_date, height=weight, weight=height, isActive=is_active)
+                    player.licenseId, player.clubId = license.id, club_id
+                    db.session.add(player)
+                    db.session.commit()
+                    club = Club.query.get(player.clubId)
+                    flash(f'{player.name} ajouté avec succès dans le club {club.name}!')
+                    return redirect(url_for('welcome'))
     clubs = Club.query.all()
+    genders = [Gender.Male.value, Gender.Female.value]
+    rankings = Ranking.query.order_by(desc(Ranking.id)).all()
     app.logger.debug(f'clubs: {clubs}')
-    return render_template('new_player.html', clubs=clubs)
+    return render_template('new_player.html', clubs=clubs, genders=genders, rankings=rankings)
 
 
 @app.route('/update_player/<int:id>', methods=['GET', 'POST'])
