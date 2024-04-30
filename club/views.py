@@ -64,11 +64,10 @@ def select_club():
             current_app.logger.debug(f'nouveau club créé: {club}')
             message += f'Club {club} créé avec succès!\n'
             # Chargement des joueurs du club
-            club_name = club.name.lower().replace(' ', '')
             for gender, gender_label in enumerate(['men', 'women']):
-                players_csvfile = f'../static/data/{club_name}_{gender_label}.csv'
-                project_root = os.path.abspath(os.path.dirname(__file__))
-                file_path = os.path.join(project_root, players_csvfile)
+                players_csvfile = f"static/data/{club_info['csvfile']}_{gender_label}.csv"
+                file_path = os.path.join(current_app.config['BASE_PATH'], players_csvfile)
+                current_app.logger.debug(f'players_csvfile: {file_path}')
                 if not os.path.exists(file_path):
                     message += f'Fichier {file_path} non trouvé!\n'
                     flash(message, 'error')

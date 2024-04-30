@@ -60,17 +60,17 @@ def import_all_data(app, db) -> str:
         load_rankings(db)
     message += f"{Ranking.query.count()} classements insérés en bdd!\n"
 
-    for club_name in app.config['CLUBS']:
-        club = Club(id=club_name['id'], name=club_name['name'], city=club_name['city'])
+    for club_info in app.config['CLUBS']:
+        club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
         db.session.add(club)
         app.logger.debug(f'default_club: {club}')
         db.session.commit()
         message += f'Club {club} créé avec succès!\n'
         # Chargement des joueurs du club
-        club_name = club.name.lower().replace(' ', '')
         for gender, gender_label in enumerate(['men', 'women']):
-            players_csvfile = f'static/data/{club_name}_{gender_label}.csv'
-            import_players(app=app, gender=gender, csvfile=players_csvfile, club=club, db=db)
+            players_csvfile = f"static/data/{club_info['csvfile']}_{gender_label}.csv"
+            file_path = os.path.join(app.config['BASE_PATH'], players_csvfile)
+            import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
             players_count = Player.query.filter(Player.clubId == club.id).count()
             # db.session.flush()
             message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
@@ -149,12 +149,10 @@ def load_rankings(db):
 
 
 def import_players(app, gender, csvfile, club, db):
-    logger = logging.getLogger(__name__)
-    file_path = os.path.join(os.path.dirname(__file__), csvfile)
-    with open(file_path, 'r', newline='') as file:
+    with open(csvfile, 'r', newline='') as file:
         reader = csv.DictReader(file, delimiter='\t')
         for row in reader:
-            logger.info(f'row: {row}')
+            logging.info(f'row: {row}')
             # app.logger(f'row: {row}')
             # Formatting player data
             first_name = row['Prénom']
@@ -173,7 +171,7 @@ def import_players(app, gender, csvfile, club, db):
                 best_ranking_value = None
             current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
             best_ranking = Ranking.query.filter(Ranking.value == best_ranking_value).first() if best_ranking_value else None
-            logger.info(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
+            logging.info(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
             match = re.match(r'(\d+)\s*(\w)', license_info)
             if not match:
                 continue
@@ -192,7 +190,7 @@ def import_players(app, gender, csvfile, club, db):
             db.session.add(player)
         db.session.commit()
         players_count = Player.query.filter(Player.clubId == club.id).count()
-        logger.info(f'COMMIT PLAYERS DONE = {players_count}')
+        logging.info(f'COMMIT PLAYERS DONE = {players_count}')
 
 
 def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None) -> List[Player]:
