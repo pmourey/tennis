@@ -78,8 +78,18 @@ def select_club():
                 message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
         flash(message, 'error')
         clubs = Club.query.all()
+    signed_club_id = request.cookies.get('club_id')
+    selected_club = None
+    if signed_club_id:
+        try:
+            club_id = current_app.serializer.loads(signed_club_id)
+            selected_club = Club.query.get(club_id)
+            if selected_club:
+                return render_template('select_club.html', selected_club=selected_club, clubs=clubs)
+        except Exception as e:
+            pass
     current_app.logger.debug(f'{len(clubs)} club(s) in database!')
-    return render_template('select_club.html', clubs=clubs)
+    return render_template('select_club.html',  selected_club=selected_club, clubs=clubs)
 
 @club_management_bp.route('/manage_club')
 @check_club_cookie

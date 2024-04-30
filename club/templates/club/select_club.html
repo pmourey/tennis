@@ -5,13 +5,18 @@
 {% block main %}
 <form action="{{ url_for('club.select_club') }}" method="POST">
     <table class="update-form">
-        <caption class="table-caption">Sélectionner un club</caption>
+        <caption class="table-caption">Changement de club</caption>
         <tr>
             <td><label for="club">Club:</label></td>
             <td>
                 <select id="club" name="club_id" required>
+                    <option value="">Sélectionner un club</option> <!-- Option vide -->
                     {% for club in clubs %}
+                    {% if selected_club and selected_club.id == club.id %}
+                        <option value="{{ club.id }}" selected>{{ club.name }}</option>
+                    {% else %}
                         <option value="{{ club.id }}">{{ club.name }}</option>
+                    {% endif %}
                     {% endfor %}
                 </select>
             </td>
