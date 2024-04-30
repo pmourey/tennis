@@ -7,7 +7,7 @@
     <caption class="table-caption">Fiche création championnat</caption>
     <tr>
         <td>
-            <form action="{{ url_for('select_division') }}" method="POST">
+            <form action="{{ url_for('championship.select_division') }}" method="POST">
                 <select name="division" required>
                     <option value="">Sélectionnez une division</option>
                     {% for division in divisions %}

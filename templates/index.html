@@ -5,25 +5,10 @@
 <main>
     <table class="welcome">
         <tr>
-            <td><a href="{{ url_for('select_gender') }}">Liste joueurs(euses) disponibles</a></td>
+            <td><a href="{{ url_for('club.manage_club') }}">Gestion club</a></td>
         </tr>
         <tr>
-            <td><a href="{{ url_for('show_teams') }}">Liste équipes</a></td>
-        </tr>
-        <tr>
-            <td><a href="{{ url_for('new_player') }}">Nouveau joueur</a></td>
-        </tr>
-        <tr>
-            <td><a href="{{ url_for('select_gender_new_team') }}">Nouvelle équipe</a></td>
-        </tr>
-        <tr>
-            <td><a href="{{ url_for('select_age_category') }}">Nouveau championnat</a></td>
-        </tr>
-        <tr>
-            <td><a href="{{ url_for('list_championships') }}">Liste championnats</a></td>
-        </tr>
-        <tr>
-            <td><a href="{{ url_for('show_invalid_players') }}">Liste joueurs(euses) indisponibles</a></td>
+            <td><a href="{{ url_for('championship.manage_championship') }}">Gestion championnats</a></td>
         </tr>
     </table>
 </main>

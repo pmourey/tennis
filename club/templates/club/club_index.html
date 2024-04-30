@@ -1,0 +1,30 @@
+<!-- templates/index.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <table class="welcome">
+        <caption class="table-caption">Gestion club {{ club.name }}</caption>
+        <tr>
+            <td><a href="{{ url_for('club.select_gender') }}">Liste joueurs(euses) disponibles</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('club.show_teams') }}">Liste équipes</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('club.new_player') }}">Nouveau joueur</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('club.select_gender_new_team') }}">Nouvelle équipe</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('club.show_invalid_players') }}">Liste joueurs(euses) indisponibles</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('club.select_club') }}">Changement club</a></td>
+        </tr>
+    </table>
+</main>
+{% endblock main %}

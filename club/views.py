@@ -1,0 +1,373 @@
+# club/views.py
+from __future__ import annotations
+
+import os
+from typing import List
+
+from flask import make_response
+from flask import current_app
+
+from functools import wraps
+
+from flask import request
+from sqlalchemy import desc
+
+from flask import render_template, redirect, url_for, flash
+
+from TennisModel import *
+from club import club_management_bp
+
+from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players
+
+
+def check_club_cookie(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Vérifier si le cookie club_id est défini
+        if 'club_id' not in request.cookies:
+            # Rediriger vers la route select_club si le cookie n'est pas défini
+            return redirect(url_for('club.select_club'))
+        # Sinon, exécuter la fonction de vue normalement
+        return func(*args, **kwargs)
+
+    return wrapper
+
+@club_management_bp.route('/select_club', methods=['GET', 'POST'])
+def select_club():
+    if request.method == 'POST':
+        club_id = request.form.get('club_id')
+        # Signer le club_id
+        signed_club_id = current_app.serializer.dumps(club_id)
+        # Stocker le club_id signé dans un cookie
+        response = make_response(redirect(url_for('club.manage_club')))
+        response.set_cookie('club_id', signed_club_id)
+        current_app.logger.debug(f'signed club_id: {signed_club_id}')
+        return response
+    # Récupérer les clubs depuis la base de données
+    clubs = Club.query.all()
+    if not clubs:
+        # Aucune donnée en base, lancer le chargement
+        message = import_all_data(current_app, db)
+        flash(message, 'error')
+        # return render_template('club_index.html')
+        return redirect(url_for('club.manage_club'))
+    else:
+        # Charger les nouveaux clubs et joueurs (à partir des fichiers csv)
+        message = ''
+        existing_clubs = [club.name for club in clubs]
+        new_clubs: List[dict] = [club_info for club_info in current_app.config['CLUBS'] if club_info['name'] not in existing_clubs]
+        current_app.logger.debug(f'{len(new_clubs)} nouveau clubs à charger: {new_clubs}')
+        for club_info in new_clubs:
+            club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
+            db.session.add(club)
+            db.session.commit()
+            current_app.logger.debug(f'nouveau club créé: {club}')
+            message += f'Club {club} créé avec succès!\n'
+            # Chargement des joueurs du club
+            club_name = club.name.lower().replace(' ', '')
+            for gender, gender_label in enumerate(['men', 'women']):
+                players_csvfile = f'static/data/{club_name}_{gender_label}.csv'
+                if not os.path.exists(players_csvfile):
+                    message += f'Fichier csv {players_csvfile} non trouvé!\n'
+                    flash(message, 'error')
+                    continue
+                import_players(app=current_app, gender=gender, csvfile=players_csvfile, club=club, db=db)
+                players_count = Player.query.filter(Player.clubId == club.id).count()
+                # db.session.flush()
+                message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
+        flash(message, 'error')
+        clubs = Club.query.all()
+    current_app.logger.debug(f'{len(clubs)} club(s) in database!')
+    return render_template('select_club.html', clubs=clubs)
+
+@club_management_bp.route('/manage_club')
+@check_club_cookie
+def manage_club():
+    clubs = Club.query.all()
+    # Récupérer le club_id à partir du cookie
+    signed_club_id = request.cookies.get('club_id')
+    current_app.logger.debug(f'manage_club -> signed club_id: {signed_club_id}')
+    if signed_club_id and clubs:
+        try:
+            # Vérifier et décoder le club_id signé
+            club_id = current_app.serializer.loads(signed_club_id)
+            current_app.logger.debug(f'signed club_id: {club_id}')
+            club = Club.query.get(club_id)
+            if club:
+                logging.info(f'Club sélectionné: {club.name}')
+                return render_template('club_index.html', club=club)
+            else:
+                return redirect(url_for('club.select_club'))
+        except Exception as e:
+            flash("Erreur lors du décodage du cookie signé :", 'error')
+    return redirect(url_for('club.select_club'))
+
+
+@club_management_bp.route('/select_gender', methods=['GET', 'POST'])
+@check_club_cookie
+def select_gender():
+    if request.method == 'POST':
+        gender = int(request.form['gender'])
+        signed_club_id = request.cookies.get('club_id')
+        club_id = current_app.serializer.loads(signed_club_id)
+        players = get_players_order_by_ranking(gender=gender, club_id=club_id)
+        club = Club.query.get(club_id)
+        return render_template('players.html', gender=gender, players=players, club=club, active_players=True)
+    return render_template('select_gender.html')
+
+
+@club_management_bp.route('/select_championship_new_team', methods=['GET', 'POST'])
+def select_championship_new_team():
+    if request.method == 'POST':
+        current_app.logger.debug(f"gender = {request.form['gender']}")
+        gender = int(request.form['gender'])
+        championship_id = request.form['championship']
+        return redirect(url_for('club.new_team', championship_id=championship_id, gender=gender))
+    selected_gender = int(request.args.get('gender'))
+    championships = get_championships(gender=selected_gender)
+    return render_template('select_championship_new_team.html', championships=championships, gender=selected_gender)
+
+
+@club_management_bp.route('/select_gender_new_team', methods=['GET', 'POST'])
+def select_gender_new_team():
+    if request.method == 'POST':
+        gender = int(request.form['gender'])
+        return redirect(url_for('club.select_championship_new_team', gender=gender))
+    return render_template('select_gender_new_team.html')
+
+
+@club_management_bp.route('/invalid_players')
+@check_club_cookie
+def show_invalid_players():
+    signed_club_id = request.cookies.get('club_id')
+    club_id = current_app.serializer.loads(signed_club_id)
+    current_app.logger.debug(f'club_id: {club_id} - route: show_invalid_players')
+    # Charger les détails du club à partir de la base de données
+    # Reverse order query
+    # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
+    # Récupérer les joueurs inactifs du club à partir de la base de données
+    inactive_club_players = Player.query.join(Player.club).filter(Club.id == club_id, isActive=False).all()
+    # players = Player.query.all()
+    current_app.logger.debug(f'invalid players: {inactive_club_players}')
+    return render_template('players.html', players=inactive_club_players, active_players=False)
+
+
+@club_management_bp.route('/teams')
+@check_club_cookie
+def show_teams():
+    signed_club_id = request.cookies.get('club_id')
+    club_id = current_app.serializer.loads(signed_club_id)
+    # teams = Team.query.order_by(desc(Team.name)).all()
+    club_teams = Team.query.join(Player).filter(Player.clubId == club_id).order_by(desc(Team.name)).all()
+    return render_template('teams.html', teams=club_teams)
+
+
+def keys_with_same_value(d):
+    return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
+    # return {value: [key for key, val in d.items() if val == value] for value in set(d.values()) if list(d.values()).count(value) > 1}
+
+
+@club_management_bp.route('/new_team/', methods=['GET', 'POST'])
+@check_club_cookie
+def new_team():
+    players_dict = {}
+    if request.method == 'POST':
+        # Parcourir les données pour récupérer les noms des joueurs
+        for key, value in request.form.items():
+            if value and key.startswith('player_name_'):
+                players_dict[key] = Player.query.get(value)
+        # test doublons
+        duplicates = keys_with_same_value(players_dict)
+        if not request.form['name']:
+            flash('Veuillez renseigner tous les champs, svp!', 'error')
+        elif duplicates:
+            if len(duplicates) == 1:
+                flash(f'Le joueur {duplicates[0]} est en doublon, veuillez en sélectionner un autre!', 'error')
+            else:
+                flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
+        else:
+            # Récupérer les données du formulaire
+            gender = int(request.form['gender'])
+            championship_id = request.form.get('championship_id')
+            team_name = request.form.get('name')
+            captain_id = request.form.get('captain_id')
+            championship = Championship.query.get(championship_id)
+            pool = Pool(championshipId=championship_id)  # poule non connue lors de la phase d'inscription de l'équipe au championnat
+            # Création des journées de championnat pour la saison en cours
+            for date in championship.match_dates:
+                matchday = Matchday(date=date, poolId=pool.id)
+                # pool.matchdays.append(matchday)
+                db.session.add(matchday)
+                db.session.add(pool)
+                db.session.commit()
+            # Créer l'équipe avec les informations fournies
+            team_players = list(players_dict.values())
+            team_players.sort(key=lambda p: p.ranking_id)
+            team = Team(name=team_name, captainId=captain_id, poolId=pool.id, players=team_players)
+            db.session.add(team)
+            db.session.commit()
+            flash(f"L'équipe '{team.name}' a été créée avec succès avec {len(team.players)} {'joueuses' if gender else 'joueurs'} et associé au championnat {championship} "
+                  f"qui a lieu du {championship.startDate} au {championship.endDate}!")
+            return redirect(url_for('club.show_teams'))
+    championship_id = int(request.args.get('championship_id'))
+    gender = int(request.args.get('gender'))
+    championship = Championship.query.get(championship_id)
+    age_category = championship.division.ageCategory
+    current_app.logger.debug(f"championship = {championship} - age_category = {age_category}")
+    signed_club_id = request.cookies.get('club_id')
+    club_id = current_app.serializer.loads(signed_club_id)
+    active_players = get_players_order_by_ranking(gender=gender, club_id=club_id, age_category=age_category)
+    current_app.logger.debug(f"{len(active_players)} players = {active_players}")
+    if not active_players:
+        club = Club.query.get(club_id)
+        flash(f'Tâche impossible! Vous devez ajouter des joueurs dans le club {club} au préalable!', 'error')
+        return render_template('index.html')
+    else:
+        current_app.logger.debug(f'players: {active_players}')
+        current_app.logger.debug(f'request.form: {request.form}')
+        max_players = min(10, len(active_players))
+        return render_template('new_team.html', gender=gender, championship=championship, players=active_players, max_players=max_players, form=request.form)
+
+
+@club_management_bp.route('/update_team/<int:id>', methods=['GET', 'POST'])
+def update_team(id):
+    team: Team = Team.query.get_or_404(id)
+    current_app.logger.debug(f'team in database: {(team.id, id, team.name)} - players: {team.players}')
+    players_dict = {}
+    if request.method == 'POST':
+        # Parcourir les données pour récupérer les noms des joueurs
+        for key, value in request.form.items():
+            if value and key.startswith('player_name_'):
+                players_dict[key] = Player.query.get(value)
+        current_app.logger.debug(f'players_dict: {players_dict}')
+        # test doublons
+        duplicates = keys_with_same_value(players_dict)
+        if not request.form['name']:
+            flash('Veuillez renseigner tous les champs, svp!', 'error')
+        elif duplicates:
+            if len(duplicates) == 1:
+                flash(f'Le joueur {duplicates[0]} est en doublon, veuillez en sélectionner un autre!', 'error')
+            else:
+                flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
+        else:
+            # Récupérer les données du formulaire
+            team.name = request.form.get('name')
+            team.captainId = request.form.get('captain_id')
+            team.players = list(players_dict.values())
+            current_app.logger.debug(f'{len(team.players)} players: {team.players}')
+            pool = Pool.query.get(team.poolId)
+            pool.letter = request.form.get('letter')
+            db.session.commit()
+            flash(f'Equipe {team.name} mise à jour avec succès!')
+            return redirect(url_for('club.show_teams'))
+    age_category = team.age_category
+    current_app.logger.debug(f"gender = {team.gender} - age_category = {age_category}")
+    signed_club_id = request.cookies.get('club_id')
+    club_id = current_app.serializer.loads(signed_club_id)
+    active_players = get_players_order_by_ranking(gender=team.gender, club_id=club_id, age_category=age_category)
+    current_app.logger.debug(f"{len(active_players)} players = {active_players}")
+    sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
+    if active_players:
+        max_players = min(10, len(active_players))
+        return render_template('update_team.html', team=team, sorted_team_players=sorted_team_players, players=active_players, max_players=max_players, form=request.form)
+    else:
+        club = Club.query.get(club_id)
+        flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {club}!', 'error')
+        return render_template('index.html')
+
+
+@club_management_bp.route('/new_player/', methods=['GET', 'POST'])
+def new_player():
+    current_app.logger.debug(f'request.method: {request.method}')
+    if request.method == 'POST':
+        license_number = request.form['license_number']
+        license_info = check_license(license_number)
+        if not (request.form['first_name'] and request.form['last_name'] and request.form['birth_date'] and request.form['license_number']):
+            flash('Veuillez renseigner tous les champs, svp!', 'error')
+        else:
+            if not license_info:
+                flash('N° de license invalide!', 'error')
+            else:
+                lic_num, lic_letter = license_info
+                existing_license = License.query.filter_by(id=lic_num).first()
+                if existing_license:
+                    player = Player.query.filter_by(licenseId=existing_license.id).first()
+                    club = Club.query.get(player.clubId)
+                    gender = Gender(existing_license.gender)
+                    if gender == Gender.Male:
+                        flash(
+                            f"N° de license <{lic_num} {lic_letter}> déjà utilisé par le joueur {player.name} classé {player.ranking}, âgé de {player.age} ans et licencié au club de {club.name}!",
+                            'error')
+                    else:
+                        flash(
+                            f"N° de license <{lic_num} {lic_letter}> déjà utilisée par la joueuse {player.name} classée {player.ranking}, âgée de {player.age} ans et licenciée au club de {club.name}!",
+                            'error')
+                else:
+                    first_name = request.form['first_name']
+                    last_name = request.form['last_name']
+                    birth_date: datetime = datetime.strptime(request.form['birth_date'], '%Y-%m-%d')
+                    height = request.form.get('height')
+                    weight = request.form.get('weight')
+                    ranking_id = int(request.form['ranking'])
+                    is_active = False if request.form.get('is_active') is None else True
+                    gender = int(request.form['gender'])
+                    club_id = request.form['club_id']
+                    license = License(id=lic_num, firstName=first_name, lastName=last_name, letter=lic_letter, gender=gender, year=birth_date.year)
+                    license.rankingId = ranking_id
+                    db.session.add(license)
+                    player = Player(birthDate=birth_date, height=weight, weight=height, isActive=is_active)
+                    player.licenseId, player.clubId = license.id, club_id
+                    db.session.add(player)
+                    db.session.commit()
+                    club = Club.query.get(player.clubId)
+                    flash(f'{player.name} ajouté avec succès dans le club {club.name}!')
+                    return redirect(url_for('club.manage_club'))
+    signed_club_id = request.cookies.get('club_id')
+    club_id = current_app.serializer.loads(signed_club_id)
+    club = Club.query.get(club_id)
+    genders = [Gender.Male.value, Gender.Female.value]
+    rankings = Ranking.query.order_by(desc(Ranking.id)).all()
+    return render_template('new_player.html', club=club, genders=genders, rankings=rankings)
+
+
+@club_management_bp.route('/update_player/<int:id>', methods=['GET', 'POST'])
+def update_player(id):
+    player: Player = Player.query.get_or_404(id)
+    if request.method == 'POST':
+        birth_date = request.form.get('birth_date')
+        current_app.logger.debug(f'birthDate: {birth_date}')
+        player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
+        player.height = request.form.get('height')
+        player.weight = request.form.get('weight')
+        player.isActive = False if request.form.get('is_active') is None else True
+        player.clubId = request.form.get('club_id')
+        db.session.commit()
+        flash(f'Infos {player.name} mises à jour avec succès!')
+        return redirect(url_for('club.manage_club'))
+    else:
+        signed_club_id = request.cookies.get('club_id')
+        club_id = current_app.serializer.loads(signed_club_id)
+        club = Club.query.get(club_id)
+        return render_template('update_player.html', player=player, club=club)
+
+
+@club_management_bp.route('/delete_player/<int:id>', methods=['GET', 'POST'])
+def delete_player(id):
+    if request.method == 'GET':
+        player = Player.query.get_or_404(id)
+        db.session.delete(player)
+        db.session.commit()
+        current_app.logger.debug(f'Joueur {player} supprimé!')
+        flash(f"Joueur \"{player.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
+        return redirect(url_for('club.show_players'))
+
+
+@club_management_bp.route('/delete_team/<int:id>', methods=['GET', 'POST'])
+def delete_team(id):
+    if request.method == 'GET':
+        team = Team.query.get_or_404(id)
+        db.session.delete(team)
+        db.session.commit()
+        current_app.logger.debug(f'Equipe {team} supprimé!')
+        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
+        return redirect(url_for('club.show_teams'))

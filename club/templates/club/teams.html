@@ -8,7 +8,7 @@
     function confirmDelete(teamId) {
         var result = confirm("Êtes-vous sûr de vouloir supprimer cette équipe?");
         if (result) {
-            window.location.href = "delete_team/" + teamId;
+            window.location.href = "club.delete_team/" + teamId;
         }
     }
     // Fonction pour afficher ou masquer l'info-bulle
@@ -58,7 +58,7 @@
         </thead>
         {% for team in teams %}
         <tr>
-            <td><a href="{{ url_for('update_team', id=team.id) }}">{{team.id}}</a></td>
+            <td><a href="{{ url_for('club.update_team', id=team.id) }}">{{team.id}}</a></td>
             <td><button onclick="confirmDelete({{ team.id }})">{{team.id}}</button></td>
             <td>{{ team.name }}</td>
             <td>{{ team.players|length }}</td>

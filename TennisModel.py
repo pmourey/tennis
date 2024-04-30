@@ -6,6 +6,7 @@ from sqlalchemy import ForeignKey, Table
 from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
+# db = SQLAlchemy(session_options={"autoflush": False})
 
 # Table d'association entre Player et Team
 player_team_association = Table(

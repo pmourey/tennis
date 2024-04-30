@@ -17,7 +17,7 @@
 <main>
     {% if players %}
     <table class="players">
-        <caption class="table-caption">Liste des {{ players|length }} {{'joueuses' if gender == 0 else 'joueurs'}} {{ status }} du club </caption> <!-- Titre ajouté ici -->
+        <caption class="table-caption">Liste des {{ players|length }} {{'joueuses' if gender == 1 else 'joueurs'}} {{ status }} de {{club.name}}</caption> <!-- Titre ajouté ici -->
         <thead>
         <tr>
             <th>Update</th>
@@ -32,7 +32,7 @@
         {% for player in players %}
         <div id="player">
             <tr>
-                <td><a href="{{ url_for('update_player', id=player.id) }}">{{player.id}}</a></td>
+                <td><a href="{{ url_for('club.update_player', id=player.id) }}">{{player.id}}</a></td>
                 <td><button onclick="confirmDelete({{ player.id }})">{{player.id}}</button></td>
                 <td>{{ player.name }}</td>
                 <td>{{ player.age }}</td>

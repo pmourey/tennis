@@ -6,9 +6,9 @@
 {% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
 
 <main>
-    <form action="{{ url_for('update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">
+    <form action="{{ url_for('club.update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">
         <table class="update-form">
-            <caption class="table-caption">Fiche joueur</caption> <!-- Titre ajouté ici -->
+            <caption class="table-caption">Fiche joueur ({{ club.name }})</caption> <!-- Titre ajouté ici -->
             <tr>
                 <td><label for="name">Nom</label></td>
                 <td>{{ player.name }}</td>
@@ -28,20 +28,6 @@
             <tr>
                 <td><label for="is_active">Disponible</label></td>
                 <td><input type="checkbox" name="is_active" {% if player.isActive %}checked{% endif %}></td>
-            </tr>
-            <tr>
-                <td><label for="club_id">Club</label></td>
-                <td>
-                    <select name="club_id">
-                        {% for club in clubs %}
-                        {% if club.id == player.clubId %}
-                        <option value="{{ club.id }}" selected>{{ club.name }}</option>
-                        {% else %}
-                        <option value="{{ club.id }}">{{ club.name }}</option>
-                        {% endif %}
-                        {% endfor %}
-                    </select>
-                </td>
             </tr>
             <tr>
                 <td colspan="2"><input type="submit" value="Mettre à jour"></td>

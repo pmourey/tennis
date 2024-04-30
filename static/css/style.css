@@ -71,22 +71,42 @@ table.menu {
     display: block;
  } */
 
+/*
 table.menu tr, table.menu td {
-  border: none; /* Modification de la propriété border */
+  border: none; */
+/* Modification de la propriété border *//*
+
   display: inline;
   text-align: center;
   color: darkblue;
   background-color: lightgray;
   padding: 7px;
   margin-bottom: 20px;
+  margin-right: 10px;
   border-radius: 5px;
   border-collapse: collapse;
   font-size: 16px;
 }
+*/
 
+table.menu tr {
+  border: none;
+}
 
-table.welcome tr {
-  margin-bottom: 20px; /* Augmentation de l'espacement entre les lignes */
+table.menu td {
+  display: inline-block;
+  text-align: center;
+  color: darkblue;
+  background-color: lightgray;
+  padding: 7px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+/* Ajouter un espace entre les colonnes */
+table.menu td:not(:last-child) {
+  margin-right: 10px;
 }
 
 table.welcome tr, table.welcome td{

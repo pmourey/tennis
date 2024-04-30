@@ -16,3 +16,4 @@ https://godot70.pythonanywhere.com
 
 https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys
 https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html#mapper-sql-expressions
+https://realpython.com/flask-blueprint/

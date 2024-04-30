@@ -3,7 +3,7 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
-<form action="{{ url_for('select_championship_new_team') }}" method="POST">
+<form action="{{ url_for('club.select_championship_new_team') }}" method="POST">
     <table class="update-form">
         <caption class="table-caption">Fiche création équipe {{ 'Femmes' if gender else 'Hommes' }}</caption>
         <input type="hidden" name="gender" value="{{ gender }}">

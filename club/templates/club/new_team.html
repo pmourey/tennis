@@ -7,7 +7,7 @@
 {% set gender_label = 'joueuses' if gender else 'joueurs' %}
 
 <main>
-    <form action="{{ url_for('new_team') }}" method="POST">
+    <form action="{{ url_for('club.new_team') }}" method="POST">
         <table class="update-form">
             <caption class="table-caption">Fiche création équipe {{ championship.name }} - ({{ players|length }} {{ gender_label }} disponibles!) </caption>
             <input type="hidden" name="gender" value="{{ gender }}">

@@ -6,7 +6,7 @@
 {% set gender_label = 'joueuses' if team.gender else 'joueurs' %}
 
 <main>
-    <form action="{{ url_for('update_team', id=team.id) }}" method="POST">
+    <form action="{{ url_for('club.update_team', id=team.id) }}" method="POST">
         <table class="update-form">
             <caption class="table-caption">Fiche modification équipe {{ team.championship.name }} - ({{ players|length }} {{ gender_label }} disponibles!) </caption>
             <tr>

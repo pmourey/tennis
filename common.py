@@ -8,8 +8,7 @@ from typing import List, Optional
 
 from sqlalchemy import desc, asc, and_
 
-# from TennisModel import AgeCategory, Division, License, Player, Ranking, Championship
-from TennisModel import Player, AgeCategory, Division, Ranking, License, Championship
+from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship
 
 
 class CatType(Enum):
@@ -37,6 +36,46 @@ class Gender(Enum):
     Female = 1
     Mixte = 2
 
+
+def import_all_data(app, db) -> str:
+    # Si pas de club en base de données, on les créé!
+    message: str = ''
+    # Vérifier si les catégories d'âge existent en base de données
+    age_categories = AgeCategory.query.all()
+    if not age_categories:
+        # Si aucune catégorie d'âge n'existe, créer les catégories d'âge
+        load_age_categories(db)
+    message += f"{AgeCategory.query.count()} catégories d'âge créées!\n"
+
+    # Vérifier si les divisions existent en base de données
+    divisions = Division.query.all()
+    if not divisions:
+        # Si aucune division n'existe, créer les divisions
+        load_divisions(db)
+    message += f"{Division.query.count()} divisions de championnat créées!\n"
+
+    # Vérifier si les classements de tennis existent en base de données
+    rankings = Ranking.query.all()
+    if not rankings:
+        load_rankings(db)
+    message += f"{Ranking.query.count()} classements insérés en bdd!\n"
+
+    for club_name in app.config['CLUBS']:
+        club = Club(id=club_name['id'], name=club_name['name'], city=club_name['city'])
+        db.session.add(club)
+        app.logger.debug(f'default_club: {club}')
+        db.session.commit()
+        message += f'Club {club} créé avec succès!\n'
+        # Chargement des joueurs du club
+        club_name = club.name.lower().replace(' ', '')
+        for gender, gender_label in enumerate(['men', 'women']):
+            players_csvfile = f'static/data/{club_name}_{gender_label}.csv'
+            import_players(app=app, gender=gender, csvfile=players_csvfile, club=club, db=db)
+            players_count = Player.query.filter(Player.clubId == club.id).count()
+            # db.session.flush()
+            message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
+    logging.info(message)
+    return message
 
 def load_age_categories(db):
     age_categories = [
@@ -109,58 +148,54 @@ def load_rankings(db):
     db.session.commit()
 
 
-def import_players(app, men_players_csvfile, women_players_csvfile, default_club, db):
+def import_players(app, gender, csvfile, club, db):
     logger = logging.getLogger(__name__)
-    for gender, csvfile in enumerate([men_players_csvfile, women_players_csvfile]):
-        file_path = os.path.join(os.path.dirname(__file__), csvfile)
-        with open(file_path, 'r', newline='') as file:
-            reader = csv.DictReader(file, delimiter='\t')
-            for row in reader:
-                logger.info(f'row: {row}')
-                # app.logger(f'row: {row}')
-                # Formatting player data
-                first_name = row['Prénom']
-                last_name = row['Nom']
-                birth_year = row['Né en']
-                license_info = row['Licence']
-                club_name = row['Club']
-                ranking_value = row['C. Tennis']
-                # license_info
-                # Nom Prénom  Né en   Licence	Club    C. Tennis
-                # ABDERRAHIM	Idris	2015	3182789 C - 2024	US CAGNES TENNIS	NC
-                # ALENDA	Alexis	2010	3193949 H - 2024	US CAGNES TENNIS	NC
-                # ALGRAIN	Jerome	1965	6681557 L - 2024	US CAGNES TENNIS	15/4 (ex 15)
-                # Utilisation d'une expression régulière pour extraire les deux parties
-                ranking_list = ranking_value.split(' ')
-                if len(ranking_list) > 1:
-                    a, b, c = ranking_list
-                    current_ranking_value = a
-                    best_ranking_value = c[:-1]
-                else:
-                    current_ranking_value = ranking_list[0]
-                    best_ranking_value = None
-                current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
-                best_ranking = Ranking.query.filter(Ranking.value == best_ranking_value).first() if best_ranking_value else None
-                logger.info(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
-                match = re.match(r'(\d+)\s*(\w)', license_info)
-                if not match:
-                    continue
-                lic_number = int(match.group(1))  # Récupère le nombre comme entier
-                lic_letter = match.group(2)  # Récupère la lettre
-                # Convertir la chaîne en objet datetime
-                year_date = datetime.strptime(birth_year, '%Y')
-                # Ajuster le mois et le jour pour démarrer au 1er janvier
-                year_start_date = year_date.replace(month=1, day=1)
-                # logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
-                license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=lic_number,
-                                  rankingId=current_ranking.id)  # , bestRankingId=best_ranking.id)
-                player = Player(birthDate=year_start_date, clubId=default_club.id, isActive=True, licenseId=license.id)
-                db.session.add(license)
-                db.session.add(player)
-            db.session.commit()
+    file_path = os.path.join(os.path.dirname(__file__), csvfile)
+    with open(file_path, 'r', newline='') as file:
+        reader = csv.DictReader(file, delimiter='\t')
+        for row in reader:
+            logger.info(f'row: {row}')
+            # app.logger(f'row: {row}')
+            # Formatting player data
+            first_name = row['Prénom']
+            last_name = row['Nom']
+            birth_year = row['Né en']
+            license_info = row['Licence']
+            ranking_value = row['C. Tennis']
+            # Utilisation d'une expression régulière pour extraire les deux parties
+            ranking_list = ranking_value.split(' ')
+            if len(ranking_list) > 1:
+                a, b, c = ranking_list
+                current_ranking_value = a
+                best_ranking_value = c[:-1]
+            else:
+                current_ranking_value = ranking_list[0]
+                best_ranking_value = None
+            current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
+            best_ranking = Ranking.query.filter(Ranking.value == best_ranking_value).first() if best_ranking_value else None
+            logger.info(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
+            match = re.match(r'(\d+)\s*(\w)', license_info)
+            if not match:
+                continue
+            lic_number = int(match.group(1))  # Récupère le nombre comme entier
+            lic_letter = match.group(2)  # Récupère la lettre
+            # Convertir la chaîne en objet datetime
+            year_date = datetime.strptime(birth_year, '%Y')
+            # Ajuster le mois et le jour pour démarrer au 1er janvier
+            year_start_date = year_date.replace(month=1, day=1)
+            # logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
+            license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=year_start_date.year,
+                              rankingId=current_ranking.id)  # , bestRankingId=best_ranking.id)
+            player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
+            player.clubId, player.licenseId = club.id, license.id
+            db.session.add(license)
+            db.session.add(player)
+        db.session.commit()
+        players_count = Player.query.filter(Player.clubId == club.id).count()
+        logger.info(f'COMMIT PLAYERS DONE = {players_count}')
 
 
-def get_players_order_by_ranking(gender: int, asc_param=True, age_category=None) -> List[Player]:
+def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None) -> List[Player]:
     logger = logging.getLogger(__name__)
     # logger.info(f'age_category: {age_category}')
     order = asc if asc_param else desc
@@ -168,7 +203,7 @@ def get_players_order_by_ranking(gender: int, asc_param=True, age_category=None)
         players = Player.query \
             .join(Player.license) \
             .join(License.ranking) \
-            .filter(Player.isActive, License.gender == gender) \
+            .filter(Player.isActive, License.gender == gender, Player.clubId == club_id) \
             .order_by(order(Ranking.id)) \
             .all()
         if age_category:
@@ -178,7 +213,7 @@ def get_players_order_by_ranking(gender: int, asc_param=True, age_category=None)
         players = Player.query \
             .join(Player.license) \
             .join(License.ranking) \
-            .filter(Player.isActive) \
+            .filter(Player.isActive, Player.clubId == club_id) \
             .order_by(order(Ranking.id)) \
             .all()
         if age_category:

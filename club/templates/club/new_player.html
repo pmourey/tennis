@@ -4,9 +4,9 @@
 
 {% block main %}
 <main>
-    <form action="{{ url_for('new_player') }}" , method="POST">
+    <form action="{{ url_for('club.new_player') }}" , method="POST">
         <table class="update-form">
-            <caption class="table-caption">Fiche joueur</caption> <!-- Titre ajouté ici -->
+            <caption class="table-caption">Nouveau joueur ({{ club.name }})</caption> <!-- Titre ajouté ici -->
             <tr>
                 <td><label for="last_name">Nom</label></td>
                 <td><input type="text" name="last_name" placeholder="Nom"></td>
@@ -43,16 +43,6 @@
                     <select name="gender">
                         {% for gender in genders %}
                         <option value="{{ gender }}">{{ 'Femmes' if gender else 'Hommes' }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td><label for="club_id">Club</label></td>
-                <td>
-                    <select name="club_id">
-                        {% for club in clubs %}
-                        <option value="{{ club.id }}">{{ club.name }}</option>
                         {% endfor %}
                     </select>
                 </td>

@@ -4,7 +4,7 @@
 
 {% block main %}
 <main>
-    <form action="{{ url_for('new_championship') }}" method="POST">
+    <form action="{{ url_for('championship.new_championship') }}" method="POST">
         <table class="update-form">
             <caption class="table-caption">Fiche création championnat {{selected_division}}</caption>
             <!-- Hidden field for division_id -->
