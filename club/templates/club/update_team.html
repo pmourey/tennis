@@ -29,7 +29,7 @@
                 <td><label for="player_name_{{ player_num }}">Joueur {{ player_num }}</label></td>
                 <td>
                     <select name="player_name_{{ player_num }}">
-                        <option value="">Sélectionnez un joueur</option> <!-- Option vide -->
+                        <option value="">Sélectionner {{'une joueuse' if team.gender else 'un joueur'}}</option> <!-- Option vide -->
                         {% for player in players %}
                         {% if team_player and team_player.id == player.id %}
                         <option value="{{ player.id }}" selected>
@@ -49,7 +49,7 @@
                 <td><label for="captain_id">Capitaine</label></td>
                 <td>
                     <select name="captain_id">
-                        <option value="">Sélectionnez un capitaine</option> <!-- Option vide -->
+                        <option value="">Sélectionnez {{ 'une' if team.gender else 'un' }} capitaine</option> <!-- Option vide -->
                         {% for player in players %}
                         {% if team.captainId == player.id %}
                         <option value="{{ player.id }}" selected>{{ player.name }}</option>
