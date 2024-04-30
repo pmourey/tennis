@@ -66,9 +66,10 @@ def select_club():
             # Chargement des joueurs du club
             club_name = club.name.lower().replace(' ', '')
             for gender, gender_label in enumerate(['men', 'women']):
-                players_csvfile = f'static/data/{club_name}_{gender_label}.csv'
-                if not os.path.exists(players_csvfile):
-                    message += f'Fichier csv {players_csvfile} non trouvé!\n'
+                players_csvfile = f'../static/data/{club_name}_{gender_label}.csv'
+                file_path = os.path.join(os.path.dirname(__file__), players_csvfile)
+                if not os.path.exists(file_path):
+                    message += f'Fichier {file_path} non trouvé!\n'
                     flash(message, 'error')
                     continue
                 import_players(app=current_app, gender=gender, csvfile=players_csvfile, club=club, db=db)
