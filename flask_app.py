@@ -11,7 +11,7 @@ from logging import basicConfig, DEBUG
 import locale
 
 from flask import Flask
-from flask_debugtoolbar import DebugToolbarExtension
+# from flask_debugtoolbar import DebugToolbarExtension
 
 from flask import render_template
 from itsdangerous import URLSafeSerializer
@@ -41,7 +41,7 @@ app.config.from_object('config.Config')
 
 db.init_app(app)
 
-toolbar = DebugToolbarExtension(app)
+# toolbar = DebugToolbarExtension(app)
 
 locale.setlocale(locale.LC_TIME, 'fr_FR')
 basicConfig(level=DEBUG)
