@@ -21,7 +21,7 @@
                 <td><label for="player_name_{{ player_num }}">Joueur {{ player_num }}</label></td>
                 <td>
                     <select name="player_name_{{ player_num }}">
-                        <option value="">Sélectionner {{'une joueuse' if team.gender else 'un joueur'}}</option> <!-- Option vide -->
+                        <option value="">Sélectionner {{'une joueuse' if gender else 'un joueur'}}</option> <!-- Option vide -->
                         {% for player in players %}
                         <option value="{{ player.id }}" {% if form['player_name_' + '%d'|format(player_num)] == player.id ~ '' %} selected {% endif %}>
                             {{ player.name }} [{{ player.ranking }}] ({{ player.age }} ans)
@@ -35,7 +35,7 @@
                 <td><label for="captain_id">Capitaine</label></td>
                 <td>
                     <select name="captain_id">
-                        <option value="">Sélectionnez {{ 'une' if team.gender else 'un' }} capitaine</option> <!-- Option vide -->
+                        <option value="">Sélectionnez {{ 'une' if gender else 'un' }} capitaine</option> <!-- Option vide -->
                         {% for player in players %}
                         <option value="{{ player.id }}" {% if form['captain_id'] == player.id ~ '' %} selected {% endif %}>
                             {{ player.name }} [{{ player.ranking }}] ({{ player.age }} ans)

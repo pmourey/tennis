@@ -261,13 +261,14 @@ def update_team(id):
             db.session.commit()
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('club.show_teams'))
-    age_category = team.age_category
+    age_category = team.championship.division.ageCategory
     current_app.logger.debug(f"gender = {team.gender} - age_category = {age_category}")
     signed_club_id = request.cookies.get('club_id')
     club_id = current_app.serializer.loads(signed_club_id)
     active_players = get_players_order_by_ranking(gender=team.gender, club_id=club_id, age_category=age_category)
     current_app.logger.debug(f"{len(active_players)} players = {active_players}")
     sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
+    current_app.logger.debug(f"sorted_team_players = {sorted_team_players}")
     if active_players:
         max_players = min(10, len(active_players))
         return render_template('update_team.html', team=team, sorted_team_players=sorted_team_players, players=active_players, max_players=max_players, form=request.form)

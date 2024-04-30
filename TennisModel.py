@@ -116,11 +116,11 @@ class Player(db.Model):
     # Define the relationship with Team using many-to-many association
     teams = relationship('Team', secondary=player_team_association, back_populates='players')
 
-    def __init__(self, birthDate, weight, height, isActive):
-        self.birthDate = birthDate
-        self.weight = weight
-        self.height = height
-        self.isActive = isActive
+    # def __init__(self, birthDate, weight, height, isActive):
+    #     self.birthDate = birthDate
+    #     self.weight = weight
+    #     self.height = height
+    #     self.isActive = isActive
 
     @property
     def gender(self):
@@ -197,14 +197,6 @@ class Team(db.Model):
             return 1
         else:
             return 2
-
-    @property
-    def age_category(self):
-        age_categories = AgeCategory.query.all()
-        for age_category in age_categories:
-            if all(p.has_valid_age(age_category) for p in self.players):
-                return age_category
-        return None
 
     @property
     def championship(self):
