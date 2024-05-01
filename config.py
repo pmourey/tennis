@@ -15,7 +15,8 @@ class Config:
              {'name': 'NICE LAWN TENNIS CLUB', 'city': 'Nice', 'id': '62 06 0110', 'csvfile': 'nice_lawn_tennis'},
              {'name': 'RIORGEOIS (TENNIS CLUB DE)', 'city': 'Roanne', 'id': '62 06 0111', 'csvfile': 'tc_riorgeois'},
              {'name': 'LA RAQUETTE ROQUEFORTOISE', 'city': 'Roquefort-les-Pins', 'id': '62 06 0112', 'csvfile': 'la_raquette_roquefortoise'},
-             {'name': 'TC ANTIBES JUAN LES PINS', 'city': 'Antibes', 'id': '62 06 0113', 'csvfile': 'tc_antibes'}
+             {'name': 'TC ANTIBES JUAN LES PINS', 'city': 'Antibes', 'id': '62 06 0113', 'csvfile': 'tc_antibes'},
+             {'name': 'MONTPON', 'city': 'Montpon-Ménestérol', 'id': '62 06 0114', 'csvfile': 'montpon'}
              ]
     PARIS = timezone('Europe/Paris')
     BASE_PATH = os.path.dirname(__file__)
