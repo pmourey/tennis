@@ -6,14 +6,7 @@
 {% block main %}
 {% set status = 'disponibles' if active_players else 'indisponibles' %}
 
-<script>
-    function confirmDelete(playerId) {
-        var result = confirm("Êtes-vous sûr de vouloir supprimer ce joueur?");
-        if (result) {
-            window.location.href = "delete_player/" + playerId;
-        }
-    }
-</script>
+<script src="{{ url_for('club.static', filename='manage_player.js') }}"></script>
 <main>
     {% if players %}
     <table class="players">
