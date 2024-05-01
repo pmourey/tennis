@@ -125,7 +125,7 @@ def select_gender():
         club_id = current_app.serializer.loads(signed_club_id)
         players = get_players_order_by_ranking(gender=gender, club_id=club_id)
         club = Club.query.get(club_id)
-        return render_template('players.html', gender=gender, players=players, club=club)
+        return render_template('players.html', gender=gender, players=players, club=club, active_players=True)
     return render_template('select_gender.html')
 
 
@@ -163,7 +163,7 @@ def show_invalid_players():
     inactive_club_players = get_players_order_by_ranking(gender=Gender.Mixte.value, club_id=club_id, is_active=False)
     club = Club.query.get(club_id)
     current_app.logger.debug(f'invalid players: {inactive_club_players} in club {club.name}')
-    return render_template('players.html', players=inactive_club_players, club=club)
+    return render_template('players.html', players=inactive_club_players, club=club, active_players=False)
 
 
 @club_management_bp.route('/teams')
