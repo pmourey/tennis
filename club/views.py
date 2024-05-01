@@ -279,14 +279,7 @@ def update_team(id):
     current_app.logger.debug(f"sorted_team_players = {sorted_team_players}")
     if active_players:
         max_players = min(10, len(active_players))
-        # Serialize necessary attributes of Player objects
-        serialized_players = [{
-            'id': player.id,
-            'name': player.name,
-            'ranking': player.ranking,
-            'age': player.age
-        } for player in active_players]
-        return render_template('update_team.html', serialized_players=serialized_players, team=team, sorted_team_players=sorted_team_players, players=active_players, max_players=max_players, form=request.form)
+        return render_template('update_team.html', team=team, sorted_team_players=sorted_team_players, players=active_players, max_players=max_players, form=request.form)
     else:
         club = Club.query.get(club_id)
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {club}!', 'error')
