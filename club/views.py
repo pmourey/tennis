@@ -17,7 +17,7 @@ from flask import render_template, redirect, url_for, flash
 from TennisModel import *
 from club import club_management_bp
 
-from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players
+from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players, keys_with_same_value
 
 
 def check_club_cookie(func):
@@ -31,6 +31,7 @@ def check_club_cookie(func):
         return func(*args, **kwargs)
 
     return wrapper
+
 
 @club_management_bp.route('/select_club', methods=['GET', 'POST'])
 def select_club():
@@ -89,7 +90,8 @@ def select_club():
         except Exception as e:
             pass
     current_app.logger.debug(f'{len(clubs)} club(s) in database!')
-    return render_template('select_club.html',  selected_club=selected_club, clubs=clubs)
+    return render_template('select_club.html', selected_club=selected_club, clubs=clubs)
+
 
 @club_management_bp.route('/manage_club')
 @check_club_cookie
@@ -123,7 +125,7 @@ def select_gender():
         club_id = current_app.serializer.loads(signed_club_id)
         players = get_players_order_by_ranking(gender=gender, club_id=club_id)
         club = Club.query.get(club_id)
-        return render_template('players.html', gender=gender, players=players, club=club, active_players=True)
+        return render_template('players.html', gender=gender, players=players, club=club)
     return render_template('select_gender.html')
 
 
@@ -157,10 +159,11 @@ def show_invalid_players():
     # Reverse order query
     # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
     # Récupérer les joueurs inactifs du club à partir de la base de données
-    inactive_club_players = Player.query.join(Player.club).filter(Club.id == club_id, isActive=False).all()
-    # players = Player.query.all()
-    current_app.logger.debug(f'invalid players: {inactive_club_players}')
-    return render_template('players.html', players=inactive_club_players, active_players=False)
+    # inactive_club_players = Player.query.join(Player.club).filter(Club.id == club_id, isActive=False).all()
+    inactive_club_players = get_players_order_by_ranking(gender=Gender.Mixte.value, club_id=club_id, is_active=False)
+    club = Club.query.get(club_id)
+    current_app.logger.debug(f'invalid players: {inactive_club_players} in club {club.name}')
+    return render_template('players.html', players=inactive_club_players, club=club)
 
 
 @club_management_bp.route('/teams')
@@ -171,11 +174,6 @@ def show_teams():
     # teams = Team.query.order_by(desc(Team.name)).all()
     club_teams = Team.query.join(Player).filter(Player.clubId == club_id).order_by(desc(Team.name)).all()
     return render_template('teams.html', teams=club_teams)
-
-
-def keys_with_same_value(d):
-    return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
-    # return {value: [key for key, val in d.items() if val == value] for value in set(d.values()) if list(d.values()).count(value) > 1}
 
 
 @club_management_bp.route('/new_team/', methods=['GET', 'POST'])
@@ -352,7 +350,6 @@ def update_player(id):
         player.height = request.form.get('height')
         player.weight = request.form.get('weight')
         player.isActive = False if request.form.get('is_active') is None else True
-        player.clubId = request.form.get('club_id')
         db.session.commit()
         flash(f'Infos {player.name} mises à jour avec succès!')
         return redirect(url_for('club.manage_club'))

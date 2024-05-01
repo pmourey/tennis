@@ -193,7 +193,7 @@ def import_players(app, gender, csvfile, club, db):
         logging.info(f'COMMIT PLAYERS DONE = {players_count}')
 
 
-def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None) -> List[Player]:
+def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None, is_active=True) -> List[Player]:
     logger = logging.getLogger(__name__)
     # logger.info(f'age_category: {age_category}')
     order = asc if asc_param else desc
@@ -201,7 +201,7 @@ def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_
         players = Player.query \
             .join(Player.license) \
             .join(License.ranking) \
-            .filter(Player.isActive, License.gender == gender, Player.clubId == club_id) \
+            .filter(Player.isActive == is_active, License.gender == gender, Player.clubId == club_id) \
             .order_by(order(Ranking.id)) \
             .all()
         if age_category:
@@ -211,7 +211,7 @@ def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_
         players = Player.query \
             .join(Player.license) \
             .join(License.ranking) \
-            .filter(Player.isActive, Player.clubId == club_id) \
+            .filter(Player.isActive == is_active, Player.clubId == club_id) \
             .order_by(order(Ranking.id)) \
             .all()
         if age_category:
@@ -250,3 +250,6 @@ def check_license(license_number: str) -> Optional[tuple[int, str]]:
         return int(match.group(1)), match.group(2)
     else:
         return None
+
+def keys_with_same_value(d):
+    return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
