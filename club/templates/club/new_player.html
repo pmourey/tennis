@@ -9,24 +9,25 @@
             <caption class="table-caption">Nouveau joueur ({{ club.name }})</caption> <!-- Titre ajouté ici -->
             <tr>
                 <td><label for="last_name">Nom</label></td>
-                <td><input type="text" name="last_name" placeholder="Nom"></td>
+                <td><input type="text" name="last_name" placeholder="Nom" required></td>
             </tr>
             <tr>
                 <td><label for="first_name">Prénom</label></td>
-                <td><input type="text" name="first_name" placeholder="Prénom"></td>
+                <td><input type="text" name="first_name" placeholder="Prénom" required></td>
             </tr>
             <tr>
                 <td><label for="license_number">N° licence (avec lettre)</label></td>
-                <td><input type="text" name="license_number" placeholder="N° licence"></td>
+                <td><input type="text" name="license_number" placeholder="N° licence" required></td>
             </tr>
             <tr>
                 <td><label for="birth_date">Date de naissance</label></td>
-                <td><input type="date" name="birth_date" placeholder="Date de naissance"></td>
+                <td><input type="date" name="birth_date" placeholder="Date de naissance" required></td>
             </tr>
             <tr>
                 <td><label for=ranking">Classement</label></td>
                 <td>
-                    <select name="ranking">
+                    <select name="ranking" required>
+                        <option value="">Sélectionner un classement</option> <!-- Option vide -->
                         {% for ranking in rankings %}
                         <option value="{{ ranking.id }}">{{ ranking.value }}</option>
                         {% endfor %}
@@ -40,7 +41,8 @@
             <tr>
                 <td><label for="gender">Sexe</label></td>
                 <td>
-                    <select name="gender">
+                    <select name="gender" required>
+                        <option value="">Sélectionner un sexe</option> <!-- Option vide -->
                         {% for gender in genders %}
                         <option value="{{ gender }}">{{ 'Femmes' if gender else 'Hommes' }}</option>
                         {% endfor %}

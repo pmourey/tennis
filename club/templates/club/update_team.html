@@ -11,7 +11,7 @@
             <caption class="table-caption">Fiche modification équipe {{ team.championship.name }} - ({{ players|length }} {{ gender_label }} disponibles!) </caption>
             <tr>
                 <td><label for="name">Nom équipe</label></td>
-                <td><input type="text" name="name" value="{{ team.name }}"></td>
+                <td><input type="text" name="name" value="{{ team.name }}" required></td>
             </tr>
             <tr>
                 <td><label for="pool">N° de poule :</label></td>

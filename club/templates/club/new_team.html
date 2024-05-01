@@ -14,7 +14,7 @@
             <input type="hidden" name="championship_id" value="{{ championship.id }}">
             <tr>
                 <td><label for="name">Nom équipe</label></td>
-                <td><input type="text" name="name" placeholder="Nom" {% if form['name'] %} value="{{ form['name'] }}" {% endif %}></td>
+                <td><input type="text" name="name" placeholder="Nom" {% if form['name'] %} value="{{ form['name'] }}" {% endif %} required></td>
             </tr>
             {% for player_num in range(1, max_players + 1) %}
             <tr>
