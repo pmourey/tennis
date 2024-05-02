@@ -53,7 +53,7 @@ def index():
             else:
                 return redirect(url_for('admin.select_club'))
         except Exception as e:
-            flash("Erreur lors du décodage du cookie signé :", 'error')
+            flash("Erreur lors du décodage du cookie signé! Prière de sélectionner un club :-)", 'error')
     return redirect(url_for('admin.select_club'))
 
 
@@ -142,9 +142,9 @@ def new_team():
         else:
             # Récupérer les données du formulaire
             gender = int(request.form['gender'])
-            championship_id = request.form.get('championship_id')
+            championship_id = int(request.form.get('championship_id'))
             team_name = request.form.get('name')
-            captain_id = request.form.get('captain_id')
+            captain_id = int(request.form.get('captain_id'))
             championship = Championship.query.get(championship_id)
             pool = Pool(championshipId=championship_id)  # poule non connue lors de la phase d'inscription de l'équipe au championnat
             # Création des journées de championnat pour la saison en cours
@@ -209,7 +209,7 @@ def update_team(id):
         else:
             # Récupérer les données du formulaire
             team.name = request.form.get('name')
-            team.captainId = request.form.get('captain_id')
+            team.captainId = int(request.form.get('captain_id'))
             team.players = list(players_dict.values())
             current_app.logger.debug(f'{len(team.players)} players: {team.players}')
             pool = Pool.query.get(team.poolId)

@@ -216,8 +216,8 @@ class Team(db.Model):
 
     @property
     def captainName(self):
-        is_captain = [p for p in self.players if p.id == self.captainId]
-        return is_captain[0].name if is_captain else None
+        captain = Player.query.get(self.captainId)
+        return captain.name if captain else None
 
     def __repr__(self):
         return f'{self.name}'
