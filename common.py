@@ -1,6 +1,5 @@
 import os
 import csv
-import logging
 import re
 from datetime import datetime
 from enum import Enum
@@ -71,10 +70,10 @@ def import_all_data(app, db) -> str:
             players_csvfile = f"static/data/{club_info['csvfile']}_{gender_label}.csv"
             file_path = os.path.join(app.config['BASE_PATH'], players_csvfile)
             import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
-            players_count = Player.query.filter(Player.clubId == club.id).count()
+            players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
             # db.session.flush()
             message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
-    logging.info(message)
+    app.logger.debug(message)
     return message
 
 def load_age_categories(db):
@@ -152,7 +151,6 @@ def import_players(app, gender, csvfile, club, db):
     with open(csvfile, 'r', newline='') as file:
         reader = csv.DictReader(file, delimiter='\t')
         for row in reader:
-            logging.info(f'row: {row}')
             # app.logger(f'row: {row}')
             # Formatting player data
             first_name = row['Prénom']
@@ -171,7 +169,7 @@ def import_players(app, gender, csvfile, club, db):
                 best_ranking_value = None
             current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
             best_ranking = Ranking.query.filter(Ranking.value == best_ranking_value).first() if best_ranking_value else None
-            logging.info(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
+            # app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
             match = re.match(r'(\d+)\s*(\w)', license_info)
             if not match:
                 continue
@@ -189,13 +187,11 @@ def import_players(app, gender, csvfile, club, db):
             db.session.add(license)
             db.session.add(player)
         db.session.commit()
-        players_count = Player.query.filter(Player.clubId == club.id).count()
-        logging.info(f'COMMIT PLAYERS DONE = {players_count}')
+        players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
+        app.logger.debug(f'COMMIT PLAYERS DONE = {players_count}')
 
 
 def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None, is_active=True) -> List[Player]:
-    logger = logging.getLogger(__name__)
-    # logger.info(f'age_category: {age_category}')
     order = asc if asc_param else desc
     if gender in [Gender.Male.value, Gender.Female.value]:
         players = Player.query \

@@ -35,7 +35,7 @@ def new_club():
                 message += f'Fichier {file_path} non trouvé!\n'
                 flash(message, 'error')
                 continue
-            import_players(app=current_app, gender=gender, csvfile=players_csvfile, club=club, db=db)
+            import_players(app=current_app, gender=gender, csvfile=file_path, club=club, db=db)
             # players_count = Player.query.filter(Player.clubId == club.id).count()
             players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
             # db.session.flush()
