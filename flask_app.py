@@ -16,6 +16,7 @@ from flask import render_template
 from itsdangerous import URLSafeSerializer
 
 from TennisModel import db
+from admin import admin_bp
 
 from club import club_management_bp
 from championship import championship_management_bp
@@ -32,6 +33,7 @@ app.serializer = URLSafeSerializer(app.secret_key)
 # Register blueprints
 app.register_blueprint(club_management_bp, url_prefix='/club')
 app.register_blueprint(championship_management_bp, url_prefix='/championship')
+app.register_blueprint(admin_bp, url_prefix='/admin')
 
 # Set the environment (development, production, etc.)
 # Replace 'development' with the appropriate value for your environment

@@ -13,6 +13,12 @@ https://godot70.pythonanywhere.com
   - [ ] Création du calendrier prévisionnel du championnat (identique presque chaque année)
   - [ ] Formulaire d'ajout des équipes adverses présentes dans la poule et du planning des rencontres pour l'équipe (domicile/extérieur/exempt) (utilisé après envoi par la ligue du calendrier des rencontres)
   - [ ] Gestion des disponibilités joueurs
+- [ ] Administration:
+  - [ ] Ajout club
+    - [x] Ajout à partir des clubs listés en dur dans config.py (et 2 fichiers joueurs/joueuses présents dans static/data)
+    - [ ] Faire formulaires d'ajout club et joueurs à partir de fichiers csv
+  - [x] Suppression club
+  - [x] Changement club
 
 https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys
 https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html#mapper-sql-expressions

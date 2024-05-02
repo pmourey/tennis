@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from typing import List
 
+import itsdangerous
 from flask import make_response
 from flask import current_app
 
@@ -26,80 +27,20 @@ def check_club_cookie(func):
         # Vérifier si le cookie club_id est défini
         if 'club_id' not in request.cookies:
             # Rediriger vers la route select_club si le cookie n'est pas défini
-            return redirect(url_for('club.select_club'))
+            return redirect(url_for('admin.select_club'))
         # Sinon, exécuter la fonction de vue normalement
         return func(*args, **kwargs)
 
     return wrapper
 
 
-@club_management_bp.route('/select_club', methods=['GET', 'POST'])
-def select_club():
-    if request.method == 'POST':
-        club_id = request.form.get('club_id')
-        # Signer le club_id
-        signed_club_id = current_app.serializer.dumps(club_id)
-        # Stocker le club_id signé dans un cookie
-        response = make_response(redirect(url_for('club.manage_club')))
-        response.set_cookie('club_id', signed_club_id)
-        current_app.logger.debug(f'signed club_id: {signed_club_id}')
-        return response
-    # Récupérer les clubs depuis la base de données
-    clubs = Club.query.all()
-    if not clubs:
-        # Aucune donnée en base, lancer le chargement
-        message = import_all_data(current_app, db)
-        flash(message, 'error')
-        # return render_template('club_index.html')
-        return redirect(url_for('club.manage_club'))
-    else:
-        # Charger les nouveaux clubs et joueurs (à partir des fichiers csv)
-        message = ''
-        existing_clubs = [club.name for club in clubs]
-        new_clubs: List[dict] = [club_info for club_info in current_app.config['CLUBS'] if club_info['name'] not in existing_clubs]
-        current_app.logger.debug(f'{len(new_clubs)} nouveau clubs à charger: {new_clubs}')
-        for club_info in new_clubs:
-            club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
-            db.session.add(club)
-            db.session.commit()
-            current_app.logger.debug(f'nouveau club créé: {club}')
-            message += f'Club {club} créé avec succès!\n'
-            # Chargement des joueurs du club
-            for gender, gender_label in enumerate(['men', 'women']):
-                players_csvfile = f"static/data/{club_info['csvfile']}_{gender_label}.csv"
-                file_path = os.path.join(current_app.config['BASE_PATH'], players_csvfile)
-                current_app.logger.debug(f'players_csvfile: {file_path}')
-                if not os.path.exists(file_path):
-                    message += f'Fichier {file_path} non trouvé!\n'
-                    flash(message, 'error')
-                    continue
-                import_players(app=current_app, gender=gender, csvfile=players_csvfile, club=club, db=db)
-                players_count = Player.query.filter(Player.clubId == club.id).count()
-                # db.session.flush()
-                message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
-        flash(message, 'error')
-        clubs = Club.query.all()
-    signed_club_id = request.cookies.get('club_id')
-    selected_club = None
-    if signed_club_id:
-        try:
-            club_id = current_app.serializer.loads(signed_club_id)
-            selected_club = Club.query.get(club_id)
-            if selected_club:
-                return render_template('select_club.html', selected_club=selected_club, clubs=clubs)
-        except Exception as e:
-            pass
-    current_app.logger.debug(f'{len(clubs)} club(s) in database!')
-    return render_template('select_club.html', selected_club=selected_club, clubs=clubs)
-
-
-@club_management_bp.route('/manage_club')
+@club_management_bp.route('/')
 @check_club_cookie
-def manage_club():
+def index():
     clubs = Club.query.all()
     # Récupérer le club_id à partir du cookie
     signed_club_id = request.cookies.get('club_id')
-    current_app.logger.debug(f'manage_club -> signed club_id: {signed_club_id}')
+    current_app.logger.debug(f'index -> signed club_id: {signed_club_id}')
     if signed_club_id and clubs:
         try:
             # Vérifier et décoder le club_id signé
@@ -110,10 +51,10 @@ def manage_club():
                 logging.info(f'Club sélectionné: {club.name}')
                 return render_template('club_index.html', club=club)
             else:
-                return redirect(url_for('club.select_club'))
+                return redirect(url_for('admin.select_club'))
         except Exception as e:
             flash("Erreur lors du décodage du cookie signé :", 'error')
-    return redirect(url_for('club.select_club'))
+    return redirect(url_for('admin.select_club'))
 
 
 @club_management_bp.route('/select_gender', methods=['GET', 'POST'])
@@ -122,7 +63,10 @@ def select_gender():
     if request.method == 'POST':
         gender = int(request.form['gender'])
         signed_club_id = request.cookies.get('club_id')
-        club_id = current_app.serializer.loads(signed_club_id)
+        try:
+            club_id = current_app.serializer.loads(signed_club_id)
+        except itsdangerous.exc.BadSignature:
+            return redirect(url_for('admin.select_club'))
         players = get_players_order_by_ranking(gender=gender, club_id=club_id)
         club = Club.query.get(club_id)
         return render_template('players.html', gender=gender, players=players, club=club, active_players=True)
@@ -153,13 +97,11 @@ def select_gender_new_team():
 @check_club_cookie
 def show_invalid_players():
     signed_club_id = request.cookies.get('club_id')
-    club_id = current_app.serializer.loads(signed_club_id)
+    try:
+        club_id = current_app.serializer.loads(signed_club_id)
+    except itsdangerous.exc.BadSignature:
+        return redirect(url_for('admin.select_club'))
     current_app.logger.debug(f'club_id: {club_id} - route: show_invalid_players')
-    # Charger les détails du club à partir de la base de données
-    # Reverse order query
-    # players = Player.query.filter(Player.isActive).order_by(desc(Player.birthDate)).all()
-    # Récupérer les joueurs inactifs du club à partir de la base de données
-    # inactive_club_players = Player.query.join(Player.club).filter(Club.id == club_id, isActive=False).all()
     inactive_club_players = get_players_order_by_ranking(gender=Gender.Mixte.value, club_id=club_id, is_active=False)
     club = Club.query.get(club_id)
     current_app.logger.debug(f'invalid players: {inactive_club_players} in club {club.name}')
@@ -170,7 +112,10 @@ def show_invalid_players():
 @check_club_cookie
 def show_teams():
     signed_club_id = request.cookies.get('club_id')
-    club_id = current_app.serializer.loads(signed_club_id)
+    try:
+        club_id = current_app.serializer.loads(signed_club_id)
+    except itsdangerous.exc.BadSignature:
+        return redirect(url_for('admin.select_club'))
     # teams = Team.query.order_by(desc(Team.name)).all()
     club_teams = Team.query.join(Player).filter(Player.clubId == club_id).order_by(desc(Team.name)).all()
     return render_template('teams.html', teams=club_teams)
@@ -224,7 +169,10 @@ def new_team():
     age_category = championship.division.ageCategory
     current_app.logger.debug(f"championship = {championship} - age_category = {age_category}")
     signed_club_id = request.cookies.get('club_id')
-    club_id = current_app.serializer.loads(signed_club_id)
+    try:
+        club_id = current_app.serializer.loads(signed_club_id)
+    except itsdangerous.exc.BadSignature:
+        return redirect(url_for('admin.select_club'))
     active_players = get_players_order_by_ranking(gender=gender, club_id=club_id, age_category=age_category)
     current_app.logger.debug(f"{len(active_players)} players = {active_players}")
     if not active_players:
@@ -272,7 +220,10 @@ def update_team(id):
     age_category = team.championship.division.ageCategory
     current_app.logger.debug(f"gender = {team.gender} - age_category = {age_category}")
     signed_club_id = request.cookies.get('club_id')
-    club_id = current_app.serializer.loads(signed_club_id)
+    try:
+        club_id = current_app.serializer.loads(signed_club_id)
+    except itsdangerous.exc.BadSignature:
+        return redirect(url_for('admin.select_club'))
     active_players = get_players_order_by_ranking(gender=team.gender, club_id=club_id, age_category=age_category)
     current_app.logger.debug(f"{len(active_players)} players = {active_players}")
     sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
@@ -331,9 +282,12 @@ def new_player():
                     db.session.commit()
                     club = Club.query.get(player.clubId)
                     flash(f'{player.name} ajouté avec succès dans le club {club.name}!')
-                    return redirect(url_for('club.manage_club'))
+                    return redirect(url_for('club.index'))
     signed_club_id = request.cookies.get('club_id')
-    club_id = current_app.serializer.loads(signed_club_id)
+    try:
+        club_id = current_app.serializer.loads(signed_club_id)
+    except itsdangerous.exc.BadSignature:
+        return redirect(url_for('admin.select_club'))
     club = Club.query.get(club_id)
     genders = [Gender.Male.value, Gender.Female.value]
     rankings = Ranking.query.order_by(desc(Ranking.id)).all()
@@ -352,9 +306,13 @@ def update_player(id):
         player.isActive = False if request.form.get('is_active') is None else True
         db.session.commit()
         flash(f'Infos {player.name} mises à jour avec succès!')
-        return redirect(url_for('club.manage_club'))
+        return redirect(url_for('club.index'))
     else:
         signed_club_id = request.cookies.get('club_id')
+        try:
+            club_id = current_app.serializer.loads(signed_club_id)
+        except itsdangerous.exc.BadSignature:
+            return redirect(url_for('admin.select_club'))
         club_id = current_app.serializer.loads(signed_club_id)
         club = Club.query.get(club_id)
         return render_template('update_player.html', player=player, club=club)
@@ -364,11 +322,16 @@ def update_player(id):
 def delete_player(id):
     if request.method == 'GET':
         player = Player.query.get_or_404(id)
+        current_app.logger.debug(f'Joueur {player} supprimé!')
         db.session.delete(player)
         db.session.commit()
         current_app.logger.debug(f'Joueur {player} supprimé!')
-        flash(f"Joueur \"{player.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
-        return redirect(url_for('club.show_players'))
+        club = Club.query.get(player.clubId)
+        # for player in club.players:
+        #     db.session.delete(player)
+        #     db.session.commit()
+        flash(f"Joueur \"{player.name}\" ne fait plus partie du club {club}!")
+        return redirect(url_for('club.index'))
 
 
 @club_management_bp.route('/delete_team/<int:id>', methods=['GET', 'POST'])
@@ -378,5 +341,5 @@ def delete_team(id):
         db.session.delete(team)
         db.session.commit()
         current_app.logger.debug(f'Equipe {team} supprimé!')
-        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club \"{app.config['DEFAULT_CLUB']['name']}\"!")
+        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club \"{current_app.config['DEFAULT_CLUB']['name']}\"!")
         return redirect(url_for('club.show_teams'))

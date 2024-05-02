@@ -1,0 +1,21 @@
+<!-- templates/admin_index.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <table class="welcome">
+        <caption class="table-caption">Administration</caption> <!-- Titre ajouté ici -->
+        <tr>
+            <td><a href="{{ url_for('admin.select_club') }}">Changement club</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('admin.new_club') }}">Ajout club</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('admin.delete_club') }}">Suppression club</a></td>
+        </tr>
+    </table>
+</main>
+{% endblock main %}

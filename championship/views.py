@@ -13,8 +13,8 @@ from championship import championship_management_bp
 
 
 # Define routes for championship management
-@championship_management_bp.route('/manage_championship')
-def manage_championship():
+@championship_management_bp.route('/')
+def index():
     return render_template('championship_index.html')
 
 

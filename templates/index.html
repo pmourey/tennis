@@ -5,10 +5,13 @@
 <main>
     <table class="welcome">
         <tr>
-            <td><a href="{{ url_for('club.manage_club') }}">Gestion club</a></td>
+            <td><a href="{{ url_for('club.index') }}">Gestion club</a></td>
         </tr>
         <tr>
-            <td><a href="{{ url_for('championship.manage_championship') }}">Gestion championnats</a></td>
+            <td><a href="{{ url_for('championship.index') }}">Gestion championnats</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('admin.index') }}">Administration</a></td>
         </tr>
     </table>
 </main>

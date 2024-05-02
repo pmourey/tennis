@@ -4,7 +4,7 @@
 function confirmDelete(teamId) {
     var result = confirm("Êtes-vous sûr de vouloir supprimer cette équipe?");
     if (result) {
-        window.location.href = "club.delete_team/" + teamId;
+        window.location.href = "delete_team/" + teamId;
     }
 }
 // Fonction pour afficher ou masquer l'info-bulle

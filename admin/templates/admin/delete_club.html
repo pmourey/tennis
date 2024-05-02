@@ -1,0 +1,25 @@
+<!-- templates/delete_club.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<form action="{{ url_for('admin.delete_club') }}" method="POST">
+    <table class="update-form">
+        <caption class="table-caption">Suppression club</caption>
+        <tr>
+            <td><label for="club">Club:</label></td>
+            <td>
+                <select id="club" name="club_id" required>
+                    <option value="">Sélectionner un club à supprimer</option> <!-- Option vide -->
+                    {% for club in clubs %}
+                        <option value="{{ club.id }}">{{ club.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="Continuer"></td>
+        </tr>
+    </table>
+</form>
+{% endblock %}

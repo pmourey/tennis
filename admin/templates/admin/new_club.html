@@ -3,20 +3,16 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
-<form action="{{ url_for('club.select_club') }}" method="POST">
+<form action="{{ url_for('admin.new_club') }}" method="POST">
     <table class="update-form">
-        <caption class="table-caption">Changement de club</caption>
+        <caption class="table-caption">Import club</caption>
         <tr>
             <td><label for="club">Club:</label></td>
             <td>
                 <select id="club" name="club_id" required>
-                    <option value="">Sélectionner un club</option> <!-- Option vide -->
+                    <option value="">Sélectionner un club à importer</option> <!-- Option vide -->
                     {% for club in clubs %}
-                    {% if selected_club and selected_club.id == club.id %}
-                        <option value="{{ club.id }}" selected>{{ club.name }}</option>
-                    {% else %}
-                        <option value="{{ club.id }}">{{ club.name }}</option>
-                    {% endif %}
+                        <option value="{{ club['id'] }}">{{ club['name'] }}</option>
                     {% endfor %}
                 </select>
             </td>

@@ -6,16 +6,9 @@ from sqlalchemy import ForeignKey, Table
 from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
+
+
 # db = SQLAlchemy(session_options={"autoflush": False})
-
-# Table d'association entre Player et Team
-player_team_association = Table(
-    'player_team_association',
-    db.Model.metadata,
-    db.Column('player_id', db.Integer, db.ForeignKey('player.id')),
-    db.Column('team_id', db.Integer, db.ForeignKey('team.id'))
-)
-
 
 class Ranking(db.Model):
     __tablename__ = 'ranking'
@@ -41,6 +34,19 @@ class Ranking(db.Model):
 
     def __repr__(self):
         return self.value
+
+
+class Club(db.Model):
+    __tablename__ = 'club'
+    id = db.Column(db.String(10), primary_key=True)
+    name = db.Column(db.String(20), unique=True, nullable=False)
+    city = db.Column(db.String(20), nullable=False)
+
+    # Define the relationship with Player
+    players = relationship('Player', back_populates='club', cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f'{self.name}'
 
 
 class License(db.Model):
@@ -97,6 +103,15 @@ class License(db.Model):
         return f'{self.id} - {self.name}'
 
 
+# Table d'association entre Player et Team
+player_team_association = Table(
+    'player_team_association',
+    db.Model.metadata,
+    db.Column('player_id', db.Integer, db.ForeignKey('player.id')),
+    db.Column('team_id', db.Integer, db.ForeignKey('team.id'))
+)
+
+
 class Player(db.Model):
     __tablename__ = 'player'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -106,21 +121,15 @@ class Player(db.Model):
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the foreign key relationship with Club
-    clubId = db.Column(db.String(10), db.ForeignKey('club.id'), nullable=False)  # Add this line
+    clubId = db.Column(db.String(10), db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)  # Add this line
     club = relationship('Club', back_populates='players')  # Add this line
 
     # Define the relationship with License
-    licenseId = db.Column(db.Integer, db.ForeignKey('license.id'), nullable=False)
-    license = relationship('License', back_populates='players')
+    licenseId = db.Column(db.Integer, db.ForeignKey('license.id', ondelete='CASCADE'), nullable=False)
+    license = relationship('License', back_populates='players', single_parent=True, cascade="all, delete-orphan")  # Add cascade option here
 
     # Define the relationship with Team using many-to-many association
-    teams = relationship('Team', secondary=player_team_association, back_populates='players')
-
-    # def __init__(self, birthDate, weight, height, isActive):
-    #     self.birthDate = birthDate
-    #     self.weight = weight
-    #     self.height = height
-    #     self.isActive = isActive
+    teams = relationship('Team', secondary=player_team_association, back_populates='players', single_parent=True, cascade="all, delete-orphan")
 
     @property
     def gender(self):
@@ -161,19 +170,6 @@ class Player(db.Model):
     @property
     def formatted_birth_date(self):
         return self.birthDate.replace(month=1, day=1).strftime('%Y-%m-%d')
-
-    def __repr__(self):
-        return f'{self.name}'
-
-
-class Club(db.Model):
-    __tablename__ = 'club'
-    id = db.Column(db.String(10), primary_key=True)
-    name = db.Column(db.String(20), unique=True, nullable=False)
-    city = db.Column(db.String(20), nullable=False)
-
-    # Define the relationship with Player
-    players = relationship('Player', back_populates='club')
 
     def __repr__(self):
         return f'{self.name}'
