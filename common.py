@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import csv
 import re
@@ -7,7 +9,7 @@ from typing import List, Optional
 
 from sqlalchemy import desc, asc, and_
 
-from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship
+from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking
 
 
 class CatType(Enum):
@@ -56,7 +58,8 @@ def import_all_data(app, db) -> str:
     # Vérifier si les classements de tennis existent en base de données
     rankings = Ranking.query.all()
     if not rankings:
-        load_rankings(db)
+        load_rankings(db, Ranking)
+        load_rankings(db, BestRanking)
     message += f"{Ranking.query.count()} classements insérés en bdd!\n"
 
     for club_info in app.config['CLUBS']:
@@ -128,12 +131,12 @@ def load_divisions(db):
     db.session.commit()
 
 
-def load_rankings(db):
+def load_rankings(db, Model: Ranking|BestRanking):
     rankings = []
     # 1ère série
     for i in range(100):
-        rankings += [Ranking(value=f'N{i + 1}', series=Series.First.value)]
-        rankings += [Ranking(value=f'T{i + 1}', series=Series.First.value)]
+        rankings += [Model(value=f'N{i + 1}', series=Series.First.value)]
+        rankings += [Model(value=f'T{i + 1}', series=Series.First.value)]
     # 2ème/3ème/4ème série
     second_series = ['-15', '-4/6', '-2/6', '0', '1/6', '2/6', '3/6', '4/6', '5/6', '15']
     third_series = ['15/1', '15/2', '15/3', '15/4', '15/5', '30']
@@ -141,7 +144,7 @@ def load_rankings(db):
     other = 'ND'
     for i, series in enumerate([second_series, third_series, fourth_series]):
         for value in series:
-            rankings += [Ranking(value=value, series=i + 2)]
+            rankings += [Model(value=value, series=i + 2)]
     rankings += [Ranking(value=other, series=None)]
     db.session.add_all(rankings)
     db.session.commit()
@@ -168,8 +171,8 @@ def import_players(app, gender, csvfile, club, db):
                 current_ranking_value = ranking_list[0]
                 best_ranking_value = None
             current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
-            best_ranking = Ranking.query.filter(Ranking.value == best_ranking_value).first() if best_ranking_value else None
-            # app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
+            best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
+            app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
             match = re.match(r'(\d+)\s*(\w)', license_info)
             if not match:
                 continue
@@ -181,7 +184,7 @@ def import_players(app, gender, csvfile, club, db):
             year_start_date = year_date.replace(month=1, day=1)
             # logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
             license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=year_start_date.year,
-                              rankingId=current_ranking.id)  # , bestRankingId=best_ranking.id)
+                              rankingId=current_ranking.id, bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
             player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
             player.clubId, player.licenseId = club.id, license.id
             db.session.add(license)
@@ -198,7 +201,7 @@ def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_
             .join(Player.license) \
             .join(License.ranking) \
             .filter(Player.isActive == is_active, License.gender == gender, Player.clubId == club_id) \
-            .order_by(order(Ranking.id)) \
+            .order_by(Ranking.id) \
             .all()
         if age_category:
             # Filter players based on age category using Python
@@ -208,13 +211,12 @@ def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_
             .join(Player.license) \
             .join(License.ranking) \
             .filter(Player.isActive == is_active, Player.clubId == club_id) \
-            .order_by(order(Ranking.id)) \
+            .order_by(Ranking.id) \
             .all()
         if age_category:
             # Filter players based on age category using Python
             players = [player for player in players if player.has_valid_age(age_category)]
     return players
-
 
 def get_championships(gender: int) -> List[Championship]:
     if gender in [Gender.Male.value, Gender.Female.value]:

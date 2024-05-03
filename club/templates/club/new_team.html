@@ -25,8 +25,9 @@
                     <select name="player_name_{{ player_num }}" {{ 'required' if player_num <= championship.singlesCount }}>
                         <option value="">Sélectionner {{'une joueuse' if gender else 'un joueur'}}</option> <!-- Option vide -->
                         {% for player in players %}
+                        {% set best_ranking = ' (ex ' + player.license.bestRanking.value + ')' if player.license.bestRanking and player.license.bestRanking.id < player.license.ranking.id %}
                         <option value="{{ player.id }}" {% if form['player_name_' + '%d'|format(player_num)] == player.id ~ '' %} selected {% endif %}>
-                            {{ player.name }} [{{ player.ranking }}] ({{ player.age }} ans)
+                            {{ player.name }} {{ player.ranking }}{{ best_ranking }} - {{ player.age }} ans
                         </option>
                         {% endfor %}
                     </select>
@@ -39,8 +40,9 @@
                     <select name="captain_id" required>
                         <option value="">Sélectionnez {{ 'une' if gender else 'un' }} capitaine</option> <!-- Option vide -->
                         {% for player in players %}
+                        {% set best_ranking = ' (ex ' + player.license.bestRanking.value + ')' if player.license.bestRanking and player.license.bestRanking.id < player.license.ranking.id %}
                         <option value="{{ player.id }}" {% if form['captain_id'] == player.id ~ '' %} selected {% endif %}>
-                            {{ player.name }} [{{ player.ranking }}] ({{ player.age }} ans)
+                            {{ player.name }} {{ player.ranking }}{{ best_ranking }} - {{ player.age }} ans
                         </option>
                         {% endfor %}
                     </select>
