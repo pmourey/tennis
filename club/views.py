@@ -144,7 +144,7 @@ def new_team():
             gender = int(request.form['gender'])
             championship_id = int(request.form.get('championship_id'))
             team_name = request.form.get('name')
-            captain_id = int(request.form.get('captain_id'))
+            captain_id = request.form.get('captain_id')
             championship = Championship.query.get(championship_id)
             pool = Pool(championshipId=championship_id)  # poule non connue lors de la phase d'inscription de l'équipe au championnat
             # Création des journées de championnat pour la saison en cours
@@ -157,7 +157,7 @@ def new_team():
             # Créer l'équipe avec les informations fournies
             team_players = list(players_dict.values())
             team_players.sort(key=lambda p: p.ranking_id)
-            team = Team(name=team_name, captainId=captain_id, poolId=pool.id, players=team_players)
+            team = Team(name=team_name, captainId=int(captain_id) if captain_id else None, poolId=pool.id, players=team_players)
             db.session.add(team)
             db.session.commit()
             flash(f"L'équipe '{team.name}' a été créée avec succès avec {len(team.players)} {'joueuses' if gender else 'joueurs'} et associé au championnat {championship} "
@@ -209,7 +209,8 @@ def update_team(id):
         else:
             # Récupérer les données du formulaire
             team.name = request.form.get('name')
-            team.captainId = int(request.form.get('captain_id'))
+            captain_id = request.form.get('captain_id')
+            team.captainId = int(captain_id) if captain_id else None
             team.players = list(players_dict.values())
             current_app.logger.debug(f'{len(team.players)} players: {team.players}')
             pool = Pool.query.get(team.poolId)
@@ -327,9 +328,6 @@ def delete_player(id):
         db.session.commit()
         current_app.logger.debug(f'Joueur {player} supprimé!')
         club = Club.query.get(player.clubId)
-        # for player in club.players:
-        #     db.session.delete(player)
-        #     db.session.commit()
         flash(f"Joueur \"{player.name}\" ne fait plus partie du club {club}!")
         return redirect(url_for('club.index'))
 
@@ -341,5 +339,5 @@ def delete_team(id):
         db.session.delete(team)
         db.session.commit()
         current_app.logger.debug(f'Equipe {team} supprimé!')
-        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club \"{current_app.config['DEFAULT_CLUB']['name']}\"!")
+        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club {team.club}!")
         return redirect(url_for('club.show_teams'))

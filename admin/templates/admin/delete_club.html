@@ -4,6 +4,7 @@
 
 {% block main %}
 <form action="{{ url_for('admin.delete_club') }}" method="POST">
+    {% if clubs %}
     <table class="update-form">
         <caption class="table-caption">Suppression club</caption>
         <tr>
@@ -21,5 +22,8 @@
             <td colspan="2"><input type="submit" value="Continuer"></td>
         </tr>
     </table>
+    {% else %}
+        <p style="font-size: 16px; text-align: center;">Aucun club restant à supprimer! ✌️</p>
+    {% endif %}
 </form>
 {% endblock %}

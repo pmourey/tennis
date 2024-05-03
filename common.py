@@ -72,7 +72,7 @@ def import_all_data(app, db) -> str:
             import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
             players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
             # db.session.flush()
-            message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
+            message += f"{players_count} {'joueuses ajoutées' if gender else 'joueurs ajoutés'}!\n"
     app.logger.debug(message)
     return message
 
