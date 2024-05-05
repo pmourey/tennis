@@ -16,7 +16,13 @@ class Config:
              {'name': 'RIORGEOIS (TENNIS CLUB DE)', 'city': 'Roanne', 'id': '62 06 0111', 'csvfile': 'tc_riorgeois'},
              {'name': 'LA RAQUETTE ROQUEFORTOISE', 'city': 'Roquefort-les-Pins', 'id': '62 06 0112', 'csvfile': 'la_raquette_roquefortoise'},
              {'name': 'TC ANTIBES JUAN LES PINS', 'city': 'Antibes', 'id': '62 06 0113', 'csvfile': 'tc_antibes'},
-             {'name': 'MONTPON', 'city': 'Montpon-Ménestérol', 'id': '62 06 0114', 'csvfile': 'montpon'}
+             {'name': 'MONTPON', 'city': 'Montpon-Ménestérol', 'id': '62 06 0114', 'csvfile': 'montpon'},
+             {'name': 'TC MARSEILLE', 'city': 'Marseille', 'id': '62 06 0115', 'csvfile': 'tc_marseille'},
+             {'name': 'TC BRIANCON', 'city': 'Briançon', 'id': '62 06 0116', 'csvfile': 'tc_briancon'},
+             {'name': 'TC HYEROIS', 'city': 'Hyères', 'id': '62 06 0117', 'csvfile': 'tc_hyerois'},
+             {'name': 'TENNIS C.B PLAN DE CUQUES', 'city': 'Plan de Cuques', 'id': '62 06 0118', 'csvfile': 'tc_cb_plan_de_cuques'},
+             {'name': 'TC CANNES MONFLEURY', 'city': 'Cannes', 'id': '62 06 0119', 'csvfile': 'tc_cannes_montfleury'},
+             {'name': 'T.C SAINT-JULIEN', 'city': 'Saint-Julien', 'id': '62 06 0120', 'csvfile': 'tc_saint_julien'}
              ]
     PARIS = timezone('Europe/Paris')
     BASE_PATH = os.path.dirname(__file__)

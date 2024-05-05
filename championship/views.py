@@ -4,12 +4,13 @@ from __future__ import annotations
 from datetime import datetime
 
 from flask import request, current_app
-from sqlalchemy import desc
+from sqlalchemy import desc, and_
 
 from flask import render_template, redirect, url_for, flash
 
-from TennisModel import AgeCategory, Division, Championship, db
+from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday
 from championship import championship_management_bp
+from common import populate_championship
 
 
 # Define routes for championship management
@@ -51,6 +52,7 @@ def select_division():
     return render_template('select_division.html', divisions=new_divisions)
 
 
+
 @championship_management_bp.route('/new_championship', methods=['GET', 'POST'])
 def new_championship():
     if request.method == 'POST':
@@ -59,20 +61,44 @@ def new_championship():
         singles_count = int(request.form['singles_count'])
         doubles_count = int(request.form['doubles_count'])
         division_id = int(request.form['division'])  # Récupérer l'identifiant de la division sélectionnée
-
-        championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count,
-                                    divisionId=division_id)
+        championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count, divisionId=division_id)
+        current_app.logger.debug(f'championship: {championship}')
         db.session.add(championship)
         db.session.commit()
-
+        # Création des journées de championnat pour la saison en cours
+        for date in championship.match_dates:
+            matchday = Matchday(date=date, championshipId=championship.id)
+            championship.matchdays.append(matchday)
+            db.session.add(championship)
+            db.session.add(matchday)
+            db.session.commit()
+        populate_championship(app=current_app, db=db, championship=championship)
         flash('Championnat créé avec succès!', 'success')
         return render_template('championship_index.html')
     divisions = AgeCategory.query.all()
     return render_template('new_championship.html', divisions=divisions)
 
 
-@championship_management_bp.route('/list_championships')
-def list_championships():
+@championship_management_bp.route('/championships')
+def show_championships():
     championships = Championship.query.all()
     current_app.logger.debug(f'championships: {championships}')
-    return render_template('list_championships.html', championships=championships)
+    return render_template('championships.html', championships=championships)
+
+
+@championship_management_bp.route('/pools/<int:id>')
+def show_pools(id: int):
+    # pools = Pool.query.filter_by(championshipId=championship_id).order_by(desc(Pool.name)).all()
+    # pools appartenant au championship id et n'ayant pas poolId à None
+    pools = Pool.query.filter(and_(Pool.championshipId == id, Pool.letter != None)).all()
+    championship = Championship.query.get(id)
+    exempted_pool = Pool.query.filter(and_(Pool.championshipId == id, Pool.letter == None)).first()
+    # current_app.logger.debug(f'championship: {championship} - pools: {pools} - exempted_teams: {exempted_teams}')
+    return render_template('pools.html', pools=pools, championship=championship, exempted_teams=exempted_pool.teams)
+
+
+@championship_management_bp.route('/show_pool/<int:id>')
+def show_pool(id: int):
+    teams = Team.query.filter_by(poolId=id).all()
+    pool = Pool.query.get(id)
+    return render_template('pools.html', teams=teams, pool=pool)

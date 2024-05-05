@@ -1,0 +1,55 @@
+<!-- templates/players.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+
+<main>
+    {% if pools %}
+    <table class="pools">
+        <caption class="table-caption">Liste des {{ pools|length }} poules du championnat {{championship.name}}</caption> <!-- Titre ajouté ici -->
+        <thead>
+        <tr>
+            <th>N° poule</th>
+            <th>Nb équipes</th>
+            <th>Equipe la plus forte</th>
+            <th>Equipe la plus faible</th>
+        </tr>
+        </thead>
+        {% for pool in pools %}
+        <div id="pool">
+            <tr>
+                <td><a href="{{ url_for('championship.show_pool', id=pool.id) }}">{{pool.letter}}</a></td>
+                <td>
+                    <!-- Tooltip container -->
+                    <div class="tooltip" onclick="toggleTooltip(this)">
+                        {{ pool.teams|length}}
+                        <!-- Tooltip with championship match days -->
+                        <span class="tooltiptext">
+                            {% for team in pool.teams %}
+                            {{ team.name }}{% if not loop.last %}<br> {% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                </td>
+                <td>{{ pool.best_team }}</td>
+                <td>{{ pool.worst_team }}</td>
+            </tr>
+        </div>
+        {%endfor %}
+    </table>
+    <br>
+    {% if exempted_teams %}
+        <table class="pools">
+            <caption class="table-caption">Equipes directement qualifiées pour le tableau final</caption> <!-- Titre ajouté ici -->
+            {% for team in exempted_teams %}
+                <tr><td>{{team.name}}</td></tr>
+            {%endfor %}
+        </table>
+    {% endif %}
+    {% else %}
+    <p style="font-size: 16px; text-align: center;">Pas d'équipe trouvée'! ✌️</p>
+    {% endif %}
+</main>
+{% endblock main %}

@@ -145,15 +145,9 @@ def new_team():
             championship_id = int(request.form.get('championship_id'))
             team_name = request.form.get('name')
             captain_id = request.form.get('captain_id')
+            pool = Pool.query.join(Championship).filter(Championship.id == championship_id).first()
             championship = Championship.query.get(championship_id)
-            pool = Pool(championshipId=championship_id)  # poule non connue lors de la phase d'inscription de l'équipe au championnat
-            # Création des journées de championnat pour la saison en cours
-            for date in championship.match_dates:
-                matchday = Matchday(date=date, poolId=pool.id)
-                # pool.matchdays.append(matchday)
-                db.session.add(matchday)
-                db.session.add(pool)
-                db.session.commit()
+            current_app.logger.debug(f"gender: {gender} - championship: {championship} - team_name: {team_name} - pool: {pool}")
             # Créer l'équipe avec les informations fournies
             team_players = list(players_dict.values())
             team_players.sort(key=lambda p: p.ranking_id)
@@ -163,27 +157,30 @@ def new_team():
             flash(f"L'équipe '{team.name}' a été créée avec succès avec {len(team.players)} {'joueuses' if gender else 'joueurs'} et associé au championnat {championship} "
                   f"qui a lieu du {championship.startDate} au {championship.endDate}!")
             return redirect(url_for('club.show_teams'))
-    championship_id = int(request.args.get('championship_id'))
-    gender = int(request.args.get('gender'))
-    championship = Championship.query.get(championship_id)
-    age_category = championship.division.ageCategory
-    current_app.logger.debug(f"championship = {championship} - age_category = {age_category}")
-    signed_club_id = request.cookies.get('club_id')
-    try:
-        club_id = current_app.serializer.loads(signed_club_id)
-    except itsdangerous.exc.BadSignature:
-        return redirect(url_for('admin.select_club'))
-    active_players = get_players_order_by_ranking(gender=gender, club_id=club_id, age_category=age_category)
-    current_app.logger.debug(f"{len(active_players)} players = {active_players}")
-    if not active_players:
-        club = Club.query.get(club_id)
-        flash(f'Tâche impossible! Vous devez ajouter des joueurs dans le club {club} au préalable!', 'error')
-        return render_template('index.html')
     else:
-        current_app.logger.debug(f'players: {active_players}')
-        current_app.logger.debug(f'request.form: {request.form}')
-        max_players = min(10, len(active_players))
-        return render_template('new_team.html', gender=gender, championship=championship, players=active_players, max_players=max_players, form=request.form)
+        current_app.logger.debug(f"request.args GET = {request.args}")
+        championship_id = int(request.args.get('championship_id'))
+        gender = int(request.args.get('gender'))
+        current_app.logger.debug(f"championship_id = {championship_id} - gender = {gender}")
+        championship = Championship.query.get(championship_id)
+        age_category = championship.division.ageCategory
+        current_app.logger.debug(f"championship = {championship} - age_category = {age_category}")
+        signed_club_id = request.cookies.get('club_id')
+        try:
+            club_id = current_app.serializer.loads(signed_club_id)
+        except itsdangerous.exc.BadSignature:
+            return redirect(url_for('admin.select_club'))
+        active_players = get_players_order_by_ranking(gender=gender, club_id=club_id, age_category=age_category)
+        current_app.logger.debug(f"{len(active_players)} players = {active_players}")
+        if not active_players:
+            club = Club.query.get(club_id)
+            flash(f'Tâche impossible! Vous devez ajouter des joueurs dans le club {club} au préalable!', 'error')
+            return render_template('index.html')
+        else:
+            current_app.logger.debug(f'players: {active_players}')
+            current_app.logger.debug(f'request.form: {request.form}')
+            max_players = min(10, len(active_players))
+            return render_template('new_team.html', gender=gender, championship=championship, players=active_players, max_players=max_players, form=request.form)
 
 
 @club_management_bp.route('/update_team/<int:id>', methods=['GET', 'POST'])
@@ -213,8 +210,7 @@ def update_team(id):
             team.captainId = int(captain_id) if captain_id else None
             team.players = list(players_dict.values())
             current_app.logger.debug(f'{len(team.players)} players: {team.players}')
-            pool = Pool.query.get(team.poolId)
-            pool.letter = request.form.get('letter')
+            team.pool = Pool.query.get(int(request.form.get('pool_id')))
             db.session.commit()
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('club.show_teams'))

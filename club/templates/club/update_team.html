@@ -15,11 +15,11 @@
                 <td><input type="text" name="name" value="{{ team.name }}" required></td>
             </tr>
             <tr>
-                <td><label for="pool">N° de poule :</label></td>
+                <td><label for="pool_id">N° de poule :</label></td>
                 <td>
-                    <select name="letter">
-                        {% for letter in ['A', 'B', 'C', 'D', 'E', 'F'] %}
-                        <option value="{{ letter }}" {% if team and team.pool.letter == letter %} selected {% endif %}>{{ letter }}</option>
+                    <select name="pool_id">
+                        {% for pool in team.championship.pools %}
+                        <option value="{{ pool.id }}" {% if team.pool.id == pool.id %} selected {% endif %}>{{ pool.letter }}</option>
                         {% endfor %}
                     </select>
                 </td>

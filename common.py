@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+from multiprocessing import Pool
 import os
 import csv
 import re
 from datetime import datetime
 from enum import Enum
+from random import shuffle
 from typing import List, Optional
 
 from sqlalchemy import desc, asc, and_
 
-from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking
+from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool
 
 
 class CatType(Enum):
@@ -81,8 +83,9 @@ def import_all_data(app, db) -> str:
 
 def load_age_categories(db):
     age_categories = [
-        AgeCategory(type=CatType.Youth.value, minAge=10, maxAge=11),
-        AgeCategory(type=CatType.Youth.value, minAge=12, maxAge=13),
+        AgeCategory(type=CatType.Youth.value, minAge=6, maxAge=10),
+        AgeCategory(type=CatType.Youth.value, minAge=11, maxAge=12),
+        AgeCategory(type=CatType.Youth.value, minAge=13, maxAge=14),
         AgeCategory(type=CatType.Youth.value, minAge=15, maxAge=16),
         AgeCategory(type=CatType.Youth.value, minAge=17, maxAge=18),
         AgeCategory(type=CatType.Senior.value, minAge=18, maxAge=99),
@@ -172,7 +175,7 @@ def import_players(app, gender, csvfile, club, db):
                 best_ranking_value = None
             current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
             best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
-            app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
+            # app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
             match = re.match(r'(\d+)\s*(\w)', license_info)
             if not match:
                 continue
@@ -251,3 +254,48 @@ def check_license(license_number: str) -> Optional[tuple[int, str]]:
 
 def keys_with_same_value(d):
     return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
+
+def remove_text_between_parentheses(text):
+    # Utilise une expression régulière pour rechercher et remplacer le contenu entre parenthèses
+    return re.sub(r'\([^()]*\)', '', text).strip()
+
+def populate_championship(app, db, championship: Championship):
+    teams = []
+    for club in Club.query.all():
+        # app.logger.debug(f'Détermination équipe: {club} - championnat: {championship}')
+        players = get_players_order_by_ranking(gender=championship.division.gender, club_id=club.id, asc_param=True, age_category=championship.age_category, is_active=True)
+        app.logger.debug(f'Nombre joueurs éligibles du club {club}: {len(players)}')
+        if len(players) < 4:
+            continue
+        captain = min(players, key=lambda p: p.ranking.id)
+        club_name = remove_text_between_parentheses(club.name)
+        team = Team(name=f'{club_name} 1', captainId=captain.id)
+        team.players = players[:10]
+        teams.append(team)
+        app.logger.debug(f'Equipe {team} de poids {team.weight(championship)} créée avec succès composée de {len(team.players)} joueurs! {team.players}')
+    # Create pools and assign teams to each pool
+    M = min(len(teams) - 1, 5)
+    num_teams_per_pool = M + 1
+    num_pools = len(teams) // num_teams_per_pool
+    teams.sort(key=lambda t: t.weight(championship))
+    selected_teams = teams[:num_pools * num_teams_per_pool]
+    exempted_teams = teams[num_pools * num_teams_per_pool:]
+    shuffle(selected_teams)
+    app.logger.debug(f'Nombre équipes par poule: {num_teams_per_pool} - Nombre de journées: {M}')
+    app.logger.debug(f'{len(selected_teams)} équipes sélectionnées pour la phase de poules')
+    for i in range(0, len(selected_teams), num_teams_per_pool):
+        pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
+        db.session.add(pool)
+        db.session.commit()
+        for j in range(i, i + num_teams_per_pool):
+            selected_teams[j].poolId = pool.id
+    exempted_pool = Pool(championshipId=championship.id)
+    db.session.add(exempted_pool)
+    db.session.commit()
+    for team in exempted_teams:
+        team.poolId = exempted_pool.id
+    teams = selected_teams + exempted_teams
+    db.session.add_all(teams)
+    db.session.commit()
+    pools = Pool.query.filter(Pool.championshipId == championship.id).all()
+    app.logger.debug(f'COMMIT DONE = {len(pools)} POOLS for {championship}')

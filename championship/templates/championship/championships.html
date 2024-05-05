@@ -1,0 +1,36 @@
+<!-- templates/list_championships.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    {% if championships %}
+    <table class="championships">
+        <caption class="table-caption">{{exempted_pool}} Liste des championnats ouverts</caption> <!-- Titre ajouté ici -->
+        <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Nb équipes</th>
+            <th>Nb poules</th>
+            <th>Nb simples / doubles</th>
+            <th>Période</th>
+        </tr>
+        </thead>
+        {% for championship in championships %}
+        {% set exempted_pool = 1 if championship.exempted_teams else 0 %}
+        <div id="pool">
+            <tr>
+                <td><a href="{{ url_for('championship.show_pools', id=championship.id) }}">{{ championship.name }}</a></td>
+                <td>{{ championship.teams|length }}</td>
+                <td>{{ championship.pools|length - exempted_pool }}</td>
+                <td>{{ championship.singlesCount }} simples / {{ championship.doublesCount }} doubles</td>
+                <td>{{ championship.startDate.strftime('%d/%m') }}-{{ championship.endDate.strftime('%d/%m') }}</td>
+            </tr>
+        </div>
+        {%endfor %}
+    </table>
+    {% else %}
+    <p style="font-size: 16px; text-align: center;">>Pas de championnat! ✌️</p>
+    {% endif %}
+</main>
+{% endblock main %}

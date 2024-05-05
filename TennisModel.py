@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey, Table, Integer, String
@@ -9,9 +10,6 @@ db = SQLAlchemy()
 
 
 # db = SQLAlchemy(session_options={"autoflush": False})
-
-class Base(DeclarativeBase):
-    pass
 
 
 class BestRanking(db.Model):
@@ -45,12 +43,11 @@ class Ranking(db.Model):
 
     # Define the relationship with License
     # licenseId = db.Column(db.Integer, db.ForeignKey('license.id'), nullable=False)
+    # license = relationship('License', back_populates='rankings')
+
     license = relationship('License', back_populates='rankings')
 
-    # license = relationship('License', back_populates='rankings', primaryjoin='Ranking.licenseId == License.id')
     # license = relationship('License', primaryjoin='Ranking.licenseId == License.id', back_populates='rankings')
-
-    # licenses = relationship('License', back_populates='ranking')
 
     def __eq__(self, other):
         return self.id == other.id
@@ -80,35 +77,21 @@ class Club(db.Model):
 
 class License(db.Model):
     __tablename__ = 'license'
-    id = mapped_column(Integer, primary_key=True)
-    firstName = mapped_column(String(20), nullable=False)
-    lastName = mapped_column(String(20), nullable=False)
-    letter = mapped_column(String(1), nullable=False)
-    year = mapped_column(Integer, nullable=False)  # Année de la licence
-    gender = mapped_column(Integer, nullable=False)  # Champ masculin/féminin (0 pour masculin, 1 pour féminin, 2 pour mixte)
+    id = db.Column(db.Integer, primary_key=True)
+    firstName = db.Column(db.String(20), nullable=False)
+    lastName = db.Column(db.String(20), nullable=False)
+    letter = db.Column(db.String(1), nullable=False)
+    year = db.Column(db.Integer, nullable=False)  # Année de la licence
+    gender = db.Column(db.Integer, nullable=False)  # Champ masculin/féminin (0 pour masculin, 1 pour féminin, 2 pour mixte)
 
     # Define the relationship with Ranking using rankingId
-    rankingId = mapped_column(Integer, ForeignKey('ranking.id'), nullable=False)
-    ranking = relationship('Ranking', foreign_keys=[rankingId], back_populates='license')  # , primaryjoin='License.rankingId == Ranking.id')
-    # ranking = relationship('Ranking', foreign_keys=[rankingId], backref=backref("license", uselist=False))
-    # ranking = relationship('Ranking', foreign_keys=[rankingId])
+    rankingId = db.Column(db.Integer, ForeignKey('ranking.id'), nullable=False)
+    ranking = relationship('Ranking', foreign_keys=[rankingId], back_populates='license')
 
     # Define the relationship with Ranking using bestRankingId
-    bestRankingId = mapped_column(Integer, ForeignKey('best_ranking.id'), nullable=True)
-    bestRanking = relationship('BestRanking', foreign_keys=[bestRankingId])  # , primaryjoin='License.bestRankingId == Ranking.id')
-    # bestRanking = relationship('Ranking', foreign_keys=[bestRankingId], backref=backref("best_license", uselist=False))
-    # bestRanking = relationship('Ranking', foreign_keys=[bestRankingId])
+    bestRankingId = db.Column(Integer, ForeignKey('best_ranking.id'), nullable=True)
+    bestRanking = relationship('BestRanking', foreign_keys=[bestRankingId], back_populates='license')
 
-    # # Define the relationship with Ranking using rankingId
-    # rankingId = db.Column(db.Integer, ForeignKey('ranking.id'), nullable=False)
-    # ranking = relationship('Ranking', foreign_keys="[License.rankingId]", back_populates='license', uselist=False, viewonly=True,
-    #                        primaryjoin='License.rankingId == Ranking.id')
-    #
-    # # Define the relationship with Ranking using bestRankingId
-    # bestRankingId = db.Column(db.Integer, ForeignKey('ranking.id'), nullable=True)
-    # bestRanking = relationship('Ranking', foreign_keys='[License.bestRankingId]', back_populates='license', uselist=False, viewonly=True,
-    #                            primaryjoin='License.bestRankingId == Ranking.id')
-    #
     # # Define the back reference to rankings
     rankings = relationship('Ranking', back_populates='license', foreign_keys=[rankingId])
     best_rankings = relationship('BestRanking', back_populates='license', foreign_keys=[bestRankingId])
@@ -199,12 +182,18 @@ class Player(db.Model):
 class Team(db.Model):
     __tablename__ = 'team'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(20), unique=True, nullable=False)
+    name = db.Column(db.String(20), unique=False, nullable=False)
     captainId = db.Column(db.Integer, db.ForeignKey('player.id'))
-    poolId = db.Column(db.Integer, db.ForeignKey('pool.id'))
+    poolId = db.Column(db.Integer, db.ForeignKey('pool.id'), nullable=True)
+
+    # Define the foreign key relationship with Pool
+    pool = relationship('Pool', back_populates='teams')
 
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
+
+    def weight(self, championship) -> int:
+        return (Ranking.query.count() * championship.singlesCount) - sum([p.license.rankingId for i, p in enumerate(self.players) if i < championship.singlesCount])
 
     @property
     def gender(self) -> int:
@@ -225,11 +214,7 @@ class Team(db.Model):
 
     @property
     def match_days(self):
-        return Matchday.query.filter_by(poolId=self.poolId).all()
-
-    @property
-    def pool(self):
-        return Pool.query.get(self.poolId) if self.poolId else None
+        return self.championship.matchdays
 
     @property
     def club(self):
@@ -256,7 +241,7 @@ class AgeCategory(db.Model):
     def name(self) -> str:
         categories = {0: 'Jeunes', 1: 'Seniors', 2: 'Seniors Plus'}
         if self.type == 0:
-            return f'U{self.minAge}'
+            return f'U{self.maxAge}'
         elif self.type == 1:
             return categories[self.type]
         else:
@@ -301,12 +286,31 @@ class Championship(db.Model):
     divisionId = db.Column(db.Integer, db.ForeignKey('division.id'))  # Ajout de la clé étrangère vers la division
     division = relationship('Division')  # Relation avec la division
 
+    # Define the one-to-many relationship with Matchday
+    matchdays = relationship('Matchday', back_populates='championship')
+
     pools = relationship('Pool', back_populates='championship')  # Relation avec les poules du championnat
+
+    @property
+    def exempted_teams(self):
+        return Team.query.join(Pool).filter(Pool.championshipId == self.id).all()
 
     @property
     def name(self):
         division = Division.query.get(self.divisionId)
-        return f'{division.name}'
+        return f'{division.name}' if division else None
+
+    @property
+    def age_category(self):
+        # division = Division.query.get(self.divisionId)
+        return self.division.ageCategory
+
+    @property
+    def teams(self):
+        teams = []
+        for pool in self.pools:
+            teams.extend(Pool.query.get(pool.id).teams)
+        return teams
 
     @property
     def match_dates(self):
@@ -332,17 +336,28 @@ class Pool(db.Model):
     championshipId = db.Column(db.Integer, ForeignKey('championship.id'))
     championship = relationship('Championship', back_populates='pools')
 
-    # Define the one-to-many relationship with Matchday
-    matchdays = relationship('Matchday', back_populates='pool')
+    teams = relationship('Team', back_populates='pool')
 
     # Relation avec les matchs de la poule
     matches = relationship('Match', back_populates='pool')
 
     @property
+    def is_exempted(self) -> bool:
+        return self.letter is None
+
+    @property
+    def best_team(self) -> Optional[Team]:
+        return max(self.teams, key=lambda team: team.weight(self.championship)) if self.teams else None
+
+    @property
+    def worst_team(self) -> Optional[Team]:
+        return min(self.teams, key=lambda team: team.weight(self.championship)) if self.teams else None
+
+    @property
     def name(self):
         pool = f'non définie' if not self.letter else self.letter
         # return f'id #{self.id} - poule {pool} - championnat: {self.championship.name}'
-        return f'id #{self.id} - poule {pool}'
+        return f'id #{self.id} - pool: {pool} - championship: {self.championship}'
 
     def __repr__(self):
         return self.letter
@@ -355,8 +370,8 @@ class Matchday(db.Model):
     date = db.Column(db.Date, nullable=False)
 
     # Define the many-to-one relationship with Pool
-    poolId = db.Column(db.Integer, db.ForeignKey('pool.id'))
-    pool = relationship('Pool', back_populates='matchdays')
+    championshipId = db.Column(db.Integer, db.ForeignKey('championship.id'), nullable=True)
+    championship = relationship('Championship', back_populates='matchdays')
 
     # Define the one-to-many relationship with Match
     matches = relationship('Match', back_populates='matchday')
