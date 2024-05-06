@@ -10,7 +10,7 @@ from flask import render_template, redirect, url_for, flash
 
 from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday
 from championship import championship_management_bp
-from common import populate_championship
+from common import populate_championship, calculer_classement
 
 
 # Define routes for championship management
@@ -99,6 +99,10 @@ def show_pools(id: int):
 
 @championship_management_bp.route('/show_pool/<int:id>')
 def show_pool(id: int):
-    teams = Team.query.filter_by(poolId=id).all()
     pool = Pool.query.get(id)
-    return render_template('pools.html', teams=teams, pool=pool)
+    # Calcul du classement de la poule
+    resultat_classement = calculer_classement(pool)
+    classement_with_positions = [(i+1, equipe, points) for i, (equipe, points) in enumerate(resultat_classement)]
+    for position, (equipe, points) in enumerate(resultat_classement, start=1):
+        current_app.logger.debug(f"Position {position}: {equipe.name} - Points: {points}")
+    return render_template('show_pool.html', classement=resultat_classement, pool=pool)

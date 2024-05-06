@@ -6,12 +6,12 @@ import csv
 import re
 from datetime import datetime
 from enum import Enum
-from random import shuffle
+from random import shuffle, choice
 from typing import List, Optional
 
 from sqlalchemy import desc, asc, and_
 
-from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool
+from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, MatchSheet
 
 
 class CatType(Enum):
@@ -81,6 +81,7 @@ def import_all_data(app, db) -> str:
     app.logger.debug(message)
     return message
 
+
 def load_age_categories(db):
     age_categories = [
         AgeCategory(type=CatType.Youth.value, minAge=6, maxAge=10),
@@ -134,7 +135,7 @@ def load_divisions(db):
     db.session.commit()
 
 
-def load_rankings(db, Model: Ranking|BestRanking):
+def load_rankings(db, Model: Ranking | BestRanking):
     rankings = []
     # 1ère série
     for i in range(100):
@@ -221,6 +222,7 @@ def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_
             players = [player for player in players if player.has_valid_age(age_category)]
     return players
 
+
 def get_championships(gender: int) -> List[Championship]:
     if gender in [Gender.Male.value, Gender.Female.value]:
         championships = Championship.query \
@@ -234,8 +236,10 @@ def get_championships(gender: int) -> List[Championship]:
             .all()
     return championships
 
+
 def ranking(player: Player) -> Ranking:
     return Ranking.query.get(player.license.rankingId)
+
 
 def check_license(license_number: str) -> Optional[tuple[int, str]]:
     """
@@ -252,12 +256,15 @@ def check_license(license_number: str) -> Optional[tuple[int, str]]:
     else:
         return None
 
+
 def keys_with_same_value(d):
     return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
+
 
 def remove_text_between_parentheses(text):
     # Utilise une expression régulière pour rechercher et remplacer le contenu entre parenthèses
     return re.sub(r'\([^()]*\)', '', text).strip()
+
 
 def populate_championship(app, db, championship: Championship):
     teams = []
@@ -299,3 +306,166 @@ def populate_championship(app, db, championship: Championship):
     db.session.commit()
     pools = Pool.query.filter(Pool.championshipId == championship.id).all()
     app.logger.debug(f'COMMIT DONE = {len(pools)} POOLS for {championship}')
+    for pool in championship.pools:
+        if pool.letter is None:
+            continue
+        play(app, db, pool)
+        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for {pool}')
+
+
+def round_robin(n):
+    a = []
+    b = []
+    c = (n * (n - 1)) / 2
+    c = int(c)
+    e = []
+    f = []
+    result = []
+    result1 = []
+
+    # creating (0,1), (0,2) ··· (n-1, n)
+    for i1 in range(n):
+        for i2 in range(n):
+            if i1 < i2:
+                f.append((i1, i2))
+
+                # creating list of waiting time a = [0,1,2, ··· , n-1] and b = [0,0, ··· , 0]
+    for i in range(n):
+        a.append(i)
+        b.append(0)
+
+    # main dish
+    for i1 in range(c):
+        d1 = b.copy()
+        d2 = a.copy()
+        e = []
+
+        # ordering from largest waiting time to smallest waiting time e = [largest to smallest] in index
+        # d1 is the waiting time list
+        # d2 is [0,1,···,n-1] but decreases gradually
+        for j in range(n):
+            m = max(d1)
+            for k in range(n):
+                if b[k] == m and k not in e:
+                    n1 = k
+                    e.append(n1)
+                    d1.remove(m)
+                    d2.remove(n1)
+                    break
+                else:
+                    continue
+
+        for (p, q) in f:
+            if (e[p], e[q]) not in result and (e[q], e[p]) not in result:
+                result.append((e[p], e[q]))
+                for i in range(n):
+                    if i != e[p] and i != e[q]:
+                        b[i] = b[i] + 1
+                    else:
+                        b[i] = 0
+                break
+            else:
+                continue
+
+    # making (2,0)s into (0,2)s
+    for (k1, k2) in result:
+        if k1 < k2:
+            result1.append((k1 + 1, k2 + 1))
+        else:
+            result1.append((k2 + 1, k1 + 1))
+
+    return result1
+
+# def paires_avec_somme_N(liste, N):
+#     paires = []
+#     for i in range(len(liste)):
+#         for j in range(i + 1, len(liste)):
+#             if liste[i] + liste[j] == N:
+#                 paires.append((liste[i], liste[j]))
+#     return paires
+
+def paires_avec_somme_N(liste, N):
+    paires = []
+    for i in range(len(liste)):
+        for j in range(i, len(liste)):  # Modifier la boucle pour inclure aussi i
+            if liste[i] + liste[j] == N:
+                paires.append((liste[i], liste[j]))
+    return paires
+
+
+def play(app, db, pool: Pool):
+    num_matches = pool.championship.num_matches
+    liste_entiers = list(range(num_matches + 1))
+    scores = paires_avec_somme_N(liste_entiers, num_matches)
+    app.logger.debug(f'SCORES = {scores}')
+    teams = {i + 1: team for i, team in enumerate(pool.teams)}
+    app.logger.debug(f'TEAMS = {teams}')
+    n = len(teams)
+    num_days = n - 1 if n % 2 == 0 else n
+    matchs_data = round_robin(n)
+    app.logger.debug(f'MATCHS = {matchs_data}')
+    matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+    for i in range(num_days):
+        matchday = matchdays[i]
+        matches = matchs_data[i * n // 2: (i + 1) * n // 2]
+        app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
+        matchday.matches = [Match(poolId=pool.id, homeTeamId=teams[j].id, awayTeamId=teams[k].id, date=matchday.date) for j, k in matches]
+        db.session.add(matchday)
+        db.session.commit()
+        matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+        matchday = matchdays[i]
+        for match in matchday.matches:
+            home_score, visitor_score = match.homeTeam.weight(pool.championship), match.awayTeam.weight(pool.championship)
+            winnerId = match.homeTeamId if home_score > visitor_score else match.awayTeamId if visitor_score > home_score else None
+            filtered_scores = list(filter(lambda x: x[0] != x[1], scores)) if winnerId else scores
+            score = choice(filtered_scores)
+            sorted_score = tuple(sorted(score, reverse=True)) if winnerId == match.homeTeamId else tuple(sorted(score))
+            formatted_score = f'{sorted_score[0]}-{sorted_score[1]}'
+            match_sheet = MatchSheet(matchId=match.id, score=formatted_score, winnerId=winnerId)
+            db.session.add(match_sheet)
+            db.session.commit()
+            match_sheet = MatchSheet.query.filter_by(matchId=match.id).first()
+            app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.awayTeam} - {match_sheet.score} - {match_sheet.winner}')
+
+def extract_courts(club_json):
+    # Expression régulière pour extraire le nombre de terrains de tennis, padel et beach
+    regex = r"Tennis : (\d+) terrains, Padel : (\d+), Beach Tennis : (\d+)"
+    # Rechercher les correspondances dans la chaîne 'terrainPratiqueLibelle'
+    matches = re.search(regex, club_json['terrainPratiqueLibelle'])
+    if matches:
+        tennis_count = int(matches.group(1))
+        padel_count = int(matches.group(2))
+        beach_count = int(matches.group(3))
+        return [tennis_count, padel_count, beach_count]
+    return [0] * 3
+
+def calculer_classement(pool):
+    classement = {}  # Dictionnaire pour stocker le nombre de points de chaque équipe
+
+    # Parcourir tous les matchs de la poule
+    for match in pool.matches:
+        if match.match_sheet is not None:  # Vérifier si la feuille de match existe
+            home_team = match.homeTeam
+            away_team = match.awayTeam
+            home_score, away_score = map(int, match.match_sheet.score.split('-'))
+
+            # Déterminer le résultat du match
+            if home_score > away_score:
+                result_home_team = 'win'
+                result_away_team = 'loss'
+            elif home_score < away_score:
+                result_home_team = 'loss'
+                result_away_team = 'win'
+            else:
+                result_home_team = result_away_team = 'draw'
+
+            # Mettre à jour le nombre de points des équipes
+            classement[home_team] = classement.get(home_team, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_home_team]
+            classement[away_team] = classement.get(away_team, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_away_team]
+
+    # Trier les équipes en fonction de leur nombre de points (en ordre décroissant)
+    classement = sorted(classement.items(), key=lambda x: x[1], reverse=True)
+
+    return classement
+
+

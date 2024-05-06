@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -67,6 +68,11 @@ class Club(db.Model):
     id = db.Column(db.String(10), primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)
     city = db.Column(db.String(20), nullable=False)
+    tennis_courts = db.Column(db.Integer, nullable=True)
+    padel_courts = db.Column(db.Integer, nullable=True)
+    beach_courts = db.Column(db.Integer, nullable=True)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
 
     # Define the relationship with Player
     players = relationship('Player', back_populates='club', cascade="all, delete-orphan")
@@ -74,6 +80,53 @@ class Club(db.Model):
     def __repr__(self):
         return f'{self.name}'
 
+    @property
+    def info(self) -> str:
+        formatted_id = f"{self.id[:2]:s} {self.id[2:4]:s} {self.id[4:]:s}"
+        courts = f'Tennis : {self.tennis_courts} terrains'
+        if self.padel_courts:
+            courts += f', Padel : {self.padel_courts}'
+        if self.beach_courts:
+            courts += f', Beach Tennis : {self.beach_courts}'
+        return f'{self.name} ({formatted_id}) - {courts}'# - lat/lng: ({self.latitude},{self.longitude})'
+
+    @staticmethod
+    def from_json(club_json):
+        regex = r"Tennis : (\d+) terrain(?:s), Padel : (\d+), Beach Tennis : (\d+)"
+        matches = re.search(regex, club_json['terrainPratiqueLibelle'])
+        tennis_count = padel_count = beach_count = 0
+        if matches:
+            tennis_count = int(matches.group(1))
+            padel_count = int(matches.group(2))
+            beach_count = int(matches.group(3))
+        else:
+            regex = r"Tennis : (\d+) terrain(?:s), Padel : (\d+)"
+            matches = re.search(regex, club_json['terrainPratiqueLibelle'])
+            if matches:
+                tennis_count = int(matches.group(1))
+                padel_count = int(matches.group(2))
+            else:
+                regex = r"Tennis : (\d+) terrain(?:s), Beach Tennis : (\d+)"
+                matches = re.search(regex, club_json['terrainPratiqueLibelle'])
+                if matches:
+                    tennis_count = int(matches.group(1))
+                    beach_count = int(matches.group(2))
+                else:
+                    regex = r"(\d+) terrain"
+                    matches = re.search(regex, club_json['terrainPratiqueLibelle'])
+                    if matches:
+                        tennis_count = int(matches.group(1))
+        club = Club(
+            id=club_json['clubId'],
+            name=club_json['nom'],
+            city=club_json['ville'],
+            tennis_courts=tennis_count,
+            padel_courts=padel_count,
+            beach_courts=beach_count,
+            latitude=club_json['lat'],
+            longitude=club_json['lng']
+        )
+        return club
 
 class License(db.Model):
     __tablename__ = 'license'
@@ -93,8 +146,8 @@ class License(db.Model):
     bestRanking = relationship('BestRanking', foreign_keys=[bestRankingId], back_populates='license')
 
     # # Define the back reference to rankings
-    rankings = relationship('Ranking', back_populates='license', foreign_keys=[rankingId])
-    best_rankings = relationship('BestRanking', back_populates='license', foreign_keys=[bestRankingId])
+    rankings = relationship('Ranking', back_populates='license', foreign_keys=[rankingId], overlaps="ranking")
+    best_rankings = relationship('BestRanking', back_populates='license', foreign_keys=[bestRankingId], overlaps="bestRanking")
 
     # Define the relationship with Player
     players = relationship('Player', back_populates='license')
@@ -296,6 +349,10 @@ class Championship(db.Model):
         return Team.query.join(Pool).filter(Pool.championshipId == self.id).all()
 
     @property
+    def num_matches(self):
+        return self.singlesCount + self.doublesCount
+
+    @property
     def name(self):
         division = Division.query.get(self.divisionId)
         return f'{division.name}' if division else None
@@ -417,6 +474,10 @@ class MatchSheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     score = db.Column(db.String(20), nullable=False)
 
+    winnerId = db.Column(db.Integer, ForeignKey('team.id'))
+    winner = relationship('Team', foreign_keys=[winnerId])
+
     # Clé étrangère vers le match auquel la feuille de match est associée
-    match_id = db.Column(db.Integer, ForeignKey('match.id'))
-    match = relationship('Match', back_populates='match_sheet')
+    matchId = db.Column(db.Integer, ForeignKey('match.id', ondelete='CASCADE'))
+    match = relationship('Match', back_populates='match_sheet', single_parent=True, cascade="all, delete-orphan")
+

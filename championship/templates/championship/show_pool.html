@@ -1,0 +1,31 @@
+<!-- templates/players.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+
+<main>
+    {% if classement %}
+        <table class="pool">
+            <caption class="table-caption">Classement de la poule {{pool.letter}} du championnat {{pool.championship.name}}</caption> <!-- Titre ajouté ici -->
+            <thead>
+            <tr>
+                <th>Position</th>
+                <th>Équipe</th>
+                <th>Points</th>
+            </tr>
+            </thead>
+            {% for equipe, points in classement %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ equipe.name }}</td>
+                    <td>{{ points }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+    <p style="font-size: 16px; text-align: center;">Aucune rencontre disputée dans cette poule! ✌️</p>
+    {% endif %}
+</main>
+{% endblock main %}
