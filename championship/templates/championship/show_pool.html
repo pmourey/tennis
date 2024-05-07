@@ -6,26 +6,48 @@
 {% block main %}
 
 <main>
-    {% if classement %}
-        <table class="pool">
-            <caption class="table-caption">Classement de la poule {{pool.letter}} du championnat {{pool.championship.name}}</caption> <!-- Titre ajouté ici -->
-            <thead>
+    <table class="pool">
+        <caption class="table-caption">Classement de la poule {{pool.letter}} du championnat {{pool.championship.name}}</caption> <!-- Titre ajouté ici -->
+        <thead>
+        <tr>
+            <th>Position</th>
+            <th>Équipe</th>
+            <th>Points</th>
+        </tr>
+        </thead>
+        {% for equipe_id, points in classement %}
+            {% set team = pool.get_team_by_id(equipe_id) %}
             <tr>
-                <th>Position</th>
-                <th>Équipe</th>
-                <th>Points</th>
+                <td>{{ loop.index }}</td>
+                <td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team.name }} ({{ team.weight(pool.championship) }})</a></td>
+                <td>{{ points }}</td>
             </tr>
-            </thead>
-            {% for equipe, points in classement %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ equipe.name }}</td>
-                    <td>{{ points }}</td>
-                </tr>
+        {% endfor %}
+    </table>
+    <!-- Affichage des journées de rencontres et résultats -->
+    {% if matchdays %}
+        <h2>Journées de rencontres et résultats</h2>
+        <ul>
+            {% for matchday in matchdays %}
+                <li>
+                    <strong>Journée {{ loop.index }} :</strong> {{ matchday.date }}
+                    <ul>
+                        {% if matches %}
+                            {% for match in matches %}
+<!--                                Match {{match.matchdayId}} - Matchday {{matchday.id}}<br>-->
+                                {% if match.matchdayId == matchday.id %}
+                                    <li>{{ match.homeTeam.name }} vs {{ match.awayTeam.name }} : {{ match.match_sheet.score }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <li>Aucun match prévu pour cette poule lors de cette journée.</li>
+                        {% endif %}
+                    </ul>
+                </li>
             {% endfor %}
-        </table>
+        </ul>
     {% else %}
-    <p style="font-size: 16px; text-align: center;">Aucune rencontre disputée dans cette poule! ✌️</p>
+        <p style="font-size: 16px; text-align: center;">Aucune journée de rencontres programmée dans cette poule! 📅</p>
     {% endif %}
 </main>
 {% endblock main %}

@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Optional
 
 from flask_sqlalchemy import SQLAlchemy
@@ -11,7 +11,6 @@ db = SQLAlchemy()
 
 
 # db = SQLAlchemy(session_options={"autoflush": False})
-
 
 class BestRanking(db.Model):
     __tablename__ = 'best_ranking'
@@ -88,7 +87,7 @@ class Club(db.Model):
             courts += f', Padel : {self.padel_courts}'
         if self.beach_courts:
             courts += f', Beach Tennis : {self.beach_courts}'
-        return f'{self.name} ({formatted_id}) - {courts}'# - lat/lng: ({self.latitude},{self.longitude})'
+        return f'{self.name} ({formatted_id}) - {courts}'  # - lat/lng: ({self.latitude},{self.longitude})'
 
     @staticmethod
     def from_json(club_json):
@@ -127,6 +126,7 @@ class Club(db.Model):
             longitude=club_json['lng']
         )
         return club
+
 
 class License(db.Model):
     __tablename__ = 'license'
@@ -379,6 +379,22 @@ class Championship(db.Model):
             current_date += timedelta(days=1)
         return sundays
 
+    @property
+    def match_dates_new(self):
+        division = Division.query.get(self.divisionId)
+        if division.type == 0:  # National
+            # dimanches 27 avril, 4, 11, 18 et 25 mai 2025
+            return [date(2025, 4, 27), date(2025, 5, 4), date(2025, 5, 11), date(2025, 5, 18), date(2025, 5, 25)]
+        elif division.ageCategory.type == 1:  # Senior
+            if division.ageCategory.minAge in [35, 45, 55]:
+                # Dimanches 1, 8, 15, 22 octobre 2023
+                # Dimanche 12 novembre 2023
+                return [date(2023, 10, 1), date(2023, 10, 8), date(2023, 10, 15), date(2023, 10, 22), date(2023, 11, 12)]
+            elif division.ageCategory.minAge in [65, 75]:
+                # Mardis 3, 10, 17, 24 octobre 2023
+                # Mardi 7 novembre 2023
+                return [date(2023, 10, 3), date(2023, 10, 10), date(2023, 10, 17), date(2023, 10, 24), date(2023, 11, 7)]
+
     def __repr__(self):
         return f'{self.name}'
 
@@ -401,6 +417,9 @@ class Pool(db.Model):
     @property
     def is_exempted(self) -> bool:
         return self.letter is None
+
+    def get_team_by_id(self, team_id: int) -> Optional[Team]:
+        return Team.query.get(team_id) if team_id else None
 
     @property
     def best_team(self) -> Optional[Team]:
@@ -433,6 +452,8 @@ class Matchday(db.Model):
     # Define the one-to-many relationship with Match
     matches = relationship('Match', back_populates='matchday')
 
+    def __repr__(self):
+        return f'Journée #{self.id}'
 
 # matchday_match_association = Table(
 #     'matchday_match_association',
@@ -467,6 +488,12 @@ class Match(db.Model):
     # Relation avec la feuille de match
     match_sheet = relationship('MatchSheet', uselist=False, back_populates='match')
 
+    def __repr__(self):
+        # match_day = Matchday.query.get(self.matchdayId)
+        # pool = Pool.query.get(self.poolId)
+        match_sheet = MatchSheet.query.filter_by(id=self.matchdayId).first()
+        return f'{match_sheet}'
+
 
 class MatchSheet(db.Model):
     __tablename__ = 'match_sheet'
@@ -481,3 +508,5 @@ class MatchSheet(db.Model):
     matchId = db.Column(db.Integer, ForeignKey('match.id', ondelete='CASCADE'))
     match = relationship('Match', back_populates='match_sheet', single_parent=True, cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f'{self.score}'

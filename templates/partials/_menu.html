@@ -2,11 +2,23 @@
 
 <table class="menu">
     <tr>
+<!--        <td>{{request.endpoint}}</td>
+        <td>{{request.blueprint}}</td>-->
         <td><a href="{{ url_for('welcome') }}"><button>Menu principal</button></a></td>
-        {% if request.blueprint == 'championship' and request.path != '/championship/' %}
-            <td><a href="{{ url_for('championship.index') }}"><button>Sommaire championnats</button></a></td>
-        {% elif request.blueprint == 'club' and request.path != '/club/' %}
-            <td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>
+        {% if request.blueprint == 'championship' %}
+            {% if request.path != '/championship/' %}
+                <td><a href="{{ url_for('championship.index') }}"><button>Sommaire championnats</button></a></td>
+            {% endif %}
+            {% if request.endpoint == 'championship.show_pool' %}
+                <td><a href="{{ url_for('championship.show_pools', id=pool.championship.id) }}"><button>Sommaire championnat</button></a></td>
+            {% endif %}
+        {% elif request.blueprint == 'club' %}
+            {% if request.path != '/club/' %}
+                <td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>
+            {% endif %}
+            {% if request.endpoint == 'club.show_team' %}
+                <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}"><button>Sommaire poule</button></a></td>
+            {% endif %}
         {% elif request.blueprint == 'admin' and request.path != '/admin/' %}
             <td><a href="{{ url_for('admin.index') }}"><button>Sommaire administration</button></a></td>
         {% endif %}

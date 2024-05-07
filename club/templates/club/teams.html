@@ -30,7 +30,11 @@
             <td>{{ team.players|length }}</td>
             <td>{{ team.captainName or 'Pas de capitaine défini!' }}</td>
             <td>{{ team.championship_name }}</td>
-            <td>{{ team.pool.letter or 'Pas de poule définie!' }}</td>
+            {% if team.pool.letter %}
+                <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}">{{ team.pool.letter }}</a></td>
+            {% else %}
+                <td>Pas de poule définie!</td>
+            {% endif %}
             <td>
                 <!-- Tooltip container -->
                 <div class="tooltip" onclick="toggleTooltip(this)">

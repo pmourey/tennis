@@ -268,49 +268,53 @@ def remove_text_between_parentheses(text):
 
 def populate_championship(app, db, championship: Championship):
     teams = []
-    for club in Club.query.all():
-        # app.logger.debug(f'Détermination équipe: {club} - championnat: {championship}')
-        players = get_players_order_by_ranking(gender=championship.division.gender, club_id=club.id, asc_param=True, age_category=championship.age_category, is_active=True)
-        app.logger.debug(f'Nombre joueurs éligibles du club {club}: {len(players)}')
-        if len(players) < 4:
-            continue
-        captain = min(players, key=lambda p: p.ranking.id)
-        club_name = remove_text_between_parentheses(club.name)
-        team = Team(name=f'{club_name} 1', captainId=captain.id)
-        team.players = players[:10]
-        teams.append(team)
-        app.logger.debug(f'Equipe {team} de poids {team.weight(championship)} créée avec succès composée de {len(team.players)} joueurs! {team.players}')
-    # Create pools and assign teams to each pool
-    M = min(len(teams) - 1, 5)
-    num_teams_per_pool = M + 1
-    num_pools = len(teams) // num_teams_per_pool
-    teams.sort(key=lambda t: t.weight(championship))
-    selected_teams = teams[:num_pools * num_teams_per_pool]
-    exempted_teams = teams[num_pools * num_teams_per_pool:]
-    shuffle(selected_teams)
-    app.logger.debug(f'Nombre équipes par poule: {num_teams_per_pool} - Nombre de journées: {M}')
-    app.logger.debug(f'{len(selected_teams)} équipes sélectionnées pour la phase de poules')
-    for i in range(0, len(selected_teams), num_teams_per_pool):
-        pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
-        db.session.add(pool)
+    try:
+        for club in Club.query.all():
+            # app.logger.debug(f'Détermination équipe: {club} - championnat: {championship}')
+            players = get_players_order_by_ranking(gender=championship.division.gender, club_id=club.id, asc_param=True, age_category=championship.age_category, is_active=True)
+            # app.logger.debug(f'Nombre joueurs éligibles du club {club}: {len(players)}')
+            if len(players) < 4:
+                continue
+            captain = min(players, key=lambda p: p.ranking.id)
+            club_name = remove_text_between_parentheses(club.name)
+            team = Team(name=f'{club_name} 1', captainId=captain.id)
+            team.players = players[:10]
+            teams.append(team)
+            # app.logger.debug(f'Equipe {team} de poids {team.weight(championship)} créée avec succès composée de {len(team.players)} joueurs! {team.players}')
+        # Create pools and assign teams to each pool
+        M = min(len(teams) - 1, len(championship.match_dates))
+        num_teams_per_pool = M + 1
+        num_pools = len(teams) // num_teams_per_pool
+        teams.sort(key=lambda t: t.weight(championship))
+        selected_teams = teams[:num_pools * num_teams_per_pool]
+        exempted_teams = teams[num_pools * num_teams_per_pool:]
+        shuffle(selected_teams)
+        app.logger.debug(f'{championship} - Nombre équipes par poule: {num_teams_per_pool} - Nombre de journées: {M}')
+        app.logger.debug(f'{len(selected_teams)} équipes sélectionnées pour la phase de poules')
+        for i in range(0, len(selected_teams), num_teams_per_pool):
+            pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
+            db.session.add(pool)
+            db.session.commit()
+            for j in range(i, i + num_teams_per_pool):
+                selected_teams[j].poolId = pool.id
+        exempted_pool = Pool(championshipId=championship.id)
+        db.session.add(exempted_pool)
         db.session.commit()
-        for j in range(i, i + num_teams_per_pool):
-            selected_teams[j].poolId = pool.id
-    exempted_pool = Pool(championshipId=championship.id)
-    db.session.add(exempted_pool)
-    db.session.commit()
-    for team in exempted_teams:
-        team.poolId = exempted_pool.id
-    teams = selected_teams + exempted_teams
-    db.session.add_all(teams)
-    db.session.commit()
+        for team in exempted_teams:
+            team.poolId = exempted_pool.id
+        teams = selected_teams + exempted_teams
+        db.session.add_all(teams)
+    except Exception as e:
+        app.logger.debug(f"Erreur dans la fonction 'populate_championship'!")
+    finally:
+        db.session.commit()
     pools = Pool.query.filter(Pool.championshipId == championship.id).all()
     app.logger.debug(f'COMMIT DONE = {len(pools)} POOLS for {championship}')
     for pool in championship.pools:
         if pool.letter is None:
             continue
         play(app, db, pool)
-        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for {pool}')
+        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
 
 
 def round_robin(n):
@@ -376,13 +380,6 @@ def round_robin(n):
 
     return result1
 
-# def paires_avec_somme_N(liste, N):
-#     paires = []
-#     for i in range(len(liste)):
-#         for j in range(i + 1, len(liste)):
-#             if liste[i] + liste[j] == N:
-#                 paires.append((liste[i], liste[j]))
-#     return paires
 
 def paires_avec_somme_N(liste, N):
     paires = []
@@ -394,38 +391,49 @@ def paires_avec_somme_N(liste, N):
 
 
 def play(app, db, pool: Pool):
-    num_matches = pool.championship.num_matches
-    liste_entiers = list(range(num_matches + 1))
-    scores = paires_avec_somme_N(liste_entiers, num_matches)
-    app.logger.debug(f'SCORES = {scores}')
-    teams = {i + 1: team for i, team in enumerate(pool.teams)}
-    app.logger.debug(f'TEAMS = {teams}')
-    n = len(teams)
-    num_days = n - 1 if n % 2 == 0 else n
-    matchs_data = round_robin(n)
-    app.logger.debug(f'MATCHS = {matchs_data}')
-    matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-    for i in range(num_days):
-        matchday = matchdays[i]
-        matches = matchs_data[i * n // 2: (i + 1) * n // 2]
-        app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
-        matchday.matches = [Match(poolId=pool.id, homeTeamId=teams[j].id, awayTeamId=teams[k].id, date=matchday.date) for j, k in matches]
-        db.session.add(matchday)
-        db.session.commit()
+    try:
+        num_matches = pool.championship.num_matches
+        liste_entiers = list(range(num_matches + 1))
+        scores = paires_avec_somme_N(liste_entiers, num_matches)
+        app.logger.debug(f'SCORES = {scores}')
+        teams = {i + 1: team for i, team in enumerate(pool.teams)}
+        app.logger.debug(f'TEAMS = {teams}')
+        n = len(teams)
+        num_days = n - 1 if n % 2 == 0 else n
+        matchs_data = round_robin(n)
+        # app.logger.debug(f'MATCHS = {matchs_data}')
         matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-        matchday = matchdays[i]
-        for match in matchday.matches:
-            home_score, visitor_score = match.homeTeam.weight(pool.championship), match.awayTeam.weight(pool.championship)
-            winnerId = match.homeTeamId if home_score > visitor_score else match.awayTeamId if visitor_score > home_score else None
-            filtered_scores = list(filter(lambda x: x[0] != x[1], scores)) if winnerId else scores
-            score = choice(filtered_scores)
-            sorted_score = tuple(sorted(score, reverse=True)) if winnerId == match.homeTeamId else tuple(sorted(score))
-            formatted_score = f'{sorted_score[0]}-{sorted_score[1]}'
-            match_sheet = MatchSheet(matchId=match.id, score=formatted_score, winnerId=winnerId)
-            db.session.add(match_sheet)
+        # app.logger.debug(f'{len(matchdays)} MATCHDAYS = {matchdays}')
+        for i in range(len(matchdays)):
+            matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+            matchday = matchdays[i]
+            matches = matchs_data[i * n // 2: (i + 1) * n // 2]
+            # app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
+            matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, awayTeamId=teams[k].id, date=matchday.date) for j, k in matches]
+            db.session.add_all(matches)
+            # db.session.commit()
+            # matchday.matches = matches
+            # db.session.add(matchday)
             db.session.commit()
-            match_sheet = MatchSheet.query.filter_by(matchId=match.id).first()
-            app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.awayTeam} - {match_sheet.score} - {match_sheet.winner}')
+            # matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+            # matchday = matchdays[i]
+            matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+            matchday = matchdays[i]
+            # app.logger.debug(f'PROUT MATCHDAY {i + 1} = {matchday.matches}')
+            for match in matchday.matches:
+                home_score, visitor_score = match.homeTeam.weight(pool.championship), match.awayTeam.weight(pool.championship)
+                winnerId = match.homeTeamId if home_score > visitor_score else match.awayTeamId if visitor_score > home_score else None
+                filtered_scores = list(filter(lambda x: x[0] != x[1], scores)) if winnerId else scores
+                score = choice(filtered_scores)
+                sorted_score = tuple(sorted(score, reverse=True)) if winnerId == match.homeTeamId else tuple(sorted(score))
+                formatted_score = f'{sorted_score[0]}-{sorted_score[1]}'
+                match_sheet = MatchSheet(matchId=match.id, score=formatted_score, winnerId=winnerId)
+                db.session.add(match_sheet)
+                db.session.commit()
+                match_sheet = MatchSheet.query.filter_by(matchId=match.id).first()
+                # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match_sheet.score} - {match.awayTeam}')
+    except Exception as e:
+        app.logger.debug(f"Erreur dans la fonction 'play'!")
 
 def extract_courts(club_json):
     # Expression régulière pour extraire le nombre de terrains de tennis, padel et beach
@@ -460,8 +468,8 @@ def calculer_classement(pool):
                 result_home_team = result_away_team = 'draw'
 
             # Mettre à jour le nombre de points des équipes
-            classement[home_team] = classement.get(home_team, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_home_team]
-            classement[away_team] = classement.get(away_team, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_away_team]
+            classement[home_team.id] = classement.get(home_team.id, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_home_team]
+            classement[away_team.id] = classement.get(away_team.id, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_away_team]
 
     # Trier les équipes en fonction de leur nombre de points (en ordre décroissant)
     classement = sorted(classement.items(), key=lambda x: x[1], reverse=True)

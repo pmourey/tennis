@@ -12,18 +12,22 @@
             <th>Nom</th>
             <th>Nb équipes</th>
             <th>Nb poules</th>
+            <th>Nb journées</th>
             <th>Nb simples / doubles</th>
             <th>Période</th>
         </tr>
         </thead>
         {% for championship in championships %}
         {% set exempted_pool = 1 if championship.exempted_teams else 0 %}
+        {% set singles_label = 'simples' if championship.singlesCount > 1 else 'simple' %}
+        {% set doubles_label = 'doubles' if championship.doublesCount > 1 else 'double' %}
         <div id="pool">
             <tr>
                 <td><a href="{{ url_for('championship.show_pools', id=championship.id) }}">{{ championship.name }}</a></td>
                 <td>{{ championship.teams|length }}</td>
                 <td>{{ championship.pools|length - exempted_pool }}</td>
-                <td>{{ championship.singlesCount }} simples / {{ championship.doublesCount }} doubles</td>
+                <td>{{ championship.matchdays|length}}</td>
+                <td>{{ championship.singlesCount }} {{singles_label}} / {{ championship.doublesCount }} {{doubles_label}}</td>
                 <td>{{ championship.startDate.strftime('%d/%m') }}-{{ championship.endDate.strftime('%d/%m') }}</td>
             </tr>
         </div>

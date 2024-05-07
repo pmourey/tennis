@@ -8,7 +8,7 @@ from sqlalchemy import desc, and_
 
 from flask import render_template, redirect, url_for, flash
 
-from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday
+from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match
 from championship import championship_management_bp
 from common import populate_championship, calculer_classement
 
@@ -64,16 +64,20 @@ def new_championship():
         championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count, divisionId=division_id)
         current_app.logger.debug(f'championship: {championship}')
         db.session.add(championship)
+        # db.session.commit()
+        try:
+            # Création des journées de championnat pour la saison en cours
+            for date in championship.match_dates:
+                matchday = Matchday(date=date, championshipId=championship.id)
+                championship.matchdays.append(matchday)
+                db.session.add(championship)
+                db.session.add(matchday)
+                # db.session.commit()
+            populate_championship(app=current_app, db=db, championship=championship)
+            flash('Championnat créé avec succès!', 'success')
+        except Exception as e:
+            flash(f'{e}\nImpossible de créer le championnat pour le nombre de journées demandées... Veuillez modifier la durée!', 'error')
         db.session.commit()
-        # Création des journées de championnat pour la saison en cours
-        for date in championship.match_dates:
-            matchday = Matchday(date=date, championshipId=championship.id)
-            championship.matchdays.append(matchday)
-            db.session.add(championship)
-            db.session.add(matchday)
-            db.session.commit()
-        populate_championship(app=current_app, db=db, championship=championship)
-        flash('Championnat créé avec succès!', 'success')
         return render_template('championship_index.html')
     divisions = AgeCategory.query.all()
     return render_template('new_championship.html', divisions=divisions)
@@ -102,7 +106,12 @@ def show_pool(id: int):
     pool = Pool.query.get(id)
     # Calcul du classement de la poule
     resultat_classement = calculer_classement(pool)
-    classement_with_positions = [(i+1, equipe, points) for i, (equipe, points) in enumerate(resultat_classement)]
-    for position, (equipe, points) in enumerate(resultat_classement, start=1):
-        current_app.logger.debug(f"Position {position}: {equipe.name} - Points: {points}")
-    return render_template('show_pool.html', classement=resultat_classement, pool=pool)
+    # for position, (equipe_id, points) in enumerate(resultat_classement, start=1):
+    #     team = Team.query.get(equipe_id)
+    #     current_app.logger.debug(f"Position {position}: {team.name} - Points: {points}")
+    # matchdays = Matchday.query.join(Pool).join(Championship).filter(Championship.id == pool.championship.id ).all()
+    matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all() # pool.matchdays
+    # matches = Match.query.join(Matchday).join(Pool).join(Championship).filter(Championship.id == pool.championship.id, Pool.id == pool.id).all()
+    matches = Match.query.filter_by(poolId=pool.id).all() # pool.matches
+    current_app.logger.debug(f'matches: {matches}')
+    return render_template('show_pool.html', classement=resultat_classement, pool=pool, matches=matches, matchdays=matchdays)

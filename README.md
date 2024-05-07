@@ -10,7 +10,7 @@ https://godot70.pythonanywhere.com
   - [x] ajout formulaire de création des championnats (vs catégorie d'âge et division)
   - [x] Création d'une équipe associée au championnat à partir des joueurs du club
   - [x] Assignation de l'équipe créée à un championnat via la poule communiquée par la ligue
-  - [ ] Création du calendrier prévisionnel du championnat (identique presque chaque année)
+  - [x] Création du calendrier prévisionnel du championnat (identique presque chaque année) et journées de championnat
   - [ ] Formulaire d'ajout des équipes adverses présentes dans la poule et du planning des rencontres pour l'équipe (domicile/extérieur/exempt) (utilisé après envoi par la ligue du calendrier des rencontres)
   - [ ] Gestion des disponibilités joueurs
 - [ ] Administration:
@@ -23,3 +23,4 @@ https://godot70.pythonanywhere.com
 https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys
 https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html#mapper-sql-expressions
 https://realpython.com/flask-blueprint/
+https://github.com/ryuichi-sumida/algorithm_for_round_robin_tournament

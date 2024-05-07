@@ -234,6 +234,15 @@ def update_team(id):
         return render_template('index.html')
 
 
+# Définissez la route pour afficher les détails de l'équipe
+@club_management_bp.route('/show_team/<int:id>')
+def show_team(id: int):
+    # Récupérez l'objet de l'équipe à partir de la base de données
+    team = Team.query.get(id)
+    sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
+    return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players)
+
+
 @club_management_bp.route('/new_player/', methods=['GET', 'POST'])
 def new_player():
     current_app.logger.debug(f'request.method: {request.method}')
