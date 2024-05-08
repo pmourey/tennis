@@ -9,9 +9,11 @@ from enum import Enum
 from random import shuffle, choice
 from typing import List, Optional
 
+import pandas as pd
 from sqlalchemy import desc, asc, and_
 
 from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, MatchSheet
+from tools.import_csv import extract
 
 
 class CatType(Enum):
@@ -65,14 +67,25 @@ def import_all_data(app, db) -> str:
     message += f"{Ranking.query.count()} classements insérés en bdd!\n"
 
     for club_info in app.config['CLUBS']:
-        club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
+        # récupération autres infos dans fichier csv du club
+        BASE_PATH = os.path.dirname(__file__)
+        csv_file = os.path.join(BASE_PATH, f'static/data/clubs.csv')
+        df = pd.read_csv(csv_file)
+        colonnes_a_recuperer = ['name', 'city', 'tennis_courts', 'padel_courts', 'beach_courts', 'latitude', 'longitude']
+        club_tenup = extract(df=df, field_criteria='id', field_value=club_info['id'], columns=colonnes_a_recuperer)
+        app.logger.debug(f'club_tenup: {club_tenup}')
+        if club_tenup is None:
+            club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
+        else:
+            club = Club(id=club_info['id'], name=club_tenup['name'], city=club_tenup['city'], tennis_courts=club_tenup['tennis_courts'],
+                        padel_courts=club_tenup['padel_courts'], beach_courts=club_tenup['beach_courts'], latitude=club_tenup['latitude'], longitude=club_tenup['longitude'])
         db.session.add(club)
         app.logger.debug(f'default_club: {club}')
         db.session.commit()
         message += f'Club {club} créé avec succès!\n'
         # Chargement des joueurs du club
         for gender, gender_label in enumerate(['men', 'women']):
-            players_csvfile = f"static/data/{club_info['csvfile']}_{gender_label}.csv"
+            players_csvfile = f"static/data/players/{club_info['csvfile']}_{gender_label}.csv"
             file_path = os.path.join(app.config['BASE_PATH'], players_csvfile)
             import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
             players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()

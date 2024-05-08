@@ -64,7 +64,7 @@ class Ranking(db.Model):
 
 class Club(db.Model):
     __tablename__ = 'club'
-    id = db.Column(db.String(10), primary_key=True)
+    id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(20), unique=True, nullable=False)
     city = db.Column(db.String(20), nullable=False)
     tennis_courts = db.Column(db.Integer, nullable=True)
@@ -88,45 +88,6 @@ class Club(db.Model):
         if self.beach_courts:
             courts += f', Beach Tennis : {self.beach_courts}'
         return f'{self.name} ({formatted_id}) - {courts}'  # - lat/lng: ({self.latitude},{self.longitude})'
-
-    @staticmethod
-    def from_json(club_json):
-        regex = r"Tennis : (\d+) terrain(?:s), Padel : (\d+), Beach Tennis : (\d+)"
-        matches = re.search(regex, club_json['terrainPratiqueLibelle'])
-        tennis_count = padel_count = beach_count = 0
-        if matches:
-            tennis_count = int(matches.group(1))
-            padel_count = int(matches.group(2))
-            beach_count = int(matches.group(3))
-        else:
-            regex = r"Tennis : (\d+) terrain(?:s), Padel : (\d+)"
-            matches = re.search(regex, club_json['terrainPratiqueLibelle'])
-            if matches:
-                tennis_count = int(matches.group(1))
-                padel_count = int(matches.group(2))
-            else:
-                regex = r"Tennis : (\d+) terrain(?:s), Beach Tennis : (\d+)"
-                matches = re.search(regex, club_json['terrainPratiqueLibelle'])
-                if matches:
-                    tennis_count = int(matches.group(1))
-                    beach_count = int(matches.group(2))
-                else:
-                    regex = r"(\d+) terrain"
-                    matches = re.search(regex, club_json['terrainPratiqueLibelle'])
-                    if matches:
-                        tennis_count = int(matches.group(1))
-        club = Club(
-            id=club_json['clubId'],
-            name=club_json['nom'],
-            city=club_json['ville'],
-            tennis_courts=tennis_count,
-            padel_courts=padel_count,
-            beach_courts=beach_count,
-            latitude=club_json['lat'],
-            longitude=club_json['lng']
-        )
-        return club
-
 
 class License(db.Model):
     __tablename__ = 'license'
@@ -178,7 +139,7 @@ class Player(db.Model):
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the foreign key relationship with Club
-    clubId = db.Column(db.String(10), db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)  # Add this line
+    clubId = db.Column(db.Integer, db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)  # Add this line
     club = relationship('Club', back_populates='players')  # Add this line
 
     # Define the relationship with License

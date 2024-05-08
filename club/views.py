@@ -233,6 +233,12 @@ def update_team(id):
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {club}!', 'error')
         return render_template('index.html')
 
+@club_management_bp.route('/infos_club/<int:id>', methods=['GET', 'POST'])
+def infos_club(id):
+    if request.method == 'GET':
+        club = Club.query.get_or_404(id)
+        return render_template('infos_club.html', club=club)
+
 
 # Définissez la route pour afficher les détails de l'équipe
 @club_management_bp.route('/show_team/<int:id>')
@@ -346,3 +352,4 @@ def delete_team(id):
         current_app.logger.debug(f'Equipe {team} supprimé!')
         flash(f"L'équipe \"{team.name}\" ne fait plus partie du club {team.club}!")
         return redirect(url_for('club.show_teams'))
+
