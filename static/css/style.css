@@ -219,3 +219,19 @@ th {
 #menu label {
     margin: 0;
 }
+
+/* Media query pour les smartphones */
+@media only screen and (max-width: 600px) {
+    #menu label {
+        font-size: 12px; /* Réduire la taille de la police */
+        padding: 5px; /* Réduire la taille de l'espacement autour du bouton radio */
+    }
+}
+
+/* Ajoutez ceci à votre section de styles CSS */
+
+@media only screen and (max-width: 600px) {
+    #map {
+        width: 85%; /* Réduire la largeur de la carte */
+    }
+}
