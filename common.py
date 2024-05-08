@@ -15,6 +15,8 @@ from sqlalchemy import desc, asc, and_
 from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, MatchSheet
 from tools.import_csv import extract
 
+from mapbox import Directions
+from geojson import Feature, Point
 
 class CatType(Enum):
     Youth = 0
@@ -489,4 +491,43 @@ def calculer_classement(pool):
 
     return classement
 
+#
+# Some basic tutorial on using Directions Mapbox API :-)
+#   - https://github.com/mapbox/mapbox-sdk-py/blob/master/docs/directions.md#directions
+# et une doc plus générale pour décrire les différentes fonctionalités exploitables par l'API:
+#   - https://docs.mapbox.com/help/how-mapbox-works/directions/
+#
+# Paramètres d'entrée: Location Object Source, Location Object Destination, Mapbox API key
+#         N.B. en fait on a besoin seulement des attributs (Longitude, Latitude).
+#              On utilise ici le module geojson pour créer nos objets de type Feature GEOJSON et accessoirement pour extraire plus aisément (ou pas) les données en sortie :-D
+#               Consultable ici: https://pypi.org/project/geojson/
+# Paramètres de sortie: JSON Object {'distance': 9176.91, 'duration': 1263.044} ou code d'erreur HTTP si pas d'objet JSON retourné par l'API Mapbox
+#
+def get_Directions_Mapbox(visitor: Club, home: Club, api_key):
+    service = Directions(access_token=api_key)
+    origin = Feature(geometry=Point((visitor.longitude, visitor.latitude)))
+    destination = Feature(geometry=Point((home.longitude, home.latitude)))
+    #my_profile = 'mapbox/driving'
+    my_profile = 'mapbox/driving-traffic'
+    response = service.directions([origin, destination], profile=my_profile, geometries=None, annotations=['duration', 'distance'])
+    driving_routes = response.geojson()
+    #print("JSON Object: ", driving_routes, file=sys.stderr)
+    #new_json = driving_routes['features'][0]['properties']
+    #pprint.pprint(new_json)
+    if response.status_code == 200:
+        return driving_routes['features'][0]['properties']
+    else:
+        return response.status_code
 
+def calculate_distance_and_duration(visitor: Club, home: Club, api_key):
+    directions_json = get_Directions_Mapbox(visitor, home, api_key)
+    if directions_json['distance'] > 0:
+        return (directions_json['distance'], directions_json['duration'])
+    else:
+        return (0, 0)
+
+    # geojson_object_prop = direction_api.get_Directions_Mapbox(from_location, to_location, MAPBOX_API_KEY)
+    # courses_object_list[i].distance = geojson_object_prop['distance']
+    # courses_object_list[i].duration = geojson_object_prop['duration']
+    # elapsed_hours = course_object.duration / 3600
+    # elapsed_minutes = (elapsed_hours - int(elapsed_hours)) * 60

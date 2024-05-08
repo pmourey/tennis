@@ -36,6 +36,16 @@
             <td><strong>Capitaine</strong></td>
             <td>{{ team.captainName }}</td>
         </tr>
+        {% if visitor_club %}
+        <tr>
+            <td><strong>Distance</strong></td>
+            <td>{{ distance }} kms</td>
+        </tr>
+        <tr>
+            <td><strong>Temps de trajet</strong></td>
+            <td>{{ duration[0] }} h {{ duration[1] }} min</td>
+        </tr>
+        {% endif %}
         <tr>
             <td colspan="2"><a href="{{ url_for('club.infos_club', id=team.club.id) }}">Infos club</a></td>
         </tr>

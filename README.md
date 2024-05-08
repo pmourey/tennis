@@ -20,7 +20,8 @@ https://godot70.pythonanywhere.com
   - [x] Suppression club
   - [x] Changement club
 
-https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys
-https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html#mapper-sql-expressions
-https://realpython.com/flask-blueprint/
-https://github.com/ryuichi-sumida/algorithm_for_round_robin_tournament
+* https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys
+* https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html#mapper-sql-expressions
+* https://realpython.com/flask-blueprint/
+* https://github.com/ryuichi-sumida/algorithm_for_round_robin_tournament
+* https://docs.mapbox.com/mapbox-gl-js/example/setstyle/

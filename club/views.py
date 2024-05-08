@@ -5,7 +5,8 @@ import os
 from typing import List
 
 import itsdangerous
-from flask import make_response
+import requests
+from flask import make_response, jsonify
 from flask import current_app
 
 from functools import wraps
@@ -18,7 +19,7 @@ from flask import render_template, redirect, url_for, flash
 from TennisModel import *
 from club import club_management_bp
 
-from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players, keys_with_same_value
+from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players, keys_with_same_value, calculate_distance_and_duration
 
 
 def check_club_cookie(func):
@@ -246,7 +247,24 @@ def show_team(id: int):
     # Récupérez l'objet de l'équipe à partir de la base de données
     team = Team.query.get(id)
     sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
-    return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players)
+    # Info trajet
+    signed_club_id = request.cookies.get('club_id')
+    try:
+        club_id = current_app.serializer.loads(signed_club_id)
+        visitor_club = Club.query.get(club_id)
+    except itsdangerous.exc.BadSignature:
+        visitor_club = None
+    current_app.logger.debug(f"visitor_club = {visitor_club} - home_club = {team.club}")
+    if visitor_club:
+        distance, duration = calculate_distance_and_duration(visitor=visitor_club, home=team.club, api_key=current_app.config['MAPBOX_API_KEY'])
+        current_app.logger.debug(f"distance = {distance} - duration = {duration}")
+        distance = round(distance / 1000, 1)
+        elapsed_hours = duration / 3600
+        elapsed_minutes = (elapsed_hours - int(elapsed_hours)) * 60
+    else:
+        distance = elapsed_hours = elapsed_minutes = 0
+    return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players,
+                           visitor_club=visitor_club, distance=distance, duration=(int(elapsed_hours), round(elapsed_minutes)))
 
 
 @club_management_bp.route('/new_player/', methods=['GET', 'POST'])
@@ -353,3 +371,16 @@ def delete_team(id):
         flash(f"L'équipe \"{team.name}\" ne fait plus partie du club {team.club}!")
         return redirect(url_for('club.show_teams'))
 
+# @club_management_bp.route('/map_data')
+# def map_data():
+#     # Utilisez la clé API Mapbox stockée côté serveur
+#     api_key = current_app.config['MAPBOX_API_KEY']
+#
+#     # Faites une requête à l'API Mapbox pour obtenir les données de carte
+#     # Exemple de requête fictive
+#     response = requests.get(f'https://api.mapbox.com/some_endpoint?access_token={api_key}')
+#
+#     # Traitez la réponse de l'API Mapbox comme requis
+#     map_data = response.json()
+#
+#     return jsonify(map_data)
