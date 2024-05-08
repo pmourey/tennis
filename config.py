@@ -26,6 +26,7 @@ class Config:
              ]
     PARIS = timezone('Europe/Paris')
     BASE_PATH = os.path.dirname(__file__)
+    MAPBOX_API_KEY = 'REMOVED_MAPBOX_KEY'
 
 
 class DevelopmentConfig(Config):
