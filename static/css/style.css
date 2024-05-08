@@ -197,3 +197,25 @@ th {
 .tooltip:hover .tooltiptext {
     visibility: visible;
 }
+
+#map {
+    position: relative;
+    top: 0;
+    bottom: 0;
+    height: 400px;
+    width: 50%;
+    }
+
+
+#menu {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#menu label {
+    margin: 0;
+}

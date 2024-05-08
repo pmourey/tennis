@@ -36,6 +36,9 @@
             <td><strong>Capitaine</strong></td>
             <td>{{ team.captainName }}</td>
         </tr>
+        <tr>
+            <td colspan="2"><a href="{{ url_for('club.infos_club', id=team.club.id) }}">Infos club</a></td>
+        </tr>
     </table>
 </main>
 {% endblock main %}

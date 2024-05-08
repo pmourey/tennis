@@ -9,20 +9,20 @@ class Config:
     # TESTING = True
     SECRET_KEY = 'fifa 2022'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///tennis.sqlite3'
-    CLUBS = [{'name': 'US CAGNES TENNIS', 'city': 'Cagnes-sur-Mer', 'id': '62 06 0107', 'csvfile': 'us_cagnes_tennis'},
-             {'name': 'TC MOUGINS', 'city': 'Mougins', 'id': '62 06 0108', 'csvfile': 'tc_mougins'},
-             {'name': 'ASLM TENNIS CANNES', 'city': 'Cannes', 'id': '62 06 0109', 'csvfile': 'aslm_tennis_cannes'},
-             {'name': 'NICE LAWN TENNIS CLUB', 'city': 'Nice', 'id': '62 06 0110', 'csvfile': 'nice_lawn_tennis_club'},
-             {'name': 'RIORGEOIS (TENNIS CLUB DE)', 'city': 'Roanne', 'id': '62 06 0111', 'csvfile': 'tc_riorgeois'},
-             {'name': 'LA RAQUETTE ROQUEFORTOISE', 'city': 'Roquefort-les-Pins', 'id': '62 06 0112', 'csvfile': 'la_raquette_roquefortoise'},
-             {'name': 'TC ANTIBES JUAN LES PINS', 'city': 'Antibes', 'id': '62 06 0113', 'csvfile': 'tc_antibes'},
-             {'name': 'MONTPON', 'city': 'Montpon-Ménestérol', 'id': '62 06 0114', 'csvfile': 'montpon'},
-             {'name': 'TC MARSEILLE', 'city': 'Marseille', 'id': '62 06 0115', 'csvfile': 'tc_marseille'},
-             {'name': 'TC BRIANCON', 'city': 'Briançon', 'id': '62 06 0116', 'csvfile': 'tc_briancon'},
-             {'name': 'TC HYEROIS', 'city': 'Hyères', 'id': '62 06 0117', 'csvfile': 'tc_hyerois'},
-             {'name': 'TENNIS C.B PLAN DE CUQUES', 'city': 'Plan de Cuques', 'id': '62 06 0118', 'csvfile': 'tc_cb_plan_de_cuques'},
-             {'name': 'TC CANNES MONFLEURY', 'city': 'Cannes', 'id': '62 06 0119', 'csvfile': 'tc_cannes_montfleury'},
-             {'name': 'T.C SAINT-JULIEN', 'city': 'Saint-Julien', 'id': '62 06 0120', 'csvfile': 'tc_saint_julien'}
+    CLUBS = [{'id': '62060107', 'name': 'US CAGNES TENNIS', 'city': 'Cagnes-sur-Mer', 'csvfile': 'us_cagnes_tennis'},
+             {'id': '62060207', 'name': 'TC MOUGINS', 'city': 'Mougins', 'csvfile': 'tc_mougins'},
+             {'id': '62060137', 'name': 'ASLM TENNIS CANNES', 'city': 'Cannes', 'csvfile': 'aslm_tennis_cannes'},
+             {'id': '62060001', 'name': 'NICE LAWN TENNIS CLUB', 'city': 'Nice', 'csvfile': 'nice_lawn_tennis_club'},
+             {'id': '50420420', 'name': 'RIORGEOIS (TENNIS CLUB DE)', 'city': 'Roanne',  'csvfile': 'tc_riorgeois'},
+             {'id': '62060418', 'name': 'LA RAQUETTE ROQUEFORTOISE', 'city': 'Roquefort-les-Pins', 'csvfile': 'la_raquette_roquefortoise'},
+             {'id': '62060016', 'name': 'TC ANTIBES JUAN LES PINS', 'city': 'Antibes', 'csvfile': 'tc_antibes'},
+             {'id': '59240142', 'name': 'MONTPON', 'city': 'Montpon-Ménestérol', 'csvfile': 'montpon'},
+             {'id': '62130002', 'name': 'TC MARSEILLE', 'city': 'Marseille', 'csvfile': 'tc_marseille'},
+             {'id': '62050086', 'name': 'TC BRIANCON', 'city': 'Briançon', 'csvfile': 'tc_briancon'},
+             {'id': '62830031', 'name': 'TC HYEROIS', 'city': 'Hyères', 'csvfile': 'tc_hyerois'},
+             {'id': '62130193', 'name': 'TENNIS C.B PLAN DE CUQUES', 'city': 'Plan de Cuques', 'csvfile': 'tc_cb_plan_de_cuques'},
+             {'id': '62060449', 'name': 'TC CANNES MONFLEURY', 'city': 'Cannes', 'csvfile': 'tc_cannes_montfleury'},
+             {'id': '62130226', 'name': 'T.C SAINT-JULIEN', 'city': 'Saint-Julien', 'csvfile': 'tc_saint_julien'}
              ]
     PARIS = timezone('Europe/Paris')
     BASE_PATH = os.path.dirname(__file__)

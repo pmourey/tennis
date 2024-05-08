@@ -1,0 +1,84 @@
+<!-- templates/show_team.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<!--<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>-->
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+
+<main>
+    <table class="pool">
+        <caption class="table-caption">Infos {{ club.name }}</caption>
+        <thead>
+        <tr>
+            <th>Pratique</th>
+            <th>Nombre de courts</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><strong>Tennis</strong></td>
+            <td>{{ club.tennis_courts }}</td>
+        </tr>
+        {% if club.padel_courts %}
+        <tr>
+            <td><strong>Padel</strong></td>
+            <td>{{ club.padel_courts }}</td>
+        </tr>
+        {% endif %}
+        {% if club.beach_courts %}
+        <tr>
+            <td><strong>Beach volley</strong></td>
+            <td>{{ club.beach_courts }}</td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <br>
+    <div id="menu">
+        <input id="satellite-streets-v12" type="radio" name="rtoggle" value="satellite" checked="checked">
+        <!-- See a list of Mapbox-hosted public styles at -->
+        <!-- https://docs.mapbox.com/api/maps/styles/#mapbox-styles -->
+        <label for="satellite-streets-v12">satellite streets</label>
+        <input id="light-v11" type="radio" name="rtoggle" value="light">
+        <label for="light-v11">light</label>
+        <input id="dark-v11" type="radio" name="rtoggle" value="dark">
+        <label for="dark-v11">dark</label>
+        <input id="streets-v12" type="radio" name="rtoggle" value="streets">
+        <label for="streets-v12">streets</label>
+        <input id="outdoors-v12" type="radio" name="rtoggle" value="outdoors">
+        <label for="outdoors-v12">outdoors</label>
+    </div>
+    <div id="map" data-name="{{ club.name }}" data-latitude="{{ club.latitude }}" data-longitude="{{ club.longitude }}"></div>
+
+</main>
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoicG1vdXJleSIsImEiOiJjbHZ4dnJ3bGMwNDBzMmlxeXBnZDJtYzVrIn0.yxrohiV1L6c89UY6PvPHGw';
+
+    var latitude = document.getElementById('map').getAttribute('data-latitude');
+    var longitude = document.getElementById('map').getAttribute('data-longitude');
+    var myLngLat = [parseFloat(longitude), parseFloat(latitude)];
+
+
+    const map = new mapboxgl.Map({
+        container: 'map', // container ID
+        // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+        style: 'mapbox://styles/mapbox/satellite-streets-v12', // style URL
+        center: myLngLat, // starting position [lng, lat]
+        zoom: 16 // starting zoom
+    });
+
+    const layerList = document.getElementById('menu');
+    const inputs = layerList.getElementsByTagName('input');
+
+    for (const input of inputs) {
+        input.onclick = (layer) => {
+            const layerId = layer.target.id;
+            map.setStyle('mapbox://styles/mapbox/' + layerId);
+        };
+    }
+
+
+</script>
+{% endblock main %}

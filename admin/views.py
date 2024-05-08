@@ -4,31 +4,47 @@ from __future__ import annotations
 import os
 from typing import List
 
+import pandas as pd
 from flask import request, render_template, redirect, url_for, flash, make_response, current_app
 
 from TennisModel import *
 from admin import admin_bp
 
 from common import import_all_data, import_players
+from tools.import_csv import extract
+
 
 # Define routes for championship management
 @admin_bp.route('/')
 def index():
     return render_template('admin_index.html')
 
+
 @admin_bp.route('/new_club', methods=['GET', 'POST'])
 def new_club():
     if request.method == 'POST':
         club_id = request.form.get('club_id')
         club_info = [d for d in current_app.config['CLUBS'] if d['id'] == club_id][0]
-        club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
+        # récupération autres infos dans fichier csv du club
+        BASE_PATH = os.path.dirname(__file__)
+        csv_file = os.path.join(BASE_PATH, f'../static/data/clubs.csv')
+        df = pd.read_csv(csv_file)
+        colonnes_a_recuperer = ['name', 'city', 'tennis_courts', 'padel_courts', 'beach_courts', 'latitude', 'longitude']
+        club_tenup = extract(df=df, field_criteria='id', field_value=club_info['id'], columns=colonnes_a_recuperer)
+        current_app.logger.debug(f'club_tenup: {club_tenup}')
+        if club_tenup is None:
+            current_app.logger.debug(f'club_tenup is None - see {club_info}')
+            club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
+        else:
+            club = Club(id=club_info['id'], name=club_tenup['name'], city=club_tenup['city'], tennis_courts=club_tenup['tennis_courts'],
+                        padel_courts=club_tenup['padel_courts'], beach_courts=club_tenup['beach_courts'], latitude=club_tenup['latitude'], longitude=club_tenup['longitude'])
         db.session.add(club)
         db.session.commit()
         current_app.logger.debug(f'nouveau club créé: {club}')
         message = f'Club {club} créé avec succès!\n'
         # Chargement des joueurs du club
         for gender, gender_label in enumerate(['men', 'women']):
-            players_csvfile = f"static/data/{club_info['csvfile']}_{gender_label}.csv"
+            players_csvfile = f"../static/data/players/{club_info['csvfile']}_{gender_label}.csv"
             file_path = os.path.join(current_app.config['BASE_PATH'], players_csvfile)
             current_app.logger.debug(f'players_csvfile: {file_path}')
             if not os.path.exists(file_path):
@@ -43,8 +59,8 @@ def new_club():
         flash(message, 'warning')
         return render_template('admin_index.html')
     clubs = Club.query.all()
-    existing_clubs = [club.name for club in clubs]
-    new_clubs: List[dict] = [club_info for club_info in current_app.config['CLUBS'] if club_info['name'] not in existing_clubs]
+    existing_clubs = [club.id for club in clubs]
+    new_clubs: List[dict] = [club_info for club_info in current_app.config['CLUBS'] if club_info['id'] not in existing_clubs]
     return render_template('new_club.html', clubs=new_clubs)
 
 @admin_bp.route('/select_club', methods=['GET', 'POST'])
