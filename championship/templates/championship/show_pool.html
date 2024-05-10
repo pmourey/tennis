@@ -1,4 +1,4 @@
-<!-- templates/players.html -->
+<!-- templates/show_pool.html -->
 
 {% extends 'base.html' %}
 {% include './partials/_menu.html' %}
@@ -36,7 +36,8 @@
                             {% for match in matches %}
 <!--                                Match {{match.matchdayId}} - Matchday {{matchday.id}}<br>-->
                                 {% if match.matchdayId == matchday.id %}
-                                    <li>{{ match.homeTeam.name }} vs {{ match.awayTeam.name }} : {{ match.match_sheet.score }}</li>
+                                    <li>{{ match.homeTeam.name }} vs {{ match.visitorTeam.name }} : {{ match.match_sheet.score }}
+                                        <a href="{{ url_for('championship.show_match', id=match.id) }}">&#x1F3BE;</a></li>
                                 {% endif %}
                             {% endfor %}
                         {% else %}

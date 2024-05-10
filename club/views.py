@@ -256,8 +256,16 @@ def show_team(id: int):
         visitor_club = None
     current_app.logger.debug(f"visitor_club = {visitor_club} - home_club = {team.club}")
     if visitor_club:
-        distance, duration = calculate_distance_and_duration(visitor=visitor_club, home=team.club, api_key=current_app.config['MAPBOX_API_KEY'])
-        current_app.logger.debug(f"distance = {distance} - duration = {duration}")
+        distance_obj = Distance.query.filter_by(from_club_id=visitor_club.id, to_club_id=team.club.id).first()
+        if not distance_obj:
+            distance, duration = calculate_distance_and_duration(visitor=visitor_club, home=team.club, api_key=current_app.config['MAPBOX_API_KEY'])
+            current_app.logger.debug(f"distance = {distance} - duration = {duration}")
+            distance_obj = Distance(from_club_id=visitor_club.id, to_club_id=team.club.id, distance=distance, duration=duration)
+            db.session.add(distance_obj)
+            db.session.commit()
+        else:
+            distance = distance_obj.distance
+            duration = distance_obj.duration
         distance = round(distance / 1000, 1)
         elapsed_hours = duration / 3600
         elapsed_minutes = (elapsed_hours - int(elapsed_hours)) * 60

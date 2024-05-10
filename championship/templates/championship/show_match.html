@@ -1,0 +1,44 @@
+<!-- templates/show_match.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+
+<main>
+    <h1>Feuille de match</h1>
+    <h2>Journée du {{ match.date.strftime("%a. %d %b %Y")}} </h2>
+    <h3>{{ match.pool.championship }} - Poule {{ match.pool.letter }}</h3>
+
+    <h2>Équipe à domicile {{ match.homeTeam.club }} </h2>
+    <ul>
+        {% for player in match.homeTeam.players %}
+            <li>{{ player.name_and_ranking }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Équipe visiteuse {{ match.visitorTeam.club }} </h2>
+    <ul>
+        {% for player in match.visitorTeam.players %}
+            <li>{{ player.name_and_ranking }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Résultat rencontre</h2>
+    <p>Score : {{ match_sheet.score }}</p>
+
+    <h3>Simples</h3>
+    <ul>
+        {% for single in match_sheet.singles %}
+            <li>{{ single.player1.name_and_ranking }} vs {{ single.player2.name_and_ranking }} - Score : {{ single.score }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Doubles</h3>
+    <ul>
+        {% for double in match_sheet.doubles %}
+            <li>{{ double.player1.name_and_ranking }}/{{ double.player2.name_and_ranking }} vs {{ double.player3.name_and_ranking }}/{{ double.player4.name_and_ranking }} - Score : {{ double.score }}</li>
+        {% endfor %}
+    </ul>
+</main>
+{% endblock main %}

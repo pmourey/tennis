@@ -4,19 +4,23 @@ from multiprocessing import Pool
 import os
 import csv
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
-from random import shuffle, choice
+from random import shuffle, choice, random
 from typing import List, Optional
 
 import pandas as pd
 from sqlalchemy import desc, asc, and_
 
-from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, MatchSheet
+from random import random
+from typing import List
+
+from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, MatchSheet, Single, Score, Double
 from tools.import_csv import extract
 
 from mapbox import Directions
 from geojson import Feature, Point
+
 
 class CatType(Enum):
     Youth = 0
@@ -43,6 +47,14 @@ class Gender(Enum):
     Female = 1
     Mixte = 2
 
+def count_sundays_between_dates(start_date, end_date):
+    current_date = start_date
+    count = 0
+    while current_date <= end_date:
+        if current_date.weekday() == 6:  # Dimanche a l'indice 6
+            count += 1
+        current_date += timedelta(days=1)
+    return count
 
 def import_all_data(app, db) -> str:
     # Si pas de club en base de données, on les créé!
@@ -282,6 +294,7 @@ def remove_text_between_parentheses(text):
 
 
 def populate_championship(app, db, championship: Championship):
+    # Constitution des poules et journées de championnat
     teams = []
     try:
         for club in Club.query.all():
@@ -304,8 +317,8 @@ def populate_championship(app, db, championship: Championship):
         selected_teams = teams[:num_pools * num_teams_per_pool]
         exempted_teams = teams[num_pools * num_teams_per_pool:]
         shuffle(selected_teams)
-        app.logger.debug(f'{championship} - Nombre équipes par poule: {num_teams_per_pool} - Nombre de journées: {M}')
-        app.logger.debug(f'{len(selected_teams)} équipes sélectionnées pour la phase de poules')
+        # app.logger.debug(f'{championship} - Nombre équipes par poule: {num_teams_per_pool} - Nombre de journées: {M}')
+        # app.logger.debug(f'{len(selected_teams)} équipes sélectionnées pour la phase de poules')
         for i in range(0, len(selected_teams), num_teams_per_pool):
             pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
             db.session.add(pool)
@@ -325,6 +338,7 @@ def populate_championship(app, db, championship: Championship):
         db.session.commit()
     pools = Pool.query.filter(Pool.championshipId == championship.id).all()
     app.logger.debug(f'COMMIT DONE = {len(pools)} POOLS for {championship}')
+    # Génération des feuilles de matches
     for pool in championship.pools:
         if pool.letter is None:
             continue
@@ -405,12 +419,211 @@ def paires_avec_somme_N(liste, N):
     return paires
 
 
+def simulate_score_old(home_team, visitor_team, pool):
+    num_matches = pool.championship.num_matches
+    liste_entiers = list(range(num_matches + 1))
+    scores = paires_avec_somme_N(liste_entiers, num_matches)
+    home_score, visitor_score = home_team.weight(pool.championship), visitor_team.visitorTeam.weight(pool.championship)
+    winnerId = home_team.id if home_score > visitor_score else visitor_team.id if visitor_score > home_score else None
+    filtered_scores = list(filter(lambda x: x[0] != x[1], scores)) if winnerId else scores
+    score = choice(filtered_scores)
+    sorted_score = tuple(sorted(score, reverse=True)) if winnerId == home_team.id else tuple(sorted(score))
+    return f'{sorted_score[0]}-{sorted_score[1]}'
+
+
+def simulate_set(player1: Player, player2: Player):
+    sets = [(6, i) for i in range(4)]
+    sets += [(7, 6), (6, 7)]
+    sets += [(i, 6) for i in range(4)]
+
+
+### New simulation
+
+def calculate_strength(rank_difference: int) -> float:
+    # Convertir la différence de classement en un facteur de force
+    # Plus la différence est grande, plus le joueur avec le classement le plus bas est désavantagé
+    return 1 / (1 + 10 ** (rank_difference / 400))
+
+
+def game(player1_strength: float, player2_strength: float) -> str:
+    player1_score = 0
+    player2_score = 0
+
+    while max(player1_score, player2_score) < 4 or abs(player1_score - player2_score) < 2:
+        player1_point_probability = player1_strength / (player1_strength + player2_strength)
+        player2_point_probability = 1 - player1_point_probability
+
+        if random() < player1_point_probability:
+            player1_score += 1
+        else:
+            player2_score += 1
+
+    return 'player1' if player1_score > player2_score else 'player2'
+
+
+def tie_break(player1_strength: float, player2_strength: float, max_points: int):
+    player1_score = 0
+    player2_score = 0
+
+    while max(player1_score, player2_score) < max_points or abs(player1_score - player2_score) < 2:
+        player1_point_probability = player1_strength / (player1_strength + player2_strength)
+        player2_point_probability = 1 - player1_point_probability
+
+        if random() < player1_point_probability:
+            player1_score += 1
+        else:
+            player2_score += 1
+
+    return player1_score, player2_score
+
+
+def calculate_set_probability(player1_strength: float, player2_strength: float, is_third_set: bool = False):
+    # Si c'est le 3ème set (super tie-break), jouer un seul jeu
+    if is_third_set:
+        player1_score, player2_score = tie_break(player1_strength, player2_strength, 10)
+        is_tiebreak = True
+    else:
+        # Initialiser les scores des joueurs
+        player1_score = 0
+        player2_score = 0
+        is_tiebreak = False
+
+        # Parcourir les jeux jusqu'à ce qu'un joueur atteigne 6 jeux avec un écart de 2 jeux OU que les deux joueurs soient à égalité à 6 jeux
+        while (max(player1_score, player2_score) < 6 or abs(player1_score - player2_score) < 2) and not (player1_score == player2_score == 6):
+            winning_player = game(player1_strength, player2_strength)
+            if winning_player == 'player1':
+                player1_score += 1
+            else:
+                player2_score += 1
+
+        # Si aucun joueur n'a un écart de 2 jeux après avoir atteint 6 jeux, jouer un jeu décisif
+        if player1_score == player2_score == 6:
+            player1_score, player2_score = tie_break(player1_strength, player2_strength, 7)
+            is_tiebreak = True
+
+    return player1_score, player2_score, is_tiebreak
+
+
+def play_game(app, team1: List[Player], team2: List[Player]):
+    """
+        Simulate a game between two players.
+    :param app:
+    :param team1:
+    :param team2:
+    :return: winning_team, final_score
+    """
+    player1_rank = sum([player.refined_elo for player in team1])
+    player2_rank = sum([player.refined_elo for player in team2])
+    rank_difference = abs(player1_rank - player2_rank)  # Différence de classement ELO entre les joueurs
+    # app.logger.debug(f"Classement ELO : {player1_rank} - {player2_rank}")
+    strength_factor = calculate_strength(rank_difference)
+    # app.logger.debug(f"Facteur de force : {strength_factor}")
+    if player1_rank < player2_rank:
+        player1_strength, player2_strength = strength_factor, 1 - strength_factor
+    else:
+        player1_strength, player2_strength = 1 - strength_factor, strength_factor
+    winning_team = None
+    player1_sets = []
+    player2_sets = []
+    final_score = []
+    while not winning_team:
+        is_third_set: bool = True if len(player1_sets) == len(player2_sets) == 1 else False
+        result = calculate_set_probability(player1_strength, player2_strength, is_third_set)
+        # app.logger.debug(f"Score set : {result} - is_third_set: {is_third_set}")
+        player1_set_score, player2_set_score, is_tiebreak = result
+        if player1_set_score > player2_set_score:
+            player1_sets += [(player1_set_score, player2_set_score, is_tiebreak)]
+        else:
+            player2_sets += [(player1_set_score, player2_set_score, is_tiebreak)]
+        final_score += [(player1_set_score, player2_set_score, is_tiebreak)]
+        winning_team = team1 if len(player1_sets) == 2 else team2 if len(player2_sets) == 2 else None
+    return winning_team, final_score
+
+
+
+def simulate_score(app, db, home_team, visitor_team, match_sheet):
+    """
+        Simulate the score of a match
+    :param app:
+    :param db:
+    :param home_team:
+    :param visitor_team:
+    :param match_sheet:
+    :return:
+    """
+    app.logger.debug(f'Simulating score for {home_team} vs {visitor_team} - match sheet: {match_sheet}')
+    pool = home_team.pool
+    home_score = visitor_score = 0
+    home_singles_players = []
+    visitor_singles_players = []
+    for i in range(pool.championship.singlesCount):
+        player1, player2 = home_team.players[i], visitor_team.players[i]
+        result = play_game(app, [player1], [player2])
+        # app.logger.debug(f'result play_game single {i + 1}: {result}')
+        winning_team = result[0]
+        final_score = result[1]
+        # app.logger.debug(f'final_score: {final_score}')
+        first_set = final_score[0]
+        second_set = final_score[1]
+        third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
+        app.logger.debug(f'{len(final_score)} sets -> first_set: {first_set}, second_set: {second_set}, third_set: {third_set}')
+        firstSetP1, firstSetP2, firstTieBreak = first_set
+        secondSetP1, secondSetP2, secondTieBreak = second_set
+        superTieBreakP1, superTieBreakP2, is_super_tiebreak = third_set
+        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak, secondSetP1=secondSetP1, secondSetP2=secondSetP2,
+                      secondTieBreak=secondTieBreak, superTieBreakP1=superTieBreakP1, superTieBreakP2=superTieBreakP2)
+        db.session.add(score)
+        db.session.commit()
+        if winning_team == [player1]:
+            home_score += 1
+        else:
+            visitor_score += 1
+        single = Single(player1Id=player1.id, player2Id=player2.id, scoreId=score.id, matchSheetId=match_sheet.id)
+        db.session.add(single)
+        db.session.commit()
+        match_sheet.singles += [single]
+        home_singles_players += [player1]
+        visitor_singles_players += [player2]
+    home_doublers_candidates = sorted(home_team.players, key=lambda player: player.refined_elo)
+    visitor_doublers_candidates = sorted(visitor_team.players, key=lambda player: player.refined_elo)
+    for i in range(pool.championship.doublesCount):
+        home_candidates = [player for player in home_team.players if player not in home_singles_players]
+        home_candidates.sort(key=lambda player: player.refined_elo, reverse=True)
+        home_doublers, visitor_doublers = home_doublers_candidates[2*i:2*i+2], visitor_doublers_candidates[2*i:2*i+2]
+        result = play_game(app, home_doublers, visitor_doublers)
+        # app.logger.debug(f'result play_game double: {result}')
+        winning_team = result[0]
+        # app.logger.debug(f'winning_team double: {winning_team}')
+        final_score = result[1]
+        # app.logger.debug(f'final_score double: {final_score}')
+        first_set = final_score[0]
+        second_set = final_score[1]
+        third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
+        firstSetP1, firstSetP2, firstTieBreak = first_set
+        secondSetP1, secondSetP2, secondTieBreak = second_set
+        superTieBreakP1, superTieBreakP2, is_super_tiebreak = third_set
+        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak, secondSetP1=secondSetP1, secondSetP2=secondSetP2,
+                      secondTieBreak=secondTieBreak, superTieBreakP1=superTieBreakP1, superTieBreakP2=superTieBreakP2)
+        app.logger.debug(f'Score = {score}')
+        db.session.add(score)
+        db.session.commit()
+        if winning_team == home_doublers:
+            home_score += 1
+        else:
+            visitor_score += 1
+        player1, player2 = home_doublers
+        player3, player4 = visitor_doublers
+        double = Double(player1Id=player1.id, player2Id=player2.id, player3Id=player3.id, player4Id=player4.id, scoreId=score.id, matchSheetId=match_sheet.id)
+        db.session.add(double)
+        match_sheet.doubles += [double]
+    db.session.commit()
+    match_sheet.homeScore, match_sheet.visitorScore = home_score, visitor_score
+    db.session.add(match_sheet)
+    db.session.commit()
+
+
 def play(app, db, pool: Pool):
     try:
-        num_matches = pool.championship.num_matches
-        liste_entiers = list(range(num_matches + 1))
-        scores = paires_avec_somme_N(liste_entiers, num_matches)
-        app.logger.debug(f'SCORES = {scores}')
         teams = {i + 1: team for i, team in enumerate(pool.teams)}
         app.logger.debug(f'TEAMS = {teams}')
         n = len(teams)
@@ -424,7 +637,7 @@ def play(app, db, pool: Pool):
             matchday = matchdays[i]
             matches = matchs_data[i * n // 2: (i + 1) * n // 2]
             # app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
-            matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, awayTeamId=teams[k].id, date=matchday.date) for j, k in matches]
+            matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, visitorTeamId=teams[k].id, date=matchday.date) for j, k in matches]
             db.session.add_all(matches)
             # db.session.commit()
             # matchday.matches = matches
@@ -436,19 +649,22 @@ def play(app, db, pool: Pool):
             matchday = matchdays[i]
             # app.logger.debug(f'PROUT MATCHDAY {i + 1} = {matchday.matches}')
             for match in matchday.matches:
-                home_score, visitor_score = match.homeTeam.weight(pool.championship), match.awayTeam.weight(pool.championship)
-                winnerId = match.homeTeamId if home_score > visitor_score else match.awayTeamId if visitor_score > home_score else None
-                filtered_scores = list(filter(lambda x: x[0] != x[1], scores)) if winnerId else scores
-                score = choice(filtered_scores)
-                sorted_score = tuple(sorted(score, reverse=True)) if winnerId == match.homeTeamId else tuple(sorted(score))
-                formatted_score = f'{sorted_score[0]}-{sorted_score[1]}'
-                match_sheet = MatchSheet(matchId=match.id, score=formatted_score, winnerId=winnerId)
+                # score = simulate_score(home_team=match.homeTeam, visitor_team=match.awayTeam, championship=pool.championship)
+                # Select Players for both teams
+                match_sheet = MatchSheet(matchId=match.id)
+                num_players = pool.championship.singlesCount + 2 * pool.championship.doublesCount
+                match_sheet.homeTeam = sorted(match.homeTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
+                match_sheet.homeTeam.sort(key=lambda player: player.refined_elo, reverse=True)
+                match_sheet.visitorTeam = sorted(match.visitorTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
+                match_sheet.visitorTeam.sort(key=lambda player: player.current_elo, reverse=True)
                 db.session.add(match_sheet)
                 db.session.commit()
+                simulate_score(app=app, db=db, home_team=match.homeTeam, visitor_team=match.visitorTeam, match_sheet=match_sheet)
                 match_sheet = MatchSheet.query.filter_by(matchId=match.id).first()
-                # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match_sheet.score} - {match.awayTeam}')
+                app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match_sheet.score} - {match.visitorTeam}')
     except Exception as e:
-        app.logger.debug(f"Erreur dans la fonction 'play'!")
+        app.logger.debug(f"Erreur dans la fonction 'play'!\n{e}")
+
 
 def extract_courts(club_json):
     # Expression régulière pour extraire le nombre de terrains de tennis, padel et beach
@@ -462,6 +678,7 @@ def extract_courts(club_json):
         return [tennis_count, padel_count, beach_count]
     return [0] * 3
 
+
 def calculer_classement(pool):
     classement = {}  # Dictionnaire pour stocker le nombre de points de chaque équipe
 
@@ -469,27 +686,28 @@ def calculer_classement(pool):
     for match in pool.matches:
         if match.match_sheet is not None:  # Vérifier si la feuille de match existe
             home_team = match.homeTeam
-            away_team = match.awayTeam
-            home_score, away_score = map(int, match.match_sheet.score.split('-'))
+            visitor_team = match.visitorTeam
+            home_score, visitor_score = match.match_sheet.homeScore, match.match_sheet.visitorScore
 
             # Déterminer le résultat du match
-            if home_score > away_score:
+            if home_score > visitor_score:
                 result_home_team = 'win'
-                result_away_team = 'loss'
-            elif home_score < away_score:
+                result_visitor_team = 'loss'
+            elif home_score < visitor_score:
                 result_home_team = 'loss'
-                result_away_team = 'win'
+                result_visitor_team = 'win'
             else:
-                result_home_team = result_away_team = 'draw'
+                result_home_team = result_visitor_team = 'draw'
 
             # Mettre à jour le nombre de points des équipes
             classement[home_team.id] = classement.get(home_team.id, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_home_team]
-            classement[away_team.id] = classement.get(away_team.id, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_away_team]
+            classement[visitor_team.id] = classement.get(visitor_team.id, 0) + {'win': 3, 'draw': 2, 'loss': 1}[result_visitor_team]
 
     # Trier les équipes en fonction de leur nombre de points (en ordre décroissant)
     classement = sorted(classement.items(), key=lambda x: x[1], reverse=True)
 
     return classement
+
 
 #
 # Some basic tutorial on using Directions Mapbox API :-)
@@ -507,17 +725,18 @@ def get_Directions_Mapbox(visitor: Club, home: Club, api_key):
     service = Directions(access_token=api_key)
     origin = Feature(geometry=Point((visitor.longitude, visitor.latitude)))
     destination = Feature(geometry=Point((home.longitude, home.latitude)))
-    #my_profile = 'mapbox/driving'
+    # my_profile = 'mapbox/driving'
     my_profile = 'mapbox/driving-traffic'
     response = service.directions([origin, destination], profile=my_profile, geometries=None, annotations=['duration', 'distance'])
     driving_routes = response.geojson()
-    #print("JSON Object: ", driving_routes, file=sys.stderr)
-    #new_json = driving_routes['features'][0]['properties']
-    #pprint.pprint(new_json)
+    # print("JSON Object: ", driving_routes, file=sys.stderr)
+    # new_json = driving_routes['features'][0]['properties']
+    # pprint.pprint(new_json)
     if response.status_code == 200:
         return driving_routes['features'][0]['properties']
     else:
         return response.status_code
+
 
 def calculate_distance_and_duration(visitor: Club, home: Club, api_key):
     directions_json = get_Directions_Mapbox(visitor, home, api_key)
@@ -525,9 +744,3 @@ def calculate_distance_and_duration(visitor: Club, home: Club, api_key):
         return (directions_json['distance'], directions_json['duration'])
     else:
         return (0, 0)
-
-    # geojson_object_prop = direction_api.get_Directions_Mapbox(from_location, to_location, MAPBOX_API_KEY)
-    # courses_object_list[i].distance = geojson_object_prop['distance']
-    # courses_object_list[i].duration = geojson_object_prop['duration']
-    # elapsed_hours = course_object.duration / 3600
-    # elapsed_minutes = (elapsed_hours - int(elapsed_hours)) * 60

@@ -55,6 +55,7 @@ def welcome():
 def create_tables():
     db.create_all()
 
+
 # app.run()
 # toolbar.init_app(app)
 # app.run(debug=True, use_debugger=True, use_reloader=False)

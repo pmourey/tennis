@@ -25,3 +25,5 @@ https://godot70.pythonanywhere.com
 * https://realpython.com/flask-blueprint/
 * https://github.com/ryuichi-sumida/algorithm_for_round_robin_tournament
 * https://docs.mapbox.com/mapbox-gl-js/example/setstyle/
+* https://account.mapbox.com/
+* https://tennisabstract.com/reports/atp_elo_ratings.html

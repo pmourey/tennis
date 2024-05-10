@@ -8,9 +8,9 @@ from sqlalchemy import desc, and_
 
 from flask import render_template, redirect, url_for, flash
 
-from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match
+from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match, MatchSheet
 from championship import championship_management_bp
-from common import populate_championship, calculer_classement
+from common import populate_championship, calculer_classement, count_sundays_between_dates
 
 
 # Define routes for championship management
@@ -61,6 +61,10 @@ def new_championship():
         singles_count = int(request.form['singles_count'])
         doubles_count = int(request.form['doubles_count'])
         division_id = int(request.form['division'])  # Récupérer l'identifiant de la division sélectionnée
+        if start_date > end_date or count_sundays_between_dates(start_date, end_date) == 0:
+            flash(f'Impossible de créer le championnat pour la durée demandée!', 'error')
+            division = Division.query.get(division_id)
+            return render_template('new_championship.html', selected_division=division)
         championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count, divisionId=division_id)
         current_app.logger.debug(f'championship: {championship}')
         db.session.add(championship)
@@ -82,6 +86,10 @@ def new_championship():
     divisions = AgeCategory.query.all()
     return render_template('new_championship.html', divisions=divisions)
 
+@championship_management_bp.route('/loading')
+def loading():
+    # Renvoyer la page de chargement
+    return render_template('loading.html')
 
 @championship_management_bp.route('/championships')
 def show_championships():
@@ -113,5 +121,12 @@ def show_pool(id: int):
     matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all() # pool.matchdays
     # matches = Match.query.join(Matchday).join(Pool).join(Championship).filter(Championship.id == pool.championship.id, Pool.id == pool.id).all()
     matches = Match.query.filter_by(poolId=pool.id).all() # pool.matches
-    current_app.logger.debug(f'matches: {matches}')
-    return render_template('show_pool.html', classement=resultat_classement, pool=pool, matches=matches, matchdays=matchdays)
+    current_app.logger.debug(f'matches: {pool.matches}')
+    return render_template('show_pool.html', classement=resultat_classement, pool=pool, matches=pool.matches, matchdays=matchdays)
+
+@championship_management_bp.route('/show_match/<int:id>')
+def show_match(id: int):
+    match_sheet = MatchSheet.query.filter_by(matchId=id).first()
+    match = Match.query.get(id)
+    current_app.logger.debug(f'match_sheet: {match_sheet}')
+    return render_template('show_match.html', match_sheet=match_sheet, match=match)
