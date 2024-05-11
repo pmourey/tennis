@@ -22,7 +22,9 @@ class Config:
              {'id': '62830031', 'name': 'TC HYEROIS', 'city': 'Hyères', 'csvfile': 'tc_hyerois'},
              {'id': '62130193', 'name': 'TENNIS C.B PLAN DE CUQUES', 'city': 'Plan de Cuques', 'csvfile': 'tc_cb_plan_de_cuques'},
              {'id': '62060449', 'name': 'TC CANNES MONFLEURY', 'city': 'Cannes', 'csvfile': 'tc_cannes_montfleury'},
-             {'id': '62130226', 'name': 'T.C SAINT-JULIEN', 'city': 'Saint-Julien', 'csvfile': 'tc_saint_julien'}
+             {'id': '62130226', 'name': 'T.C SAINT-JULIEN', 'city': 'Saint-Julien', 'csvfile': 'tc_saint_julien'},
+             {'id': '62060315', 'name': 'TC ACACIAS', 'city': 'CAGNES SUR MER', 'csvfile': 'tc_acacias'},
+             {'id': '62060195', 'name': 'AGASC TC MONTALEIGNE', 'city': 'CAGNES SUR MER', 'csvfile': 'agasc_montaleigne'}
              ]
     PARIS = timezone('Europe/Paris')
     BASE_PATH = os.path.dirname(__file__)

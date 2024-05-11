@@ -44,7 +44,7 @@ def new_club():
         message = f'Club {club} créé avec succès!\n'
         # Chargement des joueurs du club
         for gender, gender_label in enumerate(['men', 'women']):
-            players_csvfile = f"../static/data/players/{club_info['csvfile']}_{gender_label}.csv"
+            players_csvfile = f"static/data/players/{club_info['csvfile']}_{gender_label}.csv"
             file_path = os.path.join(current_app.config['BASE_PATH'], players_csvfile)
             current_app.logger.debug(f'players_csvfile: {file_path}')
             if not os.path.exists(file_path):
