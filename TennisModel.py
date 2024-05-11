@@ -186,6 +186,15 @@ class Player(db.Model):
         return self.license.gender
 
     @property
+    def double_rating(self):
+        zero_ranking = Ranking.query.filter_by(value="0").first()
+        return self.ranking.id - zero_ranking.id
+
+    @property
+    def double_info(self):
+        return f'{self.name} ({self.double_rating})'
+
+    @property
     def ranking_id(self):
         license = License.query.get(self.licenseId)
         ranking = Ranking.query.get(license.rankingId)
@@ -211,9 +220,14 @@ class Player(db.Model):
         return f'{self.license.firstName} {self.license.lastName[0]}.'
 
     @property
-    def name_and_ranking(self):
-        age_and_ranking = f'{self.ranking}' if not self.best_ranking else f'{self.ranking} ({self.age} ans, ex. {self.best_ranking})'
-        return f'{self.name} {age_and_ranking}'
+    def info(self):
+        return f'{self.name} ({self.ranking})'# (elo: {self.current_elo})'
+
+    @property
+    def full_info(self):
+        best_ranking = f', ex. {self.best_ranking}' if self.best_ranking.id < self.ranking.id else ''
+        age_and_ranking = f'({self.age} ans{best_ranking})'
+        return f'{self.name} {self.ranking} {age_and_ranking}'
 
     # Add a property to calculate the age of the player
     @property
@@ -232,13 +246,13 @@ class Player(db.Model):
         return self.birthDate.replace(month=1, day=1).strftime('%Y-%m-%d')
 
     @property
-    def current_elo(ranking: Ranking | BestRanking) -> int:
+    def current_elo(self) -> int:
         """
             Classement ELO du joueur
         """
         elo_weight = 15  # to better fit with ELO rating system (10 is better)
         nc_ranking = Ranking.query.filter_by(value="NC").first()
-        return (nc_ranking.id - ranking.id) * elo_weight  # Classement ELO actuel du joueur
+        return (nc_ranking.id - self.ranking.id) * elo_weight  # Classement ELO actuel du joueur
 
     @property
     def best_elo(self) -> int:
@@ -598,6 +612,15 @@ class Double(db.Model):
     player3 = relationship('Player', foreign_keys=[player3Id])
     player4 = relationship('Player', foreign_keys=[player4Id])
 
+    @property
+    def home_weight(self):
+        player1, player2 = Player.query.get(self.player1Id), Player.query.get(self.player2Id)
+        return player1.weight + player2.weight
+
+    @property
+    def visitor_weight(self):
+        player3, player4 = Player.query.get(self.player3Id), Player.query.get(self.player4Id)
+        return player3.weight + player4.weight
 
 class Score(db.Model):
     __tablename__ = 'score'

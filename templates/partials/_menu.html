@@ -11,13 +11,15 @@
             {% endif %}
             {% if request.endpoint == 'championship.show_pool' %}
                 <td><a href="{{ url_for('championship.show_pools', id=pool.championship.id) }}"><button>Sommaire championnat</button></a></td>
+            {% elif request.endpoint == 'championship.show_match' %}
+                <td><a href="{{ url_for('championship.show_pool', id=match.pool.id) }}"><button>Retour poule</button></a></td>
             {% endif %}
         {% elif request.blueprint == 'club' %}
             {% if request.path != '/club/' %}
                 <td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>
             {% endif %}
             {% if request.endpoint == 'club.show_team' %}
-                <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}"><button>Sommaire poule</button></a></td>
+                <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}"><button>Retour poule</button></a></td>
             {% endif %}
         {% elif request.blueprint == 'admin' and request.path != '/admin/' %}
             <td><a href="{{ url_for('admin.index') }}"><button>Sommaire administration</button></a></td>
