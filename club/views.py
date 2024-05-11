@@ -253,6 +253,10 @@ def show_team(id: int):
         club_id = current_app.serializer.loads(signed_club_id)
         visitor_club = Club.query.get(club_id)
     except itsdangerous.exc.BadSignature:
+        flash(f"Pas de club sélectionné pour les infos d'itinéraire! (aller dans 'Menu principal -> Gestion club')", 'warning')
+        visitor_club = None
+    except Exception as e:
+        flash(f"Erreur inattendue! {e}", 'error')
         visitor_club = None
     current_app.logger.debug(f"visitor_club = {visitor_club} - home_club = {team.club}")
     if visitor_club:
