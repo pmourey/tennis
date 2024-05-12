@@ -39,56 +39,38 @@ if __name__ == '__main__':
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    # mon code postal
-    # location = '06700'
-    # location = 'MONTPON'
-    # location = 'BRIANCON'
-    # location = 'CANNES'
-    # location = 'HYERES'
-    # location = 'MARSEILLE'
-    location = 'RIORGES'
+    filename = 'data/clubs_TOULON_173kms.json'
 
-    pattern = f'find_clubs_{location}.html'  # Modèle de nom des fichiers que vous souhaitez rechercher
-    # Utilisation d'une expression régulière pour extraire les arguments
-    regexp = r"jQuery.extend\(([^,]+),\s*([^)]+)\)"
-    # regexp = r"jQuery.extend\(([^)]+),\s*([^)]+)\)"
-
-    # Parcours de tous les fichiers correspondant au motif dans le répertoire
-    for filename in glob.glob(os.path.join(f"{directory}/data", pattern)):
-        with open(filename, 'r') as file:
-            for line in file:
-                match = re.match(regexp, line)
-                if match:
-                    json_string = match.group(2)
-                    # json_string = remove_special_characters(json_string)
-                    json_string = json_string.replace('\\n', '').replace('\\u0027', "'")
-                    # json_string = json_string.replace('(', '').replace(')', '')
-                    # pattern = r',"tagcommander_click":"\s+tc_events_19\(this,\'clic\',{.*?}\)"'
-                    # cleaned_string = re.sub(pattern, '', cleaned_string)
-                    json_string = re.sub(r'}$', '})"}}', json_string)
-                    print(json_string)
-                    try:
-                        data = json.loads(json_string)
-                        clubs = data['fft_recherche_club']['resultat']
-                        print(f'{len(clubs)} clubs trouvés à 30km de {location}!')
-                        for club_json in clubs:
-                            club = Club.from_json(club_json)
-                            session.add(club)
-                            session.commit()
-                            print(club.info)
-                        # for club in clubs:
-                        #     print(club['clubId'], club['nom'], club['ville'], club['lat'], club['lng'], club['terrainPratiqueLibelle'])
-                    except json.JSONDecodeError as e:
-                        print(f"Erreur de chargement du fichier {filename}", e)
+    with open(filename, 'r') as file:
+        try:
+            json_data = json.load(file)
+            clubs = json_data['resultat']
+            clubs_count = int(json_data['total'])
+            if len(clubs) < clubs_count:
+                print(f'Il y a {clubs_count - len(clubs)} clubs qui ne sont pas dans le fichier {filename}')
+            else:
+                print(f'{clubs_count} clubs trouvés!')
+            try:
+                for club_json in clubs:
+                    existing_club = session.query(Club).filter_by(id=club_json['clubId']).first()
+                    if existing_club:
                         continue
-                    except IntegrityError as e:
-                        # Rollback the session to prevent partial insertion
-                        session.rollback()
-                        print(f"Error inserting club: {club}. IntegrityError: {e}")
-                        # You can log the error, skip the record, or handle it as needed
-                    except Exception as e:
-                        session.rollback()
-                        print(f"Error inserting club: {club}. Error: {e}")
-                        # Handle other types of exceptions here
+                    club = Club.from_json(club_json)
+                    session.add(club)
+                    session.commit()
+                    print(club.info)
+                    # for club in clubs:
+                    #     print(club['clubId'], club['nom'], club['ville'], club['lat'], club['lng'], club['terrainPratiqueLibelle'])
+            except IntegrityError as e:
+                # Rollback the session to prevent partial insertion
+                session.rollback()
+                print(f"Error inserting club: {club}. IntegrityError: {e}")
+                # You can log the error, skip the record, or handle it as needed
+            except Exception as e:
+                session.rollback()
+                print(f"Error inserting club: {club}. Error: {e}")
+                # Handle other types of exceptions here
+        except json.JSONDecodeError as e:
+            print(f"Erreur de chargement du fichier {filename}", e)
 
     session.close()
