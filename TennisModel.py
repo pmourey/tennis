@@ -201,6 +201,12 @@ class Player(db.Model):
         return ranking.id
 
     @property
+    def best_ranking_id(self):
+        license = License.query.get(self.licenseId)
+        ranking = BestRanking.query.get(license.rankingId)
+        return ranking.id
+
+    @property
     def ranking(self):
         license = License.query.get(self.licenseId)
         return Ranking.query.get(license.rankingId)
@@ -236,8 +242,6 @@ class Player(db.Model):
         return today.year - self.birthDate.year - ((today.month, today.day) < (self.birthDate.month, self.birthDate.day))
 
     def has_valid_age(self, age_category) -> bool:
-        # logger = logging.getLogger(__name__)
-        # logger.info(f'prout - age_category: {age_category}')
         return age_category.minAge <= self.age <= age_category.maxAge
 
     # Add a property to format the birth date (based on license info)
@@ -252,7 +256,12 @@ class Player(db.Model):
         """
         elo_weight = 15  # to better fit with ELO rating system (10 is better)
         nc_ranking = Ranking.query.filter_by(value="NC").first()
-        return (nc_ranking.id - self.ranking.id) * elo_weight  # Classement ELO actuel du joueur
+        second_series_threshold = Ranking.query.filter_by(value="-15").first()
+        if self.ranking.id < second_series_threshold.id:
+            ranking_delta = (second_series_threshold.id - self.ranking.id) // 10 + nc_ranking.id - second_series_threshold.id
+        else:
+            ranking_delta = nc_ranking.id - self.ranking.id
+        return ranking_delta * elo_weight  # Classement ELO actuel du joueur
 
     @property
     def best_elo(self) -> int:
@@ -261,7 +270,12 @@ class Player(db.Model):
         """
         elo_weight = 15  # to better fit with ELO rating system (10 is better)
         nc_ranking = Ranking.query.filter_by(value="NC").first()
-        return (nc_ranking.id - self.best_ranking.id) * elo_weight  # Meilleur classement ELO du joueur
+        second_series_threshold = Ranking.query.filter_by(value="-15").first()
+        if self.ranking.id < second_series_threshold.id:
+            ranking_delta = (second_series_threshold.id - self.best_ranking.id) // 10 + nc_ranking.id - second_series_threshold.id
+        else:
+            ranking_delta = nc_ranking.id - self.best_ranking.id
+        return ranking_delta * elo_weight  # Meilleur classement ELO du joueur
 
     @property
     def refined_elo(self) -> int:
@@ -274,7 +288,7 @@ class Player(db.Model):
         best_rank_age = 25
         if self.best_elo <= self.current_elo:
             return self.current_elo
-        age_factor = 1 - (self.age - best_rank_age) * age_decay_rate
+        age_factor = 1 - abs(self.age - best_rank_age) * age_decay_rate
         return max(self.current_elo, round(self.best_elo * age_factor))
 
     def __repr__(self):

@@ -566,7 +566,7 @@ def simulate_score(app, db, home_team, visitor_team, match_sheet):
         first_set = final_score[0]
         second_set = final_score[1]
         third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
-        app.logger.debug(f'{len(final_score)} sets -> first_set: {first_set}, second_set: {second_set}, third_set: {third_set}')
+        # app.logger.debug(f'{len(final_score)} sets -> first_set: {first_set}, second_set: {second_set}, third_set: {third_set}')
         firstSetP1, firstSetP2, firstTieBreak = first_set
         secondSetP1, secondSetP2, secondTieBreak = second_set
         superTieBreakP1, superTieBreakP2, is_super_tiebreak = third_set
@@ -591,11 +591,8 @@ def simulate_score(app, db, home_team, visitor_team, match_sheet):
         home_candidates.sort(key=lambda player: player.refined_elo, reverse=True)
         home_doublers, visitor_doublers = home_doublers_candidates[2*i:2*i+2], visitor_doublers_candidates[2*i:2*i+2]
         result = play_game(app, home_doublers, visitor_doublers)
-        # app.logger.debug(f'result play_game double: {result}')
         winning_team = result[0]
-        # app.logger.debug(f'winning_team double: {winning_team}')
         final_score = result[1]
-        # app.logger.debug(f'final_score double: {final_score}')
         first_set = final_score[0]
         second_set = final_score[1]
         third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
