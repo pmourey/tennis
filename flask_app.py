@@ -10,12 +10,12 @@ import secrets
 from logging import basicConfig, DEBUG
 import locale
 
-from flask import Flask
+from flask import Flask, jsonify
 
 from flask import render_template
 from itsdangerous import URLSafeSerializer
 
-from TennisModel import db
+from TennisModel import db, License
 from admin import admin_bp
 
 from club import club_management_bp
@@ -54,6 +54,24 @@ def welcome():
 @app.before_request
 def create_tables():
     db.create_all()
+
+
+@app.route('/licensees-by-gender', methods=['GET'])
+def licensees_by_gender():
+    # Query to count licensees by gender
+    result = db.session.query(License.gender, db.func.count(License.id)).group_by(License.gender).all()
+
+    # Calculate total number of licensees
+    total_licensees = sum(count for gender, count in result)
+
+    # Convert the result to a dictionary with percentages
+    gender_percentages = {}
+    for gender, count in result:
+        gender_name = "Male" if gender == 0 else "Female" if gender == 1 else "Mixed"
+        percentage = (count / total_licensees) * 100
+        gender_percentages[gender_name] = f'{round(percentage, 2)} %'
+
+    return jsonify(gender_percentages)
 
 
 # app.run()
