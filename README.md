@@ -19,6 +19,7 @@ https://godot70.pythonanywhere.com
     - [ ] Faire formulaires d'ajout club et joueurs à partir de fichiers csv
   - [x] Suppression club
   - [x] Changement club
+- [ ] Définition des poids min/max d'équipe pour la création des équipes à une division donnée.
 
 * https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys
 * https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html#mapper-sql-expressions
