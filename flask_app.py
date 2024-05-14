@@ -74,6 +74,14 @@ def licensees_by_gender():
     return jsonify(gender_percentages)
 
 
+# Define a custom filter function
+def sort_players_by_elo(players):
+    return sorted(players, key=lambda p: p.refined_elo, reverse=True)
+
+
+# Add the filter to the Jinja environment
+app.jinja_env.filters['sort_players_by_elo'] = sort_players_by_elo
+
 # app.run()
 # toolbar.init_app(app)
 # app.run(debug=True, use_debugger=True, use_reloader=False)
