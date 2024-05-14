@@ -144,13 +144,6 @@ player_team_association = Table(
     db.Column('team_id', db.Integer, db.ForeignKey('team.id'))
 )
 
-match_sheet_player_association = Table(
-    'match_sheet_player_association',
-    db.Model.metadata,
-    db.Column('match_sheet_id', Integer, ForeignKey('match_sheet.id')),
-    db.Column('player_id', Integer, ForeignKey('player.id'))
-)
-
 
 class Player(db.Model):
     __tablename__ = 'player'
@@ -170,16 +163,6 @@ class Player(db.Model):
 
     # Define the relationship with Team using many-to-many association
     teams = relationship('Team', secondary=player_team_association, back_populates='players', single_parent=True, cascade="all, delete-orphan")
-
-    # match_sheets_home_team = relationship('MatchSheet', secondary=match_sheet_player_association,
-    #                                       backref='homeTeam', overlaps="visitorTeam,match_sheets_visitor_team")
-    # match_sheets_visitor_team = relationship('MatchSheet', secondary=match_sheet_player_association,
-    #                                          backref='visitorTeam', overlaps="homeTeam,match_sheets_home_team")
-
-    match_sheets_home_team = relationship('MatchSheet', secondary=match_sheet_player_association,
-                                          backref='players_home_team', overlaps="visitorTeam,match_sheets_as_visitor_team")
-    match_sheets_visitor_team = relationship('MatchSheet', secondary=match_sheet_player_association,
-                                             backref='players_visitor_team', overlaps="homeTeam,match_sheets_as_home_team")
 
     @property
     def gender(self):
@@ -227,7 +210,7 @@ class Player(db.Model):
 
     @property
     def info(self):
-        return f'{self.name} ({self.ranking})'# (elo: {self.current_elo})'
+        return f'{self.name} ({self.ranking}) {(self.current_elo, self.refined_elo, self.best_elo)}'  # (elo: {self.current_elo})'
 
     @property
     def full_info(self):
@@ -283,7 +266,7 @@ class Player(db.Model):
             Classement affiné par rapport au meilleur ancien classement du joueur et âge passé/actuel
         """
         # Détermination du classement affiné
-        age_decay_rate: float = 0.015
+        age_decay_rate: float = 0.007
         # best_rank_age, age = self.license.bestRanking.age, self.age   # not in player.csv :-( (only displayed on tenup) assume optimal ranking age is 25
         best_rank_age = 25
         if self.best_elo <= self.current_elo:
@@ -307,6 +290,25 @@ class Team(db.Model):
 
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
+
+    def matches_played(self) -> int:
+        return len(self.pool.teams) - 1
+
+    @property
+    def matches_won(self) -> int:
+        matches = Match.query.filter(Match.homeTeamId == self.id).all() + Match.query.filter(
+            Match.visitorTeamId == self.id).all()
+        return sum(1 for m in matches if m.homeScore > m.visitorScore)
+
+    @property
+    def matches_lost(self) -> int:
+        matches = Match.query.filter(Match.homeTeamId == self.id).all() + Match.query.filter(
+            Match.visitorTeamId == self.id).all()
+        return sum(1 for m in matches if m.homeScore < m.visitorScore)
+
+    def is_visitor(self, match: Match) -> bool:
+        visitor_team = Team.query.get(match.visitorTeamId)
+        return visitor_team.id == self.id
 
     def weight(self, championship) -> int:
         return (Ranking.query.count() * championship.singlesCount) - sum([p.license.rankingId for i, p in enumerate(self.players) if i < championship.singlesCount])
@@ -389,7 +391,6 @@ class Division(db.Model):
     def __repr__(self):
         return f'{self.name}'
 
-
 class Championship(db.Model):
     __tablename__ = 'championship'
 
@@ -403,9 +404,11 @@ class Championship(db.Model):
     division = relationship('Division')  # Relation avec la division
 
     # Define the one-to-many relationship with Matchday
-    matchdays = relationship('Matchday', back_populates='championship')
+    # matchdays = relationship('Matchday', back_populates='championship')
+    matchdays = relationship('Matchday', back_populates='championship', cascade="all, delete-orphan")
 
-    pools = relationship('Pool', back_populates='championship')  # Relation avec les poules du championnat
+    # pools = relationship('Pool', back_populates='championship')  # Relation avec les poules du championnat
+    pools = relationship('Pool', back_populates='championship', cascade="all, delete-orphan")  # Relation avec les poules du championnat
 
     @property
     def exempted_teams(self):
@@ -472,10 +475,10 @@ class Pool(db.Model):
     championshipId = db.Column(db.Integer, ForeignKey('championship.id'))
     championship = relationship('Championship', back_populates='pools')
 
-    teams = relationship('Team', back_populates='pool')
+    teams = relationship('Team', back_populates='pool', cascade="all, delete-orphan")
 
     # Relation avec les matchs de la poule
-    matches = relationship('Match', back_populates='pool')
+    matches = relationship('Match', back_populates='pool', cascade="all, delete-orphan")
 
     @property
     def is_exempted(self) -> bool:
@@ -513,7 +516,8 @@ class Matchday(db.Model):
     championship = relationship('Championship', back_populates='matchdays')
 
     # Define the one-to-many relationship with Match
-    matches = relationship('Match', back_populates='matchday')
+    # matches = relationship('Match', back_populates='matchday')
+    matches = relationship('Match', back_populates='matchday', cascade="all, delete-orphan")
 
     def __repr__(self):
         return f'Journée #{self.id}'
@@ -532,6 +536,8 @@ class Match(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
+    homeScore = db.Column(db.Integer, nullable=True)
+    visitorScore = db.Column(db.Integer, nullable=True)
 
     # Clé étrangère vers la journée de match
     matchdayId = db.Column(db.Integer, db.ForeignKey('matchday.id'))
@@ -541,48 +547,35 @@ class Match(db.Model):
     poolId = db.Column(db.Integer, ForeignKey('pool.id'))
     pool = relationship('Pool', back_populates='matches')
 
-    # Clé étrangère vers l'équipe à domicile
+    # # Clé étrangère vers l'équipe à domicile
     homeTeamId = db.Column(db.Integer, ForeignKey('team.id'))
     homeTeam = relationship('Team', foreign_keys=[homeTeamId])
 
-    # Clé étrangère vers l'équipe adverse
+    # # Clé étrangère vers l'équipe adverse
     visitorTeamId = db.Column(db.Integer, ForeignKey('team.id'))
     visitorTeam = relationship('Team', foreign_keys=[visitorTeamId])
 
-    # Relation avec la feuille de match
-    match_sheet = relationship('MatchSheet', uselist=False, back_populates='match')
+    singles = relationship('Single', back_populates='match', cascade="all, delete-orphan")
+    doubles = relationship('Double', back_populates='match', cascade="all, delete-orphan")
 
-    # # Relation avec la feuille de match
-    # matchSheetId = db.Column(db.Integer, ForeignKey('match_sheet.id'))  # Modifier ici
-    # matchSheet = relationship('MatchSheet', uselist=False, back_populates='match')
+    @property
+    def sets_count(self) -> tuple[int, int]:
+        home_sets = visitor_sets = 0
+        for match in self.singles + self.doubles:
+            p1_sets, p2_sets = match.score.sets_count
+            home_sets += p1_sets
+            visitor_sets += p2_sets
+        # logging.info((home_sets, visitor_sets))
+        return home_sets, visitor_sets
 
-    def __repr__(self):
-        match_sheet = MatchSheet.query.filter_by(matchId=self.id).first()  # Modifier ici
-        return f'{match_sheet}'
-
-
-class MatchSheet(db.Model):
-    __tablename__ = 'match_sheet'
-
-    id = db.Column(db.Integer, primary_key=True)
-    homeScore = db.Column(db.Integer, nullable=True)
-    visitorScore = db.Column(db.Integer, nullable=True)
-
-    singles = relationship('Single', back_populates='match_sheet')
-    doubles = relationship('Double', back_populates='match_sheet')
-
-    # winnerId = db.Column(db.Integer, ForeignKey('team.id'))
-    # winner = relationship('Team', foreign_keys=[winnerId])
-
-    homeTeam = relationship('Player', secondary=match_sheet_player_association, backref='match_sheets_as_home_team')
-    visitorTeam = relationship('Player', secondary=match_sheet_player_association, backref='match_sheets_as_visitor_team')
-
-    # homeTeam = relationship('Player', secondary=match_sheet_player_association, backref='match_sheets_home_team')
-    # visitorTeam = relationship('Player', secondary=match_sheet_player_association, backref='match_sheets_visitor_team')
-
-    # Clé étrangère vers le match auquel la feuille de match est associée
-    matchId = db.Column(db.Integer, ForeignKey('match.id', ondelete='CASCADE'))
-    match = relationship('Match', back_populates='match_sheet', single_parent=True, cascade="all, delete-orphan")
+    @property
+    def games_count(self) -> tuple[int, int]:
+        home_games = visitor_games = 0
+        for match in self.singles + self.doubles:
+            p1_games, p2_games = match.score.games_count
+            home_games += p1_games
+            visitor_games += p2_games
+        return home_games, visitor_games
 
     @property
     def score(self) -> str:
@@ -591,15 +584,24 @@ class MatchSheet(db.Model):
     def __repr__(self):
         return f'{self.score}'
 
+    def winner(self) -> Optional[Team]:
+        if self.homeScore > self.visitorScore:
+            return self.homeTeam
+        elif self.homeScore < self.visitorScore:
+            return self.visitorTeam
+        else:
+            return None
+
+
 class Single(db.Model):
     __tablename__ = 'singles'
     id = db.Column(db.Integer, primary_key=True)
     scoreId = db.Column(db.Integer, ForeignKey('score.id'))
-    matchSheetId = db.Column(db.Integer, ForeignKey('match_sheet.id'))
+    matchId = db.Column(db.Integer, ForeignKey('match.id'))
     player1Id = db.Column(db.Integer, ForeignKey('player.id'))
     player2Id = db.Column(db.Integer, ForeignKey('player.id'))
 
-    match_sheet = relationship('MatchSheet', back_populates='singles')
+    match = relationship('Match', back_populates='singles')
     score = relationship('Score', back_populates='singles')
 
     # Define the many-to-one relationship with Player
@@ -611,13 +613,13 @@ class Double(db.Model):
     __tablename__ = 'doubles'
     id = db.Column(db.Integer, primary_key=True)
     scoreId = db.Column(db.Integer, ForeignKey('score.id'))
-    matchSheetId = db.Column(db.Integer, ForeignKey('match_sheet.id'))
+    matchId = db.Column(db.Integer, ForeignKey('match.id'))
     player1Id = db.Column(db.Integer, ForeignKey('player.id'))
     player2Id = db.Column(db.Integer, ForeignKey('player.id'))
     player3Id = db.Column(db.Integer, ForeignKey('player.id'))
     player4Id = db.Column(db.Integer, ForeignKey('player.id'))
 
-    match_sheet = relationship('MatchSheet', back_populates='doubles')
+    match = relationship('Match', back_populates='doubles')
     score = relationship('Score', back_populates='doubles')
 
     # Define the many-to-one relationship with Player
@@ -636,6 +638,7 @@ class Double(db.Model):
         player3, player4 = Player.query.get(self.player3Id), Player.query.get(self.player4Id)
         return player3.weight + player4.weight
 
+
 class Score(db.Model):
     __tablename__ = 'score'
 
@@ -646,11 +649,12 @@ class Score(db.Model):
     secondSetP1 = db.Column(db.Integer, nullable=False)
     secondSetP2 = db.Column(db.Integer, nullable=False)
     secondTieBreak = db.Column(db.Integer, nullable=True)
-    superTieBreakP1 = db.Column(db.Integer, nullable=True)
-    superTieBreakP2 = db.Column(db.Integer, nullable=True)
+    thirdSetP1 = db.Column(db.Integer, nullable=True)
+    thirdSetP2 = db.Column(db.Integer, nullable=True)
+    superTieBreak = db.Column(db.Integer, nullable=True)
 
-    singles = relationship('Single', back_populates='score')
-    doubles = relationship('Double', back_populates='score')
+    singles = relationship('Single', back_populates='score', cascade="all, delete-orphan")
+    doubles = relationship('Double', back_populates='score', cascade="all, delete-orphan")
 
     # Relationship with Match
     # game_id = db.Column(db.Integer, ForeignKey('game.id'))
@@ -662,30 +666,28 @@ class Score(db.Model):
 
     @property
     def games_count(self) -> tuple[int, int]:
-        team1_games = self.firstSetP1 + self.secondSetP1 + int(self.superTieBreakP1 is not None)
-        team2_games = self.firstSetP2 + self.secondSetP2 + int(self.superTieBreakP2 is not None)
+        team1_games = self.firstSetP1 + self.secondSetP1
+        team1_games += int(self.thirdSetP1) if self.thirdSetP1 else 0
+        team2_games = self.firstSetP2 + self.secondSetP2
+        team2_games += int(self.thirdSetP2) if self.thirdSetP2 else 0
         return team1_games, team2_games
 
     @property
     def sets_count(self) -> tuple[int, int]:
-        team1_sets = int(self.firstTieBreak & self.firstSetP1 == 7)
-        team1_sets += int(self.secondTieBreak & self.secondSetP1 == 7)
-        team1_sets += int(self.superTieBreakP1 > self.superTieBreakP2)
-        team2_sets = int(self.firstTieBreak & self.firstSetP2 == 7)
-        team2_sets += int(self.secondTieBreak & self.secondSetP2 == 7)
-        team2_sets += int(self.superTieBreakP2 > self.superTieBreakP1)
+        team1_sets = int(self.firstSetP1 > self.firstSetP2) + int(self.secondSetP1 > self.secondSetP2)
+        team1_sets += int(self.thirdSetP1) if self.thirdSetP1 else 0
+        team2_sets = int(self.firstSetP2 > self.firstSetP1) + int(self.secondSetP2 > self.secondSetP1)
+        team2_sets += int(self.thirdSetP2) if self.thirdSetP2 else 0
         return team1_sets, team2_sets
 
     def __repr__(self):
-        if self.firstTieBreak:
-            first_set = f'7/6 ({self.firstTieBreak})' if self.firstSetP1 == 7 else f'6/7 ({self.firstTieBreak})'
-        else:
-            first_set = f'{self.firstSetP1}/{self.firstSetP2}'
-        if self.secondTieBreak:
-            second_set = f'7/6 ({self.secondTieBreak})' if self.secondSetP1 == 7 else f'6/7 ({self.secondTieBreak})'
-        else:
-            second_set = f'{self.secondSetP1}/{self.secondSetP2}'
-        super_tie_break = f'{self.superTieBreakP1}/{self.superTieBreakP2}' if self.superTieBreakP1 else None
+        firstTieBreak = f' ({self.firstTieBreak})' if self.firstTieBreak else ''
+        first_set = f'{self.firstSetP1}/{self.firstSetP2}{firstTieBreak}'
+        secondTieBreak = f' ({self.secondTieBreak})' if self.secondTieBreak else ''
+        second_set = f'{self.secondSetP1}/{self.secondSetP2}{secondTieBreak}'
+        super_tie_break = None
+        if self.superTieBreak:
+            winner_score, loser_score = max(10, self.superTieBreak + 2), self.superTieBreak
+            super_tie_break = f'{winner_score}/{loser_score}' if self.thirdSetP1 > self.thirdSetP2 else f'{loser_score}/{winner_score}'
         sets = [first_set, second_set, super_tie_break]
         return ' - '.join(filter(None, sets))
-

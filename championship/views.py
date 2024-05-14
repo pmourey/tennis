@@ -8,7 +8,7 @@ from sqlalchemy import desc, and_
 
 from flask import render_template, redirect, url_for, flash
 
-from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match, MatchSheet
+from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match
 from championship import championship_management_bp
 from common import populate_championship, calculer_classement, count_sundays_between_dates
 
@@ -114,19 +114,13 @@ def show_pool(id: int):
     pool = Pool.query.get(id)
     # Calcul du classement de la poule
     resultat_classement = calculer_classement(pool)
-    # for position, (equipe_id, points) in enumerate(resultat_classement, start=1):
-    #     team = Team.query.get(equipe_id)
-    #     current_app.logger.debug(f"Position {position}: {team.name} - Points: {points}")
-    # matchdays = Matchday.query.join(Pool).join(Championship).filter(Championship.id == pool.championship.id ).all()
     matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all() # pool.matchdays
-    # matches = Match.query.join(Matchday).join(Pool).join(Championship).filter(Championship.id == pool.championship.id, Pool.id == pool.id).all()
-    matches = Match.query.filter_by(poolId=pool.id).all() # pool.matches
     current_app.logger.debug(f'matches: {pool.matches}')
     return render_template('show_pool.html', classement=resultat_classement, pool=pool, matches=pool.matches, matchdays=matchdays)
 
 @championship_management_bp.route('/show_match/<int:id>')
 def show_match(id: int):
-    match_sheet = MatchSheet.query.filter_by(matchId=id).first()
+    match_sheet = Match.query.get(id)
     match = Match.query.get(id)
-    current_app.logger.debug(f'match_sheet: {match_sheet}')
-    return render_template('show_match.html', match_sheet=match_sheet, match=match)
+    current_app.logger.debug(f'match: {match}')
+    return render_template('show_match.html', match=match)

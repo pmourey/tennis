@@ -12,31 +12,33 @@
 
     <h2>Équipe à domicile {{ match.homeTeam.club }} </h2>
     <ul>
-        {% for player in match.homeTeam.players %}
+        {% set sorted_home_players = match.homeTeam.players | sort_players_by_elo %}
+        {% for player in sorted_home_players %}
             <li>{{ player.full_info }}</li>
         {% endfor %}
     </ul>
 
     <h2>Équipe visiteuse {{ match.visitorTeam.club }} </h2>
     <ul>
-        {% for player in match.visitorTeam.players %}
+        {% set sorted_visitor_players = match.visitorTeam.players | sort_players_by_elo %}
+        {% for player in sorted_visitor_players %}
             <li>{{ player.full_info }}</li>
         {% endfor %}
     </ul>
 
     <h2>Résultat rencontre</h2>
-    <p>Score : {{ match_sheet.score }}</p>
+    <p>Score : {{ match.score }}</p>
 
     <h3>Simples</h3>
     <ul>
-        {% for single in match_sheet.singles %}
+        {% for single in match.singles %}
             <li>{{ single.player1.info }} vs {{ single.player2.info }} - Score : {{ single.score }}</li>
         {% endfor %}
     </ul>
 
     <h3>Doubles</h3>
     <ul>
-        {% for double in match_sheet.doubles %}
+        {% for double in match.doubles %}
             <li>{{ double.player1.double_info }} - {{ double.player2.double_info }} vs {{ double.player3.double_info }} - {{ double.player4.double_info }} - Score : {{ double.score }}</li>
         {% endfor %}
     </ul>
