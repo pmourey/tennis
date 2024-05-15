@@ -20,6 +20,7 @@ from admin import admin_bp
 
 from club import club_management_bp
 from championship import championship_management_bp
+from medical import medical_management_bp
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 
@@ -33,6 +34,7 @@ app.serializer = URLSafeSerializer(app.secret_key)
 # Register blueprints
 app.register_blueprint(club_management_bp, url_prefix='/club')
 app.register_blueprint(championship_management_bp, url_prefix='/championship')
+app.register_blueprint(medical_management_bp, url_prefix='/medical')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 
 # Set the environment (development, production, etc.)

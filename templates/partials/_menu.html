@@ -23,6 +23,8 @@
             {% endif %}
         {% elif request.blueprint == 'admin' and request.path != '/admin/' %}
             <td><a href="{{ url_for('admin.index') }}"><button>Sommaire administration</button></a></td>
+        {% elif request.blueprint == 'medical' %}
+            <td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>
         {% endif %}
     </tr>
 </table>
