@@ -1,0 +1,48 @@
+<!-- templates/update_player.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+{% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
+{% set acute_label = 'Aigüe'%}
+{% set overuse_label = 'Surmenage'%}
+<main>
+        <button onclick="updatePlayer()">Mettre à jour le joueur</button> <!-- Bouton pour mettre à jour le joueur -->
+        <br>
+        <table class="pool">
+            <caption class="table-caption">Fiche joueur ({{ player.club.name }})</caption> <!-- Titre ajouté ici -->
+            <tr>
+                <td><label for="name">Nom</label></td>
+                <td>{{ player.name }}</td>
+            </tr>
+            <tr>
+                <td><label for="birth_date">Date de naissance</label></td>
+                <td>{{ birthDate }}</td>
+            </tr>
+            <tr>
+                <td><label for="height">Taille</label></td>
+                <td>{{ player.height if player.height != 'None' else 'Non renseignée'  }}</td>
+            </tr>
+            <tr>
+                <td><label for="weight">Poids</label></td>
+                <td>{{ player.weight if player.weight != 'None' else 'Non renseigné' }}</td>
+            </tr>
+            <tr>
+                <td><label for="is_active">Disponible</label></td>
+                <td>{% if player.isActive %}&#x2611;{%else%}&#129969;{% endif %}</td>
+            </tr>
+            {% for injury in player.injuries %}
+                <tr>
+                    <td><label for="injuries">Blessure n°{{ loop.index }} </label></td>
+                    <td>{{ injury.site.name }}->{{ acute_label if injury.type == 0 else overuse_label}}->{{ injury.name }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+</main>
+<script>
+    function updatePlayer() {
+        // Rediriger vers la page de mise à jour du joueur
+        window.location.href = "{{ url_for('club.update_player', id=player.id) }}";
+    }
+</script>
+{% endblock main %}
