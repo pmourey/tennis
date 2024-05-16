@@ -33,7 +33,7 @@
             <tr>
                 <td><label for="injuries">Blessures</label></td>
                 <td>
-                    <select id="injuries" name="injuries[]" multiple style="height: 400px;">
+                    <select id="injuries" name="injuries[]" multiple>
                         <option value="">Sélectionnez une ou plusieurs blessures</option>
                         {% for injury in injuries %}
                         <option value="{{ injury.id }}"
