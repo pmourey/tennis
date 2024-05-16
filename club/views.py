@@ -12,7 +12,7 @@ from flask import current_app
 from functools import wraps
 
 from flask import request
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
 
 from flask import render_template, redirect, url_for, flash
 
@@ -70,7 +70,8 @@ def select_gender():
             return redirect(url_for('admin.select_club'))
         players = get_players_order_by_ranking(gender=gender, club_id=club_id)
         club = Club.query.get(club_id)
-        return render_template('players.html', gender=gender, players=players, club=club, active_players=True)
+        caption = f"Liste des { len(players) } {'joueuses' if gender == 1 else 'joueurs'} disponibles de {club.name}"
+        return render_template('players.html', gender=gender, players=players, club=club, active_players=True, caption=caption)
     return render_template('select_gender.html')
 
 
@@ -106,7 +107,8 @@ def show_invalid_players():
     inactive_club_players = get_players_order_by_ranking(gender=Gender.Mixte.value, club_id=club_id, is_active=False)
     club = Club.query.get(club_id)
     current_app.logger.debug(f'invalid players: {inactive_club_players} in club {club.name}')
-    return render_template('players.html', players=inactive_club_players, club=club, active_players=False)
+    caption = f"Liste des {len(inactive_club_players)} joueurs et joueuses indisponibles de {club.name}"
+    return render_template('players.html', players=inactive_club_players, club=club, active_players=False, caption=caption)
 
 
 @club_management_bp.route('/teams')
@@ -346,6 +348,14 @@ def update_player(id):
         player.height = request.form.get('height')
         player.weight = request.form.get('weight')
         player.isActive = False if request.form.get('is_active') is None else True
+        # Récupérez les valeurs sélectionnées dans le formulaire
+        selected_injuries = request.form.getlist('injuries[]')
+        # Mettez à jour les blessures du joueur
+        player.injuries.clear()  # Supprime toutes les blessures actuelles du joueur
+        for injury_id in selected_injuries:
+            injury = Injury.query.get(injury_id)
+            if injury:  # Vérifiez si l'ID de la blessure est valide
+                player.injuries.append(injury)
         db.session.commit()
         flash(f'Infos {player.name} mises à jour avec succès!')
         return redirect(url_for('club.index'))
@@ -357,8 +367,12 @@ def update_player(id):
         #     return redirect(url_for('admin.select_club'))
         # club_id = current_app.serializer.loads(signed_club_id)
         # club = Club.query.get(club_id)
-        return render_template('update_player.html', player=player)
+        injuries = Injury.query.join(InjurySite).order_by(asc(InjurySite.name), asc(Injury.type), asc(Injury.name)).all()
+        return render_template('update_player.html', player=player, injuries=injuries)
 
+@club_management_bp.route('/player/<int:id>')
+def show_player(id):
+    return render_template('show_player.html', player=Player.query.get_or_404(id))
 
 @club_management_bp.route('/delete_player/<int:id>', methods=['GET', 'POST'])
 def delete_player(id):

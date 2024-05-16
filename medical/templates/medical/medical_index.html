@@ -8,6 +8,9 @@
     <table class="welcome">
         <caption class="table-caption">Gestion médicale</caption> <!-- Titre ajouté ici -->
         <tr>
+            <td><a href="{{ url_for('medical.injured_players') }}">Liste joueurs/joueuses blessé(e)s</a></td>
+        </tr>
+        <tr>
             <td><a href="{{ url_for('medical.search_players') }}">Recherche joueur/joueuse</a></td>
         </tr>
         <tr>

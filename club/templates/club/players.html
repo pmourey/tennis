@@ -4,13 +4,11 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
-{% set status = 'disponibles' if active_players else 'indisponibles' %}
-
 <script src="{{ url_for('club.static', filename='manage_player.js') }}"></script>
 <main>
     {% if players %}
     <table class="players">
-        <caption class="table-caption">Liste des {{ players|length }} {{'joueuses' if gender == 1 else 'joueurs'}} {{ status }} de {{club.name}}</caption> <!-- Titre ajouté ici -->
+        <caption class="table-caption">{{ caption }}</caption> <!-- Titre ajouté ici -->
         <thead>
         <tr>
             <th>Update</th>
@@ -28,7 +26,7 @@
             <tr>
                 <td><a href="{{ url_for('club.update_player', id=player.id) }}">{{player.id}}</a></td>
                 <td><button onclick="confirmDelete({{ player.id }})">{{player.id}}</button></td>
-                <td>{{ player.name }}</td>
+                <td><a href="{{ url_for('club.show_player', id=player.id) }}">{{ player.name }}</a></td>
                 <td>{{ player.age }}</td>
                 <td>{{ player.ranking }}{{ best_ranking}}</td>
                 <td>{{ 'F' if player.gender else 'H' }}</td>

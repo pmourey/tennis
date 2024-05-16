@@ -2,37 +2,68 @@
 
 <table class="menu">
     <tr>
-<!--        <td>{{request.endpoint}}</td>
-        <td>{{request.blueprint}}</td>-->
-        <td><a href="{{ url_for('welcome') }}"><button>Menu principal</button></a></td>
+        <!--        <td>{{request.endpoint}}</td>
+                <td>{{request.blueprint}}</td>-->
+        <td><a href="{{ url_for('welcome') }}">
+            <button>Menu principal</button>
+        </a></td>
         {% if request.blueprint == 'championship' %}
-            {% if request.path != '/championship/' %}
-                <td><a href="{{ url_for('championship.index') }}"><button>Sommaire championnats</button></a></td>
-            {% endif %}
-            {% if request.endpoint == 'championship.show_pool' %}
-                <td><a href="{{ url_for('championship.show_pools', id=pool.championship.id) }}"><button>Sommaire championnat</button></a></td>
-            {% elif request.endpoint == 'championship.show_match' %}
-                <td><a href="{{ url_for('championship.show_pool', id=match.pool.id) }}"><button>Retour poule</button></a></td>
-            {% endif %}
-        {% elif request.blueprint == 'club' %}
-            {% if request.path != '/club/' %}
-                <td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>
-            {% endif %}
-            {% if request.endpoint == 'club.show_team' %}
-                <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}"><button>Retour poule</button></a></td>
-            {% endif %}
-            {% if request.endpoint == 'club.update_player' %}
-                <td><a href="{{ url_for('medical.index') }}"><button>Sommaire infirmerie</button></a></td>
-            {% endif %}
-        {% elif request.blueprint == 'admin' and request.path != '/admin/' %}
-            <td><a href="{{ url_for('admin.index') }}"><button>Sommaire administration</button></a></td>
-        {% elif request.blueprint == 'medical' %}
-<!--            <td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>-->
-            {% if request.path != '/medical/' %}
-                <td><a href="{{ url_for('medical.index') }}"><button>Sommaire infirmerie</button></a></td>
-            {% endif %}
+        {% if request.path != '/championship/' %}
+        <td><a href="{{ url_for('championship.index') }}">
+            <button>Sommaire championnats</button>
+        </a></td>
         {% endif %}
+        {% if request.endpoint == 'championship.show_pool' %}
+        <td><a href="{{ url_for('championship.show_pools', id=pool.championship.id) }}">
+            <button>Sommaire championnat</button>
+        </a></td>
+        {% elif request.endpoint == 'championship.show_match' %}
+        <td><a href="{{ url_for('championship.show_pool', id=match.pool.id) }}">
+            <button>Retour poule</button>
+        </a></td>
+        {% endif %}
+        {% elif request.blueprint == 'club' %}
+        {% if request.path != '/club/' %}
+        <td><a href="{{ url_for('club.index') }}">
+            <button>Sommaire club</button>
+        </a></td>
+        {% endif %}
+        {% if request.endpoint == 'club.show_team' %}
+        <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}">
+            <button>Retour poule</button>
+        </a></td>
+        {% endif %}
+        {% if request.endpoint in ['club.update_player', 'club.show_player'] %}
+        <td><a href="{{ url_for('medical.index') }}">
+            <button>Sommaire infirmerie</button>
+        </a></td>
+        {% endif %}
+        {% elif request.blueprint == 'admin' and request.path != '/admin/' %}
+        <td><a href="{{ url_for('admin.index') }}">
+            <button>Sommaire administration</button>
+        </a></td>
+        {% elif request.blueprint == 'medical' %}
+        <!--            <td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>-->
+        {% if request.path != '/medical/' %}
+        <td><a href="{{ url_for('medical.index') }}">
+            <button>Sommaire infirmerie</button>
+        </a></td>
+        {% endif %}
+        {% endif %}
+        <!-- Ajout du bouton "Page Précédente" -->
+        <td><a href="{{ request.referrer }}">
+            <button>Page Précédente</button>
+        </a></td>
+                <!-- Ajout du bouton "Page Suivante" -->
+<!--        <td><button onclick="goForward()">Page Suivante</button></td>-->
     </tr>
 </table>
+<script>
+    function goForward() {
+        // alert('coucou');
+        console.log('Forward');
+        window.history.forward(); // Avancer dans l'historique de navigation
+    }
+</script>
 
 

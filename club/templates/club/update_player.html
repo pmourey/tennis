@@ -4,7 +4,8 @@
 
 {% block main %}
 {% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
-
+{% set acute_label = 'Aigüe'%}
+{% set overuse_label = 'Surmenage'%}
 <main>
     <form action="{{ url_for('club.update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">
         <table class="update-form">
@@ -19,16 +20,31 @@
             </tr>
             <tr>
                 <td><label for="height">Taille</label></td>
-                <td><input type="text" name="height" value="{{ player.height }}"></td>
+                <td><input type="text" name="height" value="{{ player.height | none_to_zero }}"></td>
             </tr>
             <tr>
                 <td><label for="weight">Poids</label></td>
-                <td><input type="text" name="weight" value="{{ player.weight }}"></td>
+                <td><input type="text" name="weight" value="{{ player.weight | none_to_zero }}"></td>
             </tr>
             <tr>
                 <td><label for="is_active">Disponible</label></td>
                 <td><input type="checkbox" name="is_active" {% if player.isActive %}checked{% endif %}></td>
             </tr>
+            <tr>
+                <td><label for="injuries">Blessures</label></td>
+                <td>
+                    <select id="injuries" name="injuries[]" multiple style="height: 400px;">
+                        <option value="">Sélectionnez une ou plusieurs blessures</option>
+                        {% for injury in injuries %}
+                        <option value="{{ injury.id }}"
+                                {% if injury in player.injuries %}selected{% endif %}>
+                            {{ injury.site.name }}->{{ acute_label if injury.type == 0 else overuse_label}}->{{ injury.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+
             <tr>
                 <td colspan="2"><input type="submit" value="Mettre à jour"></td>
             </tr>

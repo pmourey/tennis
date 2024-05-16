@@ -193,6 +193,11 @@ class Injury(db.Model):
     # Ajout de la relation avec les joueurs
     players = relationship('Player', secondary=player_injury_association, back_populates='injuries', single_parent=True, cascade="all, delete-orphan")
 
+    @property
+    def site_name(self) -> str:
+        site = InjurySite.query.get(self.siteId)
+        return site.name
+
     def __repr__(self):
         return self.name
 
@@ -200,8 +205,8 @@ class Player(db.Model):
     __tablename__ = 'player'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     birthDate = db.Column(db.DateTime, nullable=False)
-    weight = db.Column(db.Integer, nullable=True)
-    height = db.Column(db.Integer, nullable=True)
+    weight = db.Column(db.Integer, nullable=True, default=0)
+    height = db.Column(db.Integer, nullable=True, default=0)
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the relationship with Team using many-to-many association
@@ -327,6 +332,9 @@ class Player(db.Model):
             return self.current_elo
         age_factor = 1 - abs(self.age - best_rank_age) * age_decay_rate
         return max(self.current_elo, round(self.best_elo * age_factor))
+
+    def has_injury(self, injury: Injury) -> bool:
+        return injury in self.injuries
 
     def __repr__(self):
         return f'{self.name}'

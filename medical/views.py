@@ -33,6 +33,11 @@ def injuries():
         current_app.logger.info(site.injuries)
     return render_template('injuries_classification.html', injury_sites=injury_sites)
 
+@medical_management_bp.route('/injured_players')
+def injured_players():
+    players_with_injuries = Player.query.filter(Player.injuries.any()).all()
+    return render_template('players.html', players=players_with_injuries, caption='Liste de joueurs ou joueuses blessé(e)s')
+
 @medical_management_bp.route('/search', methods=['GET'])
 def search_players():
     search_query = request.args.get('search_query')
