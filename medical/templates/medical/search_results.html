@@ -6,7 +6,7 @@
 </head>
 <body>
 {% for player in players %}
-    <div><a href="{{ url_for('club.update_player', id=player.id) }}">{{ player.name }} ({{ player.club.name }})</a></div>
+    <div><a href="{{ url_for('club.update_player', id=player.id) }}">{{ player.full_info }} ({{ player.club.name }})</a></div>
 {% endfor %}
 
 </body>
