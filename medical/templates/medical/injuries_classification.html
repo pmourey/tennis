@@ -14,11 +14,11 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in data %}
+            {% for site in injury_sites %}
                 <tr>
-                    <td>{{ item['site'] }}</td>
-                    <td>{{ ', '.join(item['Acute']) }}</td>
-                    <td>{{ ', '.join(item['Overuse']) }}</td>
+                    <td>{{ site.name }}</td>
+                    <td>{{ ', '.join(site.acute_injuries) }}</td>
+                    <td>{{ ', '.join(site.overuse_injuries) }}</td>
                 </tr>
             {% endfor %}
         </tbody>

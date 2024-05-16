@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from multiprocessing import Pool
 import os
@@ -16,7 +17,7 @@ from sqlalchemy import desc, asc, and_
 from random import random
 from typing import List
 
-from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, Single, Score, Double
+from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, Single, Score, Double, Injury, InjurySite
 from tools.import_csv import extract
 
 from mapbox import Directions
@@ -48,6 +49,39 @@ class Gender(Enum):
     Female = 1
     Mixte = 2
 
+class BodyPart(Enum):
+    Head = 0
+    Body = 1
+    Leg = 2
+    Arm = 3
+    Hand = 4
+    Foot = 5
+    Back = 6
+    Neck = 7
+    Shoulder = 8
+    Chest = 9
+    Waist = 10
+    Hip = 11
+    Knee = 12
+    Ankle = 13
+    Elbow = 14
+    Wrist = 15
+    Finger = 16
+    Toe = 17
+    Nose = 18
+    Ear = 19
+    Eye = 20
+    Mouth = 21
+    Face = 22
+    Tongue = 23
+    Throat = 24
+    Lip = 25
+    Chin = 26
+
+class InjuryType(Enum):
+    Acute = 0
+    OverUse = 1
+
 
 def count_sundays_between_dates(start_date, end_date):
     current_date = start_date
@@ -61,27 +95,33 @@ def count_sundays_between_dates(start_date, end_date):
 
 def import_all_data(app, db) -> str:
     # Si pas de club en base de données, on les créé!
-    message: str = ''
+    message: List[str] = []
     # Vérifier si les catégories d'âge existent en base de données
     age_categories = AgeCategory.query.all()
     if not age_categories:
         # Si aucune catégorie d'âge n'existe, créer les catégories d'âge
         load_age_categories(db)
-    message += f"{AgeCategory.query.count()} catégories d'âge créées!\n"
+    message += [f"{AgeCategory.query.count()} catégories d'âge créées!"]
 
     # Vérifier si les divisions existent en base de données
     divisions = Division.query.all()
     if not divisions:
         # Si aucune division n'existe, créer les divisions
         load_divisions(db)
-    message += f"{Division.query.count()} divisions de championnat créées!\n"
+    message += [f"{Division.query.count()} divisions de championnat créées!"]
 
     # Vérifier si les classements de tennis existent en base de données
     rankings = Ranking.query.all()
     if not rankings:
         load_rankings(db, Ranking)
         load_rankings(db, BestRanking)
-    message += f"{Ranking.query.count()} classements insérés en bdd!\n"
+    message += [f"{Ranking.query.count()} classements insérés en bdd!"]
+
+    # chargement de la base des blessures sportives
+    injuries = Injury.query.all()
+    if not injuries:
+        load_injuries(app, db)
+    message += [f"{Injury.query.count()} pathologies sportives insérés en bdd!<br>"]
 
     for club_info in app.config['CLUBS']:
         # récupération autres infos dans fichier csv du club
@@ -99,7 +139,7 @@ def import_all_data(app, db) -> str:
         db.session.add(club)
         app.logger.debug(f'default_club: {club}')
         db.session.commit()
-        message += f'Club {club} créé avec succès!\n'
+        message += [f'Club {club} créé avec succès!']
         # Chargement des joueurs du club
         for gender, gender_label in enumerate(['men', 'women']):
             players_csvfile = f"static/data/players/{club_info['csvfile']}_{gender_label}.csv"
@@ -107,9 +147,11 @@ def import_all_data(app, db) -> str:
             import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
             players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
             # db.session.flush()
-            message += f"{players_count} {'joueuses ajoutées' if gender else 'joueurs ajoutés'}!\n"
-    app.logger.debug(message)
-    return message
+            message += [f"{players_count} {'joueuses ajoutées' if gender else 'joueurs ajoutés'}!"]
+        message += ['<br>']
+    message += ['<br>']
+    # app.logger.debug(message)
+    return '<br>'.join(message)
 
 
 def load_age_categories(db):
@@ -179,10 +221,29 @@ def load_rankings(db, Model: Ranking | BestRanking):
     for i, series in enumerate([second_series, third_series, fourth_series]):
         for value in series:
             rankings += [Model(value=value, series=i + 2)]
-    rankings += [Ranking(value=other, series=None)]
+    rankings += [Model(value=other, series=None)]
     db.session.add_all(rankings)
     db.session.commit()
 
+def load_injuries(app, db):
+    static_folder = app.blueprints['medical'].static_folder
+    file_path = os.path.join(static_folder, 'data', 'injuries_fr.json')
+    with open(file_path, 'r') as file:
+        injuries_data = json.load(file)
+    injury_types = {'Acute':  InjuryType.Acute.value, 'Overuse': InjuryType.OverUse.value}
+    for injury_data in injuries_data:
+        site = InjurySite(name=injury_data['site'])
+        db.session.add(site)
+        db.session.commit()
+        for k, v in injury_types.items():
+            for injury_name in injury_data[k]:
+                injury = Injury(
+                    siteId=site.id,
+                    type=v,
+                    name=injury_name
+                )
+                db.session.add(injury)
+    db.session.commit()
 
 def import_players(app, gender, csvfile, club, db):
     with open(csvfile, 'r', newline='') as file:
@@ -347,6 +408,29 @@ def populate_championship(app, db, championship: Championship):
             continue
         play(app, db, pool)
         app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
+    # Tableau final
+    final_teams = exempted_pool.teams
+    min_teams_count = len(championship.pools)
+    n = min_teams_count + len(final_teams)
+    p = n // 2 + 1
+    qualified_teams = {}
+    for pool in championship.pools:
+        if pool.letter is None:
+            continue
+        pool_rankings = calculer_classement(pool)
+        qualified_teams[pool.id] = [team_id for team_id, ranking in pool_rankings]
+        app.logger.debug(f'{len(qualified_teams[pool.id])} TEAMS for pool {pool}: {qualified_teams[pool.id]}')
+    while len(final_teams) < 2 ** p:
+        for pool in championship.pools:
+            if pool.letter is None:
+                continue
+            team_id = qualified_teams[pool.id].pop(0)
+            final_teams += [Team.query.get(team_id)]
+            if len(final_teams) == 2 ** p:
+                break
+    app.logger.debug(f'COMMIT DONE = {len(final_teams)} TEAMS for FINALS of {championship}: {final_teams}')
+
+
 
 
 def round_robin(n):

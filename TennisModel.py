@@ -3,10 +3,10 @@ from __future__ import annotations
 import logging
 import re
 from datetime import datetime, timedelta, date
-from typing import Optional
+from typing import Optional, List
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, Table, Integer, String
+from sqlalchemy import ForeignKey, Table, Integer, String, Float, Boolean
 from sqlalchemy.orm import relationship, backref, DeclarativeBase, mapped_column
 
 db = SQLAlchemy()
@@ -144,6 +144,57 @@ player_team_association = Table(
     db.Column('team_id', db.Integer, db.ForeignKey('team.id'))
 )
 
+player_injury_association = Table(
+    'player_injury_association',
+    db.Model.metadata,
+    db.Column('player_id', db.Integer, db.ForeignKey('player.id')),
+    db.Column('injury_id', db.Integer, db.ForeignKey('injury.id'))
+)
+
+
+class InjurySite(db.Model):
+    __tablename__ = 'injury_site'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+
+    # Relations avec les blessures
+    injuries = db.relationship('Injury', back_populates='site')
+
+    def __repr__(self):
+        return self.name
+
+    @property
+    def acute_injuries(self) -> List[str]:
+        injuries = Injury.query.filter_by(siteId=self.id).all()
+        logging.info(injuries)
+        return [injury.name for injury in injuries if injury.type == 0]
+
+    @property
+    def overuse_injuries(self) -> List[str]:
+        injuries = Injury.query.filter_by(siteId=self.id).all()
+        logging.info(injuries)
+        return [injury.name for injury in injuries if injury.type == 1]
+
+class Injury(db.Model):
+    __tablename__ = 'injury'
+
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(Integer)
+    name = db.Column(db.String)
+    # description = db.Column(db.String)
+    # temporary = db.Column(db.Boolean, nullable=True)
+    # invalidity_rate = db.Column(db.Float, nullable=True)
+    # recovery_duration = db.Column(db.Integer, nullable=True)
+
+    siteId = db.Column(db.Integer, db.ForeignKey('injury_site.id'))
+    site = db.relationship('InjurySite', back_populates='injuries')
+
+    # Ajout de la relation avec les joueurs
+    players = relationship('Player', secondary=player_injury_association, back_populates='injuries', single_parent=True, cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return self.name
 
 class Player(db.Model):
     __tablename__ = 'player'
@@ -152,6 +203,9 @@ class Player(db.Model):
     weight = db.Column(db.Integer, nullable=True)
     height = db.Column(db.Integer, nullable=True)
     isActive = db.Column(db.Boolean, default=True)
+
+    # Define the relationship with Team using many-to-many association
+    injuries = relationship('Injury', secondary=player_injury_association, back_populates='players', single_parent=True, cascade="all, delete-orphan")
 
     # Define the foreign key relationship with Club
     clubId = db.Column(db.Integer, db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)  # Add this line
@@ -214,7 +268,7 @@ class Player(db.Model):
 
     @property
     def full_info(self):
-        best_ranking = f', ex. {self.best_ranking}' if self.best_ranking.id < self.ranking.id else ''
+        best_ranking = f', ex. {self.best_ranking}' if self.best_ranking and self.best_ranking.id < self.ranking.id else ''
         age_and_ranking = f'({self.age} ans{best_ranking})'
         return f'{self.name} {self.ranking} {age_and_ranking}'
 
@@ -284,6 +338,7 @@ class Team(db.Model):
     name = db.Column(db.String(20), unique=False, nullable=False)
     captainId = db.Column(db.Integer, db.ForeignKey('player.id'))
     poolId = db.Column(db.Integer, db.ForeignKey('pool.id'), nullable=True)
+    ranking = db.Column(db.Integer, nullable=True)
 
     # Define the foreign key relationship with Pool
     pool = relationship('Pool', back_populates='teams')
@@ -390,6 +445,7 @@ class Division(db.Model):
 
     def __repr__(self):
         return f'{self.name}'
+
 
 class Championship(db.Model):
     __tablename__ = 'championship'
@@ -510,6 +566,7 @@ class Matchday(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
+    # tournament_round = db.Column(db.Integer, nullable=True)  # Champ pour le tour du tournoi (Null si phase de poule)
 
     # Define the many-to-one relationship with Pool
     championshipId = db.Column(db.Integer, db.ForeignKey('championship.id'), nullable=True)
@@ -523,12 +580,19 @@ class Matchday(db.Model):
         return f'Journée #{self.id}'
 
 
-# matchday_match_association = Table(
-#     'matchday_match_association',
-#     Base.metadata,
-#     db.Column('matchday_id', db.Integer, db.ForeignKey('matchday.id')),
-#     db.Column('match_id', db.Integer, db.ForeignKey('match.id'))
-# )
+# class FinalTable(db.Model):
+#     __tablename__ = 'final_table'
+#
+#     id = db.Column(db.Integer, primary_key=True)
+#     championshipId = db.Column(db.Integer, ForeignKey('championship.id'), nullable=False)
+#     teamId = db.Column(db.Integer, ForeignKey('team.id'), nullable=False)
+#     position = db.Column(db.Integer, nullable=False)
+#
+#     championship = relationship('Championship', back_populates='final_table')
+#     team = relationship('Team')
+#
+#     def __repr__(self):
+#         return f'Final Table Entry: Championship ID - {self.championshipId}, Team ID - {self.teamId}, Position - {self.position}'
 
 
 class Match(db.Model):

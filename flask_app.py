@@ -15,11 +15,12 @@ from flask import Flask, jsonify
 from flask import render_template
 from itsdangerous import URLSafeSerializer
 
-from TennisModel import db, License
+from TennisModel import db, License, InjurySite
 from admin import admin_bp
 
 from club import club_management_bp
 from championship import championship_management_bp
+from common import InjuryType
 from medical import medical_management_bp
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -79,7 +80,6 @@ def licensees_by_gender():
 # Define a custom filter function
 def sort_players_by_elo(players):
     return sorted(players, key=lambda p: p.refined_elo, reverse=True)
-
 
 # Add the filter to the Jinja environment
 app.jinja_env.filters['sort_players_by_elo'] = sort_players_by_elo
