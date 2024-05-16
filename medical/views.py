@@ -27,10 +27,8 @@ def injuries_old():
 @medical_management_bp.route('/injuries')
 def injuries():
     injury_sites = InjurySite.query.all()
-    current_app.logger.info(f'injury_sites: {injury_sites}')
     for site in injury_sites:
         site.injuries = Injury.query.filter_by(siteId=site.id).all()
-        current_app.logger.info(site.injuries)
     return render_template('injuries_classification.html', injury_sites=injury_sites)
 
 @medical_management_bp.route('/injured_players')
@@ -43,7 +41,7 @@ def search_players():
     search_query = request.args.get('search_query')
     if search_query:
         players = Player.query.join(License).filter(func.lower(License.lastName).like(f'{search_query.lower()}')).all()
-        current_app.logger.info(f'players: {players}')
+        # current_app.logger.info(f'players: {players}')
         return render_template('search_results.html', players=players)
     else:
         return render_template('search_players.html')
