@@ -350,14 +350,14 @@ def update_player(id):
         flash(f'Infos {player.name} mises à jour avec succès!')
         return redirect(url_for('club.index'))
     else:
-        signed_club_id = request.cookies.get('club_id')
-        try:
-            club_id = current_app.serializer.loads(signed_club_id)
-        except itsdangerous.exc.BadSignature:
-            return redirect(url_for('admin.select_club'))
-        club_id = current_app.serializer.loads(signed_club_id)
-        club = Club.query.get(club_id)
-        return render_template('update_player.html', player=player, club=club)
+        # signed_club_id = request.cookies.get('club_id')
+        # try:
+        #     club_id = current_app.serializer.loads(signed_club_id)
+        # except itsdangerous.exc.BadSignature:
+        #     return redirect(url_for('admin.select_club'))
+        # club_id = current_app.serializer.loads(signed_club_id)
+        # club = Club.query.get(club_id)
+        return render_template('update_player.html', player=player)
 
 
 @club_management_bp.route('/delete_player/<int:id>', methods=['GET', 'POST'])

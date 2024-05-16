@@ -8,7 +8,7 @@
 <main>
     <form action="{{ url_for('club.update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">
         <table class="update-form">
-            <caption class="table-caption">Fiche joueur ({{ club.name }})</caption> <!-- Titre ajouté ici -->
+            <caption class="table-caption">Fiche joueur ({{ player.club.name }})</caption> <!-- Titre ajouté ici -->
             <tr>
                 <td><label for="name">Nom</label></td>
                 <td>{{ player.name }}</td>
