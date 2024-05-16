@@ -334,7 +334,9 @@ class Player(db.Model):
         return max(self.current_elo, round(self.best_elo * age_factor))
 
     def has_injury(self, injury: Injury) -> bool:
-        return injury in self.injuries
+        test = any(i.id == injury.id for i in self.injuries)
+        logging.info(f'{injury} NOT in player!') if not test else logging.info(f'{injury} in player!')
+        return test
 
     def __repr__(self):
         return f'{self.name}'

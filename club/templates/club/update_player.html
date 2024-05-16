@@ -36,8 +36,7 @@
                     <select id="injuries" name="injuries[]" multiple>
                         <option value="">Sélectionnez une ou plusieurs blessures</option>
                         {% for injury in injuries %}
-                        <option value="{{ injury.id }}"
-                                {% if injury in player.injuries %}selected{% endif %}>
+                        <option value="{{ injury.id }}" {% if player.has_injury(injury) %}selected{% endif %}>
                             {{ injury.site.name }}->{{ acute_label if injury.type == 0 else overuse_label}}->{{ injury.name }}
                         </option>
                         {% endfor %}

@@ -350,15 +350,16 @@ def update_player(id):
         player.isActive = False if request.form.get('is_active') is None else True
         # Récupérez les valeurs sélectionnées dans le formulaire
         selected_injuries = request.form.getlist('injuries[]')
+        current_app.logger.debug(f'selected_injuries: {selected_injuries}')
         # Mettez à jour les blessures du joueur
-        player.injuries.clear()  # Supprime toutes les blessures actuelles du joueur
+        # player.injuries.clear()  # Supprime toutes les blessures actuelles du joueur
         for injury_id in selected_injuries:
             injury = Injury.query.get(injury_id)
             if injury:  # Vérifiez si l'ID de la blessure est valide
                 player.injuries.append(injury)
         db.session.commit()
         flash(f'Infos {player.name} mises à jour avec succès!')
-        return redirect(url_for('club.index'))
+        return redirect(url_for('medical.index'))
     else:
         # signed_club_id = request.cookies.get('club_id')
         # try:
