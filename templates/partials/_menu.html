@@ -21,6 +21,9 @@
             {% if request.endpoint == 'club.show_team' %}
                 <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}"><button>Retour poule</button></a></td>
             {% endif %}
+            {% if request.endpoint == 'club.update_player' %}
+                <td><a href="{{ url_for('medical.index')}}"><button>Sommaire infirmerie</button></a></td>
+            {% endif %}
         {% elif request.blueprint == 'admin' and request.path != '/admin/' %}
             <td><a href="{{ url_for('admin.index') }}"><button>Sommaire administration</button></a></td>
         {% elif request.blueprint == 'medical' %}
