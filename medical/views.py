@@ -33,8 +33,9 @@ def injuries():
 
 @medical_management_bp.route('/injured_players')
 def injured_players():
-    players_with_injuries = Player.query.filter(Player.injuries.any()).all()
-    return render_template('players.html', players=players_with_injuries, caption='Liste de joueurs ou joueuses blessé(e)s')
+    players = Player.query.filter(Player.injuries.any()).all()
+    sort_criteria = 'best_elo'
+    return render_template('players.html', players=players, caption=f'Liste de {len(players)} joueurs/joueuses blessé(e)s', sort_criteria=sort_criteria)
 
 @medical_management_bp.route('/search', methods=['GET'])
 def search_players():

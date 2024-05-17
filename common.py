@@ -8,7 +8,7 @@ import csv
 import re
 from datetime import datetime, timedelta
 from enum import Enum
-from random import shuffle, choice, random
+from random import shuffle, choice, random, sample, randint
 from typing import List, Optional
 
 import pandas as pd
@@ -283,6 +283,22 @@ def import_players(app, gender, csvfile, club, db):
             player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
             player.clubId, player.licenseId = club.id, license.id
             db.session.add(license)
+            db.session.add(player)
+            db.session.commit()
+            player = Player.query.get(player.id)
+            injuries = Injury.query.all()
+            injuries_id = [i.id for i in injuries]
+            # app.logger.debug(f'injuries: {len(injuries)}')
+            # for injury_id in selected_injuries:
+            #     injury = Injury.query.get(injury_id)
+            #     if injury:  # Vérifiez si l'ID de la blessure est valide
+            #         player.injuries.append(injury)
+            if (player.age > 45 and randint(1, 10) == 1) or (player.age > 35 and randint(1, 20) == 1):
+                # app.logger.debug(f'player: {player.id} - age: {player.age}')
+                max_injuries_count = (player.age // 20)
+                selected_injuries = sample(injuries_id, randint(1, max_injuries_count))
+                for injury_id in selected_injuries:
+                    player.injuries.append(Injury.query.get(injury_id))
             db.session.add(player)
         db.session.commit()
         players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()

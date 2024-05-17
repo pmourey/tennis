@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import re
 from datetime import datetime, timedelta, date
-from typing import Optional, List
+from typing import Optional, List, Iterable
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey, Table, Integer, String, Float, Boolean
@@ -331,12 +331,12 @@ class Player(db.Model):
         if self.best_elo <= self.current_elo:
             return self.current_elo
         age_factor = 1 - abs(self.age - best_rank_age) * age_decay_rate
-        return max(self.current_elo, round(self.best_elo * age_factor))
+        # Coefficient de pondération en fonction du nombre de blessures
+        injuries_weight = (1 - len(self.injuries) / 10)
+        return max(self.current_elo, round(self.best_elo * injuries_weight * age_factor))
 
     def has_injury(self, injury: Injury) -> bool:
-        test = any(i.id == injury.id for i in self.injuries)
-        logging.info(f'{injury} NOT in player!') if not test else logging.info(f'{injury} in player!')
-        return test
+        return any(i.id == injury.id for i in self.injuries)
 
     def __repr__(self):
         return f'{self.name}'
@@ -555,11 +555,21 @@ class Pool(db.Model):
 
     @property
     def best_team(self) -> Optional[Team]:
-        return max(self.teams, key=lambda team: team.weight(self.championship)) if self.teams else None
+        # return max(self.teams, key=lambda team: team.weight(self.championship)) if self.teams else None
+        teams: Iterable[Team] = self.teams
+        if teams:
+            return max(teams, key=lambda team: team.weight(self.championship))
+        else:
+            return None
 
     @property
     def worst_team(self) -> Optional[Team]:
-        return min(self.teams, key=lambda team: team.weight(self.championship)) if self.teams else None
+        # return min(self.teams, key=lambda team: team.weight(self.championship)) if self.teams else None
+        teams: Iterable[Team] = self.teams
+        if teams:
+            return min(teams, key=lambda team: team.weight(self.championship))
+        else:
+            return None
 
     @property
     def name(self):

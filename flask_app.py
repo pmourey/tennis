@@ -81,11 +81,17 @@ def licensees_by_gender():
 def sort_players_by_elo(players):
     return sorted(players, key=lambda p: p.refined_elo, reverse=True)
 
+def sort_players_by(players, sort_criteria):
+    if not sort_criteria:
+        return players
+    return sorted(players, key=lambda p: getattr(p, sort_criteria), reverse=True)
+
 def none_to_zero(value):
     return value if value != 'None' else ''
 
 # Add the filter to the Jinja environment
 app.jinja_env.filters['sort_players_by_elo'] = sort_players_by_elo
+app.jinja_env.filters['sort_players_by'] = sort_players_by
 app.jinja_env.filters['none_to_zero'] = none_to_zero
 
 # app.run()

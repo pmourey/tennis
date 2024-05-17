@@ -33,8 +33,16 @@
                         </span>
                     </div>
                 </td>
-                <td><a href="{{ url_for('club.show_team', id=pool.best_team.id) }}">{{ pool.best_team }} ({{ pool.best_team.weight(championship) }})</a></td>
-                <td><a href="{{ url_for('club.show_team', id=pool.worst_team.id) }}">{{ pool.worst_team }} ({{ pool.worst_team.weight(championship) }})</a></td>
+                {% if pool.best_team %}
+                    <td><a href="{{ url_for('club.show_team', id=pool.best_team.id) }}">{{ pool.best_team }} ({{ pool.best_team.weight(championship) }})</a></td>
+                {% else %}
+                    <td>N/A</td>
+                {% endif %}
+                {% if pool.worst_team %}
+                    <td><a href="{{ url_for('club.show_team', id=pool.worst_team.id) }}">{{ pool.worst_team }} ({{ pool.worst_team.weight(championship) }})</a></td>
+                {% else %}
+                    <td>N/A</td>
+                {% endif %}
             </tr>
         </div>
         {%endfor %}

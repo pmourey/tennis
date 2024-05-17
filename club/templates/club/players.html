@@ -20,7 +20,7 @@
             <th>Equipes</th>
         </tr>
         </thead>
-        {% for player in players %}
+        {% for player in players | sort_players_by(sort_criteria) %}
         {% set best_ranking = ' (ex ' + player.license.bestRanking.value + ')' if player.license.bestRanking and player.license.bestRanking.id < player.license.ranking.id %}
         <div id="player">
             <tr>
