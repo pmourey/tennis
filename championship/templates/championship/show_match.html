@@ -4,17 +4,17 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
-
 <main>
     <h1>Feuille de match</h1>
-    <h2>Journée du {{ match.date.strftime("%a. %d %b %Y")}} </h2>
+    <h2>Journée du {{ match.date.strftime("%a %d %b %Y")}} </h2>
     <h3>{{ match.pool.championship }} - Poule {{ match.pool.letter }}</h3>
 
     <h2>Équipe à domicile {{ match.homeTeam.club }} </h2>
     <ul>
         {% set sorted_home_players = match.homeTeam.players | sort_players_by_elo %}
         {% for player in sorted_home_players %}
-            <li>{{ player.full_info }}</li>
+        {% set icon_injury = "&#127973; " if player.injuries else '' %}
+            <li>{{ icon_injury | safe }}{{ player.full_info }}</li>
         {% endfor %}
     </ul>
 
@@ -22,7 +22,8 @@
     <ul>
         {% set sorted_visitor_players = match.visitorTeam.players | sort_players_by_elo %}
         {% for player in sorted_visitor_players %}
-            <li>{{ player.full_info }}</li>
+        {% set icon_injury = "&#127973; " if player.injuries else '' %}
+            <li>{{ icon_injury | safe }}{{ player.full_info }}</li>
         {% endfor %}
     </ul>
 

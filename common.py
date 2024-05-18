@@ -49,6 +49,7 @@ class Gender(Enum):
     Female = 1
     Mixte = 2
 
+
 class BodyPart(Enum):
     Head = 0
     Body = 1
@@ -77,6 +78,7 @@ class BodyPart(Enum):
     Throat = 24
     Lip = 25
     Chin = 26
+
 
 class InjuryType(Enum):
     Acute = 0
@@ -225,12 +227,13 @@ def load_rankings(db, Model: Ranking | BestRanking):
     db.session.add_all(rankings)
     db.session.commit()
 
+
 def load_injuries(app, db):
     static_folder = app.blueprints['medical'].static_folder
     file_path = os.path.join(static_folder, 'data', 'injuries_fr.json')
     with open(file_path, 'r') as file:
         injuries_data = json.load(file)
-    injury_types = {'Acute':  InjuryType.Acute.value, 'Overuse': InjuryType.OverUse.value}
+    injury_types = {'Acute': InjuryType.Acute.value, 'Overuse': InjuryType.OverUse.value}
     for injury_data in injuries_data:
         site = InjurySite(name=injury_data['site'])
         db.session.add(site)
@@ -244,6 +247,7 @@ def load_injuries(app, db):
                 )
                 db.session.add(injury)
     db.session.commit()
+
 
 def import_players(app, gender, csvfile, club, db):
     with open(csvfile, 'r', newline='') as file:
@@ -374,24 +378,26 @@ def remove_text_between_parentheses(text):
 
 
 def populate_championship(app, db, championship: Championship):
-    # Constitution des poules et journées de championnat
-    teams = []
+    # Section I: Constitution des poules et journées de championnat
     try:
+        # Section 1.1: formation des équipes
+        teams = []
         for club in Club.query.all():
             # app.logger.debug(f'Détermination équipe: {club} - championnat: {championship}')
             players = get_players_order_by_ranking(gender=championship.division.gender, club_id=club.id, asc_param=True, age_category=championship.age_category, is_active=True)
             # app.logger.debug(f'Nombre joueurs éligibles du club {club}: {len(players)}')
             if len(players) < championship.singlesCount:
                 continue
-            captain = min(players, key=lambda p: p.ranking.id)
+            captain = min(players, key=lambda p: p.best_elo)
             club_name = remove_text_between_parentheses(club.name)
             team = Team(name=f'{club_name} 1', captainId=captain.id)
             team.players = players[:10]
             teams.append(team)
             # app.logger.debug(f'Equipe {team} de poids {team.weight(championship)} créée avec succès composée de {len(team.players)} joueurs! {team.players}')
-        # Create pools and assign teams to each pool
+
+        # Section 1.2: Création des poules et assignation des équipes
         M = min(len(teams) - 1, len(championship.match_dates))
-        num_teams_per_pool = M + 1
+        num_teams_per_pool = M + 1 if M % 2 == 0 else M
         num_pools = len(teams) // num_teams_per_pool
         teams.sort(key=lambda t: t.weight(championship))
         selected_teams = teams[:num_pools * num_teams_per_pool]
@@ -405,6 +411,7 @@ def populate_championship(app, db, championship: Championship):
             db.session.commit()
             for j in range(i, i + num_teams_per_pool):
                 selected_teams[j].poolId = pool.id
+        # if exempted_teams:
         exempted_pool = Pool(championshipId=championship.id)
         db.session.add(exempted_pool)
         db.session.commit()
@@ -412,41 +419,42 @@ def populate_championship(app, db, championship: Championship):
             team.poolId = exempted_pool.id
         teams = selected_teams + exempted_teams
         db.session.add_all(teams)
+        db.session.commit()
     except Exception as e:
         app.logger.debug(f"Erreur dans la fonction 'populate_championship'!")
     finally:
-        db.session.commit()
-    pools = Pool.query.filter(Pool.championshipId == championship.id).all()
-    app.logger.debug(f'COMMIT DONE = {len(pools)} POOLS for {championship}')
-    # Génération des feuilles de matches
+        pools = Pool.query.filter(Pool.championshipId == championship.id).all()
+        app.logger.debug(f'COMMIT DONE = {len(pools) - int(len(exempted_teams) > 0)} POOLS of {num_teams_per_pool} teams for {championship}')
+
+    # Section II: Génération des feuilles de matches
     for pool in championship.pools:
         if pool.letter is None:
             continue
         play(app, db, pool)
         app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
-    # Tableau final
-    final_teams = exempted_pool.teams
-    min_teams_count = len(championship.pools)
-    n = min_teams_count + len(final_teams)
-    p = n // 2 + 1
-    qualified_teams = {}
-    for pool in championship.pools:
-        if pool.letter is None:
-            continue
-        pool_rankings = calculer_classement(pool)
-        qualified_teams[pool.id] = [team_id for team_id, ranking in pool_rankings]
-        app.logger.debug(f'{len(qualified_teams[pool.id])} TEAMS for pool {pool}: {qualified_teams[pool.id]}')
-    while len(final_teams) < 2 ** p:
-        for pool in championship.pools:
-            if pool.letter is None:
-                continue
-            team_id = qualified_teams[pool.id].pop(0)
-            final_teams += [Team.query.get(team_id)]
-            if len(final_teams) == 2 ** p:
-                break
-    app.logger.debug(f'COMMIT DONE = {len(final_teams)} TEAMS for FINALS of {championship}: {final_teams}')
 
-
+    # Section III: génération du tableau final
+    # if exempted_pool:
+    #     final_teams = exempted_pool.teams
+    #     min_teams_count = len(championship.pools)
+    #     n = min_teams_count + len(final_teams)
+    #     p = n // 2 + 1
+    #     qualified_teams = {}
+    #     for pool in championship.pools:
+    #         if pool.letter is None:
+    #             continue
+    #         pool_rankings = calculer_classement(pool)
+    #         qualified_teams[pool.id] = [team_id for team_id, ranking in pool_rankings]
+    #         app.logger.debug(f'{len(qualified_teams[pool.id])} TEAMS for pool {pool}: {qualified_teams[pool.id]}')
+    #     while len(final_teams) < 2 ** p:
+    #         for pool in championship.pools:
+    #             if pool.letter is None:
+    #                 continue
+    #             team_id = qualified_teams[pool.id].pop(0)
+    #             final_teams += [Team.query.get(team_id)]
+    #             if len(final_teams) == 2 ** p:
+    #                 break
+    #     app.logger.debug(f'COMMIT DONE = {len(final_teams)} TEAMS for FINALS of {championship}: {final_teams}')
 
 
 def round_robin(n):
@@ -460,12 +468,9 @@ def round_robin(n):
     result1 = []
 
     # creating (0,1), (0,2) ··· (n-1, n)
-    for i1 in range(n):
-        for i2 in range(n):
-            if i1 < i2:
-                f.append((i1, i2))
+    f = [(i1, i2) for i1 in range(n) for i2 in range(n) if i1 < i2]
 
-                # creating list of waiting time a = [0,1,2, ··· , n-1] and b = [0,0, ··· , 0]
+    # creating list of waiting time a = [0,1,2, ··· , n-1] and b = [0,0, ··· , 0]
     for i in range(n):
         a.append(i)
         b.append(0)
@@ -736,21 +741,49 @@ def simulate_score(app, db, home_players: List[Player], visitor_players: List[Pl
     db.session.commit()
 
 
+def distribute_matches(matches, Q, num_match_per_pool):
+    # Répartition des matchs$
+    done = False
+    while not done:
+        # Initialiser le calendrier
+        schedule = {day: [] for day in range(1, Q + 1)}
+        teams_played_per_day = {day: set() for day in range(1, Q + 1)}
+        match_copy = matches[:]
+        is_duplicate = False
+        for day in range(1, Q + 1):
+            if is_duplicate:
+                continue
+            for _ in range(num_match_per_pool):
+                if is_duplicate:
+                    continue
+                team1, team2 = choice(match_copy)
+                match_copy.remove((team1, team2))
+                if team1 not in teams_played_per_day[day] and team2 not in teams_played_per_day[day]:
+                    schedule[day].append((team1, team2))
+                    teams_played_per_day[day].add(team1)
+                    teams_played_per_day[day].add(team2)
+                else:
+                    is_duplicate = True
+        if not is_duplicate:
+            done = True
+    return schedule
+
+
 def play(app, db, pool: Pool):
     try:
         teams = {i + 1: team for i, team in enumerate(pool.teams)}
         app.logger.debug(f'TEAMS = {teams}')
         n = len(teams)
         num_days = n - 1 if n % 2 == 0 else n
-        matchs_data = round_robin(n)
+        schedule = distribute_matches(round_robin(n), num_days, n // 2)
         # app.logger.debug(f'MATCHS = {matchs_data}')
         matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
         # app.logger.debug(f'{len(matchdays)} MATCHDAYS = {matchdays}')
         for i in range(len(matchdays)):
             matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
             matchday = matchdays[i]
-            matches = matchs_data[i * n // 2: (i + 1) * n // 2]
-            # app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
+            matches = schedule[i + 1]
+            app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
             matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, visitorTeamId=teams[k].id, date=matchday.date) for j, k in matches]
             db.session.add_all(matches)
             # db.session.commit()
@@ -774,7 +807,7 @@ def play(app, db, pool: Pool):
                 # visitor_players.sort(key=lambda player: player.current_elo, reverse=True)
                 simulate_score(app=app, db=db, home_players=home_players, visitor_players=visitor_players, match=match)
                 match = Match.query.get(match.id)
-                app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
+                # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
     except Exception as e:
         app.logger.debug(f"Erreur dans la fonction 'play'!\n{e}")
 
