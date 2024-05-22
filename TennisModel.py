@@ -191,7 +191,7 @@ class Injury(db.Model):
     site = db.relationship('InjurySite', back_populates='injuries')
 
     # Ajout de la relation avec les joueurs
-    players = relationship('Player', secondary=player_injury_association, back_populates='injuries', single_parent=True, cascade="all, delete-orphan")
+    players = relationship('Player', secondary=player_injury_association, back_populates='injuries', single_parent=True)#, cascade="all, delete-orphan")
 
     @property
     def site_name(self) -> str:
@@ -210,7 +210,7 @@ class Player(db.Model):
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the relationship with Team using many-to-many association
-    injuries = relationship('Injury', secondary=player_injury_association, back_populates='players', single_parent=True, cascade="all, delete-orphan")
+    injuries = relationship('Injury', secondary=player_injury_association, back_populates='players', single_parent=True)#, cascade="all, delete-orphan")
 
     # Define the foreign key relationship with Club
     clubId = db.Column(db.Integer, db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)  # Add this line

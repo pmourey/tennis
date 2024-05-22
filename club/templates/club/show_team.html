@@ -7,6 +7,8 @@
 {% set icon_captain = " &#x1F3C5;" %}
 
 <main>
+    <button onclick="updateTeam()">Mettre à jour l'équipe</button>
+    <br>
     <table class="pool">
         <caption class="table-caption">{{ team.name }} - {{ team.championship.name }}</caption>
         <tr>
@@ -52,4 +54,10 @@
         </tr>
     </table>
 </main>
+<script>
+    function updateTeam() {
+        // Rediriger vers la page de mise à jour de l'équipe
+        window.location.href = "{{ url_for('club.update_team', id=team.id) }}";
+    }
+</script>
 {% endblock main %}
