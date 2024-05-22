@@ -388,7 +388,7 @@ def populate_championship(app, db, championship: Championship):
             # app.logger.debug(f'Nombre joueurs éligibles du club {club}: {len(players)}')
             if len(players) < championship.singlesCount:
                 continue
-            captain = min(players, key=lambda p: p.best_elo)
+            captain = max(players, key=lambda p: p.best_elo)
             club_name = remove_text_between_parentheses(club.name)
             team = Team(name=f'{club_name} 1', captainId=captain.id)
             team.players = players[:10]
