@@ -176,6 +176,7 @@ class InjurySite(db.Model):
         logging.info(injuries)
         return [injury.name for injury in injuries if injury.type == 1]
 
+
 class Injury(db.Model):
     __tablename__ = 'injury'
 
@@ -191,7 +192,7 @@ class Injury(db.Model):
     site = db.relationship('InjurySite', back_populates='injuries')
 
     # Ajout de la relation avec les joueurs
-    players = relationship('Player', secondary=player_injury_association, back_populates='injuries', single_parent=True)#, cascade="all, delete-orphan")
+    players = relationship('Player', secondary=player_injury_association, back_populates='injuries', single_parent=True)  # , cascade="all, delete-orphan")
 
     @property
     def site_name(self) -> str:
@@ -200,6 +201,7 @@ class Injury(db.Model):
 
     def __repr__(self):
         return self.name
+
 
 class Player(db.Model):
     __tablename__ = 'player'
@@ -210,7 +212,7 @@ class Player(db.Model):
     isActive = db.Column(db.Boolean, default=True)
 
     # Define the relationship with Team using many-to-many association
-    injuries = relationship('Injury', secondary=player_injury_association, back_populates='players', single_parent=True)#, cascade="all, delete-orphan")
+    injuries = relationship('Injury', secondary=player_injury_association, back_populates='players', single_parent=True)  # , cascade="all, delete-orphan")
 
     # Define the foreign key relationship with Club
     clubId = db.Column(db.Integer, db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)  # Add this line
@@ -461,10 +463,12 @@ class Championship(db.Model):
     __tablename__ = 'championship'
 
     id = db.Column(db.Integer, primary_key=True)
-    startDate = db.Column(db.Date, nullable=False)
-    endDate = db.Column(db.Date, nullable=False)
+    # startDate = db.Column(db.Date, nullable=False)
+    # endDate = db.Column(db.Date, nullable=False)
     singlesCount = db.Column(db.Integer, nullable=False)
     doublesCount = db.Column(db.Integer, nullable=False)
+
+    # dates = relationship('ChampionshipDate', backref='championship', lazy='dynamic')
 
     divisionId = db.Column(db.Integer, db.ForeignKey('division.id'))  # Ajout de la clé étrangère vers la division
     division = relationship('Division')  # Relation avec la division
@@ -501,31 +505,21 @@ class Championship(db.Model):
             teams.extend(Pool.query.get(pool.id).teams)
         return teams
 
-    @property
-    def match_dates(self):
-        sundays = []
-        current_date = self.startDate
-        while current_date <= self.endDate:
-            if current_date.weekday() == 6:  # Sunday has index 6
-                sundays.append(current_date)
-            current_date += timedelta(days=1)
-        return sundays
-
-    @property
-    def match_dates_new(self):
-        division = Division.query.get(self.divisionId)
-        if division.type == 0:  # National
-            # dimanches 27 avril, 4, 11, 18 et 25 mai 2025
-            return [date(2025, 4, 27), date(2025, 5, 4), date(2025, 5, 11), date(2025, 5, 18), date(2025, 5, 25)]
-        elif division.ageCategory.type == 1:  # Senior
-            if division.ageCategory.minAge in [35, 45, 55]:
-                # Dimanches 1, 8, 15, 22 octobre 2023
-                # Dimanche 12 novembre 2023
-                return [date(2023, 10, 1), date(2023, 10, 8), date(2023, 10, 15), date(2023, 10, 22), date(2023, 11, 12)]
-            elif division.ageCategory.minAge in [65, 75]:
-                # Mardis 3, 10, 17, 24 octobre 2023
-                # Mardi 7 novembre 2023
-                return [date(2023, 10, 3), date(2023, 10, 10), date(2023, 10, 17), date(2023, 10, 24), date(2023, 11, 7)]
+    # @property
+    # def match_dates_new(self):
+    #     division = Division.query.get(self.divisionId)
+    #     if division.type == 0:  # National
+    #         # dimanches 27 avril, 4, 11, 18 et 25 mai 2025
+    #         return [date(2025, 4, 27), date(2025, 5, 4), date(2025, 5, 11), date(2025, 5, 18), date(2025, 5, 25)]
+    #     elif division.ageCategory.type == 1:  # Senior
+    #         if division.ageCategory.minAge in [35, 45, 55]:
+    #             # Dimanches 1, 8, 15, 22 octobre 2023
+    #             # Dimanche 12 novembre 2023
+    #             return [date(2023, 10, 1), date(2023, 10, 8), date(2023, 10, 15), date(2023, 10, 22), date(2023, 11, 12)]
+    #         elif division.ageCategory.minAge in [65, 75]:
+    #             # Mardis 3, 10, 17, 24 octobre 2023
+    #             # Mardi 7 novembre 2023
+    #             return [date(2023, 10, 3), date(2023, 10, 10), date(2023, 10, 17), date(2023, 10, 24), date(2023, 11, 7)]
 
     def __repr__(self):
         return f'{self.name}'

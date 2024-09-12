@@ -133,6 +133,8 @@ def import_all_data(app, db) -> str:
         colonnes_a_recuperer = ['name', 'city', 'tennis_courts', 'padel_courts', 'beach_courts', 'latitude', 'longitude']
         club_tenup = extract(df=df, field_criteria='id', field_value=club_info['id'], columns=colonnes_a_recuperer)
         app.logger.debug(f'club_tenup: {club_tenup}')
+        if not club_info['active']:
+            continue
         if club_tenup is None:
             club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
         else:
@@ -164,10 +166,10 @@ def load_age_categories(db):
         AgeCategory(type=CatType.Youth.value, minAge=15, maxAge=16),
         AgeCategory(type=CatType.Youth.value, minAge=17, maxAge=18),
         AgeCategory(type=CatType.Senior.value, minAge=18, maxAge=99),
-        AgeCategory(type=CatType.Veteran.value, minAge=35, maxAge=99),
-        AgeCategory(type=CatType.Veteran.value, minAge=45, maxAge=99),
-        AgeCategory(type=CatType.Veteran.value, minAge=55, maxAge=99),
-        AgeCategory(type=CatType.Veteran.value, minAge=65, maxAge=99),
+        AgeCategory(type=CatType.Veteran.value, minAge=35, maxAge=44),
+        AgeCategory(type=CatType.Veteran.value, minAge=45, maxAge=54),
+        AgeCategory(type=CatType.Veteran.value, minAge=55, maxAge=64),
+        AgeCategory(type=CatType.Veteran.value, minAge=65, maxAge=74),
         AgeCategory(type=CatType.Veteran.value, minAge=75, maxAge=99),
     ]
     db.session.add_all(age_categories)
@@ -396,21 +398,28 @@ def populate_championship(app, db, championship: Championship):
             # app.logger.debug(f'Equipe {team} de poids {team.weight(championship)} créée avec succès composée de {len(team.players)} joueurs! {team.players}')
 
         # Section 1.2: Création des poules et assignation des équipes
-        M = min(len(teams) - 1, len(championship.match_dates))
+        M = min(len(teams) - 1, len(championship.matchdays))
         num_teams_per_pool = M + 1 if M % 2 == 0 else M
         num_pools = len(teams) // num_teams_per_pool
         teams.sort(key=lambda t: t.weight(championship))
         selected_teams = teams[:num_pools * num_teams_per_pool]
         exempted_teams = teams[num_pools * num_teams_per_pool:]
-        shuffle(selected_teams)
+        # shuffle(selected_teams)
         # app.logger.debug(f'{championship} - Nombre équipes par poule: {num_teams_per_pool} - Nombre de journées: {M}')
         # app.logger.debug(f'{len(selected_teams)} équipes sélectionnées pour la phase de poules')
         for i in range(0, len(selected_teams), num_teams_per_pool):
             pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
             db.session.add(pool)
             db.session.commit()
-            for j in range(i, i + num_teams_per_pool):
-                selected_teams[j].poolId = pool.id
+            # for j in range(i, i + num_teams_per_pool):
+            #     selected_teams[j].poolId = pool.id
+        app.logger.debug(f'selected_teams = {selected_teams}')
+        team_candidates = [*selected_teams]
+        while team_candidates:
+            for pool in championship.pools:
+                team = team_candidates.pop()
+                team.poolId = pool.id
+
         # if exempted_teams:
         exempted_pool = Pool(championshipId=championship.id)
         db.session.add(exempted_pool)
@@ -783,7 +792,7 @@ def play(app, db, pool: Pool):
             matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
             matchday = matchdays[i]
             matches = schedule[i + 1]
-            app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
+            # app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
             matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, visitorTeamId=teams[k].id, date=matchday.date) for j, k in matches]
             db.session.add_all(matches)
             # db.session.commit()

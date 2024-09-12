@@ -9,28 +9,25 @@
             <caption class="table-caption">Fiche création championnat {{selected_division}}</caption>
             <!-- Hidden field for division_id -->
             <input type="hidden" name="division" value="{{ selected_division.id }}">
-<!--            <tr>
-                <td><label for="name">Nom :</label></td>
-                <td><input type="text" id="name" name="name" required></td>
-            </tr>-->
-            <td><label for="start_date">Date de début :</label></td>
-            <td><input type="date" id="start_date" name="start_date" required></td>
-            </tr>
 
+            <!-- Calendar dates selection -->
             <tr>
-                <td><label for="end_date">Date de fin :</label></td>
-                <td><input type="date" id="end_date" name="end_date" required></td>
-            </tr>
-
-            <tr>
-                <td><label for="singles_count">Nombre de matchs simples :</label>
+                <td><label for="dates">Sélectionner les dates du championnat :</label></td>
+                <td>
+                    <div id="dates_container">
+                        <input type="date" name="dates[]" class="championship-date" required>
+                    </div>
+                    <button type="button" id="add_date_button">Ajouter une date</button>
                 </td>
+            </tr>
+
+            <tr>
+                <td><label for="singles_count">Nombre de matchs simples :</label></td>
                 <td><input type="number" id="singles_count" name="singles_count" min="0" required></td>
             </tr>
 
             <tr>
-                <td><label for="doubles_count">Nombre de matchs doubles :</label>
-                </td>
+                <td><label for="doubles_count">Nombre de matchs doubles :</label></td>
                 <td><input type="number" id="doubles_count" name="doubles_count" min="0" required></td>
             </tr>
 
@@ -39,5 +36,17 @@
             </tr>
         </table>
     </form>
+
+    <script>
+        // Add more date input fields dynamically
+        document.getElementById('add_date_button').addEventListener('click', function() {
+            var newDateInput = document.createElement('input');
+            newDateInput.setAttribute('type', 'date');
+            newDateInput.setAttribute('name', 'dates[]');
+            newDateInput.classList.add('championship-date');
+            newDateInput.required = true;  // Make all date fields required
+            document.getElementById('dates_container').appendChild(newDateInput);
+        });
+    </script>
 </main>
 {% endblock %}

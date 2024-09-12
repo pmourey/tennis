@@ -52,39 +52,96 @@ def select_division():
     return render_template('select_division.html', divisions=new_divisions)
 
 
-
 @championship_management_bp.route('/new_championship', methods=['GET', 'POST'])
 def new_championship():
     if request.method == 'POST':
-        start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
-        end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d')
+        # Fetching the list of dates from the form
+        date_strings = request.form.getlist('dates[]')
+        selected_dates = [datetime.strptime(date_str, '%Y-%m-%d') for date_str in date_strings]
+
         singles_count = int(request.form['singles_count'])
         doubles_count = int(request.form['doubles_count'])
-        division_id = int(request.form['division'])  # Récupérer l'identifiant de la division sélectionnée
-        if start_date > end_date or count_sundays_between_dates(start_date, end_date) == 0:
-            flash(f'Impossible de créer le championnat pour la durée demandée!', 'error')
+        division_id = int(request.form['division'])  # Get the selected division ID
+
+        # Validation: Ensure at least one date is provided
+        if not selected_dates:
+            flash('Veuillez sélectionner au moins une date pour le championnat!', 'error')
             division = Division.query.get(division_id)
             return render_template('new_championship.html', selected_division=division)
-        championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count, divisionId=division_id)
+
+        # Optional: Additional validation (e.g., ensure no conflicts between dates)
+        # Example: check if there is at least one Sunday in the selected dates
+        sundays_count = sum(1 for date in selected_dates if date.weekday() == 6)
+        if sundays_count == 0:
+            flash('Aucune des dates sélectionnées n\'est un dimanche!', 'error')
+            division = Division.query.get(division_id)
+            return render_template('new_championship.html', selected_division=division)
+
+        # Create the championship
+        championship = Championship(
+            singlesCount=singles_count,
+            doublesCount=doubles_count,
+            divisionId=division_id
+        )
+
         current_app.logger.debug(f'championship: {championship}')
         db.session.add(championship)
-        # db.session.commit()
+
         try:
-            # Création des journées de championnat pour la saison en cours
-            for date in championship.match_dates:
+            # Create matchdays for each selected date
+            for date in selected_dates:
                 matchday = Matchday(date=date, championshipId=championship.id)
                 championship.matchdays.append(matchday)
-                db.session.add(championship)
                 db.session.add(matchday)
-                # db.session.commit()
+
             populate_championship(app=current_app, db=db, championship=championship)
             flash('Championnat créé avec succès!', 'success')
         except Exception as e:
-            flash(f'{e}\nImpossible de créer le championnat pour le nombre de journées demandées... Veuillez modifier la durée!', 'error')
+            db.session.rollback()  # Rollback if an error occurs
+            flash(f'Erreur: {e}\nImpossible de créer le championnat.', 'error')
+            division = Division.query.get(division_id)
+            return render_template('new_championship.html', selected_division=division)
+
         db.session.commit()
         return render_template('championship_index.html')
-    divisions = AgeCategory.query.all()
+
+    # GET request: Render the form with divisions
+    divisions = Division.query.all()
     return render_template('new_championship.html', divisions=divisions)
+
+
+# @championship_management_bp.route('/new_championship_old', methods=['GET', 'POST'])
+# def new_championship_old():
+#     if request.method == 'POST':
+#         start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
+#         end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d')
+#         singles_count = int(request.form['singles_count'])
+#         doubles_count = int(request.form['doubles_count'])
+#         division_id = int(request.form['division'])  # Récupérer l'identifiant de la division sélectionnée
+#         if start_date > end_date or count_sundays_between_dates(start_date, end_date) == 0:
+#             flash(f'Impossible de créer le championnat pour la durée demandée!', 'error')
+#             division = Division.query.get(division_id)
+#             return render_template('new_championship.html', selected_division=division)
+#         championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count, divisionId=division_id)
+#         current_app.logger.debug(f'championship: {championship}')
+#         db.session.add(championship)
+#         # db.session.commit()
+#         try:
+#             # Création des journées de championnat pour la saison en cours
+#             for date in championship.matchdays:
+#                 matchday = Matchday(date=date, championshipId=championship.id)
+#                 championship.matchdays.append(matchday)
+#                 db.session.add(championship)
+#                 db.session.add(matchday)
+#                 # db.session.commit()
+#             populate_championship(app=current_app, db=db, championship=championship)
+#             flash('Championnat créé avec succès!', 'success')
+#         except Exception as e:
+#             flash(f'{e}\nImpossible de créer le championnat pour le nombre de journées demandées... Veuillez modifier la durée!', 'error')
+#         db.session.commit()
+#         return render_template('championship_index.html')
+#     divisions = AgeCategory.query.all()
+#     return render_template('new_championship.html', divisions=divisions)
 
 @championship_management_bp.route('/loading')
 def loading():

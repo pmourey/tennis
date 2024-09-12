@@ -28,7 +28,7 @@
                 <td>{{ championship.pools|length - exempted_pool }}</td>
                 <td>{{ championship.matchdays|length}}</td>
                 <td>{{ championship.singlesCount }} {{singles_label}} / {{ championship.doublesCount }} {{doubles_label}}</td>
-                <td>{{ championship.startDate.strftime('%d/%m') }}-{{ championship.endDate.strftime('%d/%m') }}</td>
+                <td>{{ championship.matchdays[0].date.strftime('%d/%m') }}-{{ championship.matchdays[-1].date.strftime('%d/%m') }}</td>
             </tr>
         </div>
         {%endfor %}
