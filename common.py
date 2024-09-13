@@ -416,8 +416,11 @@ def populate_championship(app, db, championship: Championship):
         app.logger.debug(f'selected_teams = {selected_teams}')
         team_candidates = [*selected_teams]
         while team_candidates:
-            shuffle(championship.pools)
-            for pool in championship.pools:
+            # shuffle(championship.pools)
+            letters: list[str] = [p.letter for p in championship.pools]
+            shuffle(letters)
+            for letter in letters:
+                pool = Pool.query.filter(Pool.championshipId == championship.id, Pool.letter == letter).first()
                 team = team_candidates.pop()
                 team.poolId = pool.id
 
