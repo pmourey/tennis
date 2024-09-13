@@ -416,6 +416,7 @@ def populate_championship(app, db, championship: Championship):
         app.logger.debug(f'selected_teams = {selected_teams}')
         team_candidates = [*selected_teams]
         while team_candidates:
+            shuffle(championship.pools)
             for pool in championship.pools:
                 team = team_candidates.pop()
                 team.poolId = pool.id

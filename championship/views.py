@@ -110,38 +110,19 @@ def new_championship():
     return render_template('new_championship.html', divisions=divisions)
 
 
-# @championship_management_bp.route('/new_championship_old', methods=['GET', 'POST'])
-# def new_championship_old():
-#     if request.method == 'POST':
-#         start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
-#         end_date = datetime.strptime(request.form['end_date'], '%Y-%m-%d')
-#         singles_count = int(request.form['singles_count'])
-#         doubles_count = int(request.form['doubles_count'])
-#         division_id = int(request.form['division'])  # Récupérer l'identifiant de la division sélectionnée
-#         if start_date > end_date or count_sundays_between_dates(start_date, end_date) == 0:
-#             flash(f'Impossible de créer le championnat pour la durée demandée!', 'error')
-#             division = Division.query.get(division_id)
-#             return render_template('new_championship.html', selected_division=division)
-#         championship = Championship(startDate=start_date, endDate=end_date, singlesCount=singles_count, doublesCount=doubles_count, divisionId=division_id)
-#         current_app.logger.debug(f'championship: {championship}')
-#         db.session.add(championship)
-#         # db.session.commit()
-#         try:
-#             # Création des journées de championnat pour la saison en cours
-#             for date in championship.matchdays:
-#                 matchday = Matchday(date=date, championshipId=championship.id)
-#                 championship.matchdays.append(matchday)
-#                 db.session.add(championship)
-#                 db.session.add(matchday)
-#                 # db.session.commit()
-#             populate_championship(app=current_app, db=db, championship=championship)
-#             flash('Championnat créé avec succès!', 'success')
-#         except Exception as e:
-#             flash(f'{e}\nImpossible de créer le championnat pour le nombre de journées demandées... Veuillez modifier la durée!', 'error')
-#         db.session.commit()
-#         return render_template('championship_index.html')
-#     divisions = AgeCategory.query.all()
-#     return render_template('new_championship.html', divisions=divisions)
+@championship_management_bp.route('/delete_championship/<int:championship_id>', methods=['POST'])
+def delete_championship(championship_id):
+    championship = Championship.query.get_or_404(championship_id)
+
+    try:
+        db.session.delete(championship)
+        db.session.commit()
+        flash('Championship deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting championship: {str(e)}', 'error')
+
+    return redirect(url_for('championship.show_championships'))
 
 @championship_management_bp.route('/loading')
 def loading():
