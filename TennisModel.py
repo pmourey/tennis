@@ -286,7 +286,7 @@ class Player(db.Model):
         return today.year - self.birthDate.year - ((today.month, today.day) < (self.birthDate.month, self.birthDate.day))
 
     def has_valid_age(self, age_category) -> bool:
-        return age_category.minAge <= self.age <= age_category.maxAge
+        return age_category.minAge - 1 <= self.age < age_category.maxAge
 
     # Add a property to format the birth date (based on license info)
     @property
