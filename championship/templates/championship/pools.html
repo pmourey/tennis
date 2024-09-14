@@ -52,7 +52,8 @@
         <table class="pools">
             <caption class="table-caption">Equipes directement qualifiées pour le tableau final</caption> <!-- Titre ajouté ici -->
             {% for team in exempted_teams %}
-                <tr><td>{{ team.name }} ({{ team.weight(championship) }})</td></tr>
+                <tr><td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team }} ({{ team.weight(championship) }})</a></td></tr>
+<!--                <tr><td>{{ team.name }} ({{ team.weight(championship) }})</td></tr>-->
             {%endfor %}
         </table>
     {% endif %}
