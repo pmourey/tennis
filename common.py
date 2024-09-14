@@ -393,7 +393,7 @@ def populate_championship(app, db, championship: Championship):
             captain = max(players, key=lambda p: p.best_elo)
             club_name = remove_text_between_parentheses(club.name)
             team = Team(name=f'{club_name} 1', captainId=captain.id)
-            team.players = players[:10]
+            team.players = players[:15]
             teams.append(team)
             # app.logger.debug(f'Equipe {team} de poids {team.weight(championship)} créée avec succès composée de {len(team.players)} joueurs! {team.players}')
 
