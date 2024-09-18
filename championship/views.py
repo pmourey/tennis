@@ -133,11 +133,22 @@ def simulate_championship(championship_id):
         for pool in championship.pools:
             if pool.letter is None:
                 continue
-            # matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-            # if any(matchday.matches for matchday in matchdays):
-            #     for matchday in matchdays:
-            #         db.session.delete(matchday.matches)
-            #     db.session.commit()
+            matches = Match.query.filter_by(poolId=pool.id).all()
+            # for m in matches:
+            #     current_app.logger.debug(f'{len(m.singles)} singles for match {m}')
+            if any(m.singles for m in matches):
+                for match in matches:
+                    # Delete individual singles matches
+                    for single in match.singles:
+                        db.session.delete(single)
+                    # Delete individual doubles matches
+                    for double in match.doubles:
+                        db.session.delete(double)
+                    # Clear the lists
+                    match.singles.clear()
+                    match.doubles.clear()
+                db.session.commit()
+            # current_app.logger.debug(f'TRACE 1')
             simulate_match_scores(current_app, db, pool)
             current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
         flash(f'{championship} simulation completed!', 'success')
