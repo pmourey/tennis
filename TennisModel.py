@@ -657,7 +657,7 @@ class Match(db.Model):
 
     @property
     def score(self) -> str:
-        return f'{self.homeScore}-{self.visitorScore}'
+        return f'{self.homeScore}-{self.visitorScore}' if self.homeScore is not None and self.visitorScore is not None else ''
 
     def __repr__(self):
         return f'{self.score}'

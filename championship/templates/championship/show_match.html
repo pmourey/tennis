@@ -27,21 +27,23 @@
         {% endfor %}
     </ul>
 
-    <h2>Résultat rencontre</h2>
-    <p>Score : {{ match.score }}</p>
+    {% if match.score %}
+        <h2>Résultat rencontre</h2>
+        <p>Score : {{ match.score }}</p>
 
-    <h3>Simples</h3>
-    <ul>
-        {% for single in match.singles %}
-            <li>{{ single.player1.info }} vs {{ single.player2.info }} - Score : {{ single.score }}</li>
-        {% endfor %}
-    </ul>
+        <h3>Simples</h3>
+        <ul>
+            {% for single in match.singles %}
+                <li>{{ single.player1.info }} vs {{ single.player2.info }} - Score : {{ single.score }}</li>
+            {% endfor %}
+        </ul>
 
-    <h3>Doubles</h3>
-    <ul>
-        {% for double in match.doubles %}
-            <li>{{ double.player1.double_info }} - {{ double.player2.double_info }} vs {{ double.player3.double_info }} - {{ double.player4.double_info }} - Score : {{ double.score }}</li>
-        {% endfor %}
-    </ul>
+        <h3>Doubles</h3>
+        <ul>
+            {% for double in match.doubles %}
+                <li>{{ double.player1.double_info }} - {{ double.player2.double_info }} vs {{ double.player3.double_info }} - {{ double.player4.double_info }} - Score : {{ double.score }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 </main>
 {% endblock main %}

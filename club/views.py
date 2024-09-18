@@ -229,7 +229,7 @@ def update_team(id):
     sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
     current_app.logger.debug(f"sorted_team_players = {sorted_team_players}")
     if active_players:
-        max_players = min(10, len(active_players))
+        max_players = min(15, len(active_players))
         return render_template('update_team.html', team=team, sorted_team_players=sorted_team_players, players=active_players, max_players=max_players, form=request.form)
     else:
         club = Club.query.get(team.club.id)

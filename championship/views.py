@@ -10,7 +10,7 @@ from flask import render_template, redirect, url_for, flash
 
 from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match
 from championship import championship_management_bp
-from common import populate_championship, calculer_classement, count_sundays_between_dates
+from common import populate_championship, calculer_classement, count_sundays_between_dates, simulate_match_scores
 
 
 # Define routes for championship management
@@ -121,6 +121,29 @@ def delete_championship(championship_id):
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting championship: {str(e)}', 'error')
+
+    return redirect(url_for('championship.show_championships'))
+
+@championship_management_bp.route('/simulate_championship/<int:championship_id>', methods=['POST'])
+def simulate_championship(championship_id):
+    championship = Championship.query.get_or_404(championship_id)
+
+    try:
+        # Section II: Génération des feuilles de matches
+        for pool in championship.pools:
+            if pool.letter is None:
+                continue
+            # matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+            # if any(matchday.matches for matchday in matchdays):
+            #     for matchday in matchdays:
+            #         db.session.delete(matchday.matches)
+            #     db.session.commit()
+            simulate_match_scores(current_app, db, pool)
+            current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
+        flash(f'{championship} simulation completed!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error simulating championship: {str(e)}', 'error')
 
     return redirect(url_for('championship.show_championships'))
 

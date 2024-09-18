@@ -439,12 +439,12 @@ def populate_championship(app, db, championship: Championship):
         pools = Pool.query.filter(Pool.championshipId == championship.id).all()
         app.logger.debug(f'COMMIT DONE = {len(pools) - int(len(exempted_teams) > 0)} POOLS of {num_teams_per_pool} teams for {championship}')
 
-    # Section II: Génération des feuilles de matches
+    # Section II: Génération des ordonnancements de matches
     for pool in championship.pools:
         if pool.letter is None:
             continue
-        play(app, db, pool)
-        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
+        schedule_matches(app, db, pool)
+        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
 
     # Section III: génération du tableau final
     # if exempted_pool:
@@ -781,48 +781,85 @@ def distribute_matches(matches, Q, num_match_per_pool):
             done = True
     return schedule
 
-
-def play(app, db, pool: Pool):
+def schedule_matches(app, db, pool: Pool):
     try:
         teams = {i + 1: team for i, team in enumerate(pool.teams)}
         app.logger.debug(f'TEAMS = {teams}')
         n = len(teams)
         num_days = n - 1 if n % 2 == 0 else n
         schedule = distribute_matches(round_robin(n), num_days, n // 2)
-        # app.logger.debug(f'MATCHS = {matchs_data}')
         matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-        # app.logger.debug(f'{len(matchdays)} MATCHDAYS = {matchdays}')
         for i in range(len(matchdays)):
             matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
             matchday = matchdays[i]
             matches = schedule[i + 1]
-            # app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
             matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, visitorTeamId=teams[k].id, date=matchday.date) for j, k in matches]
             db.session.add_all(matches)
-            # db.session.commit()
-            # matchday.matches = matches
-            # db.session.add(matchday)
             db.session.commit()
-            # matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-            # matchday = matchdays[i]
-            matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-            matchday = matchdays[i]
-            # app.logger.debug(f'PROUT MATCHDAY {i + 1} = {len(matchday.matches)} matches')
+    except Exception as e:
+        app.logger.debug(f"Error in schedule_matches function!\n{e}")
+
+def simulate_match_scores(app, db, pool: Pool):
+    try:
+        matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+        for matchday in matchdays:
             for match in matchday.matches:
                 if match.poolId != pool.id:
                     continue
-                # score = simulate_score(home_team=match.homeTeam, visitor_team=match.awayTeam, championship=pool.championship)
-                # Select Players for both teams
                 num_players = pool.championship.singlesCount + 2 * pool.championship.doublesCount
                 home_players = sorted(match.homeTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
-                # home_players.sort(key=lambda player: player.current_elo, reverse=True)
                 visitor_players = sorted(match.visitorTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
-                # visitor_players.sort(key=lambda player: player.current_elo, reverse=True)
                 simulate_score(app=app, db=db, home_players=home_players, visitor_players=visitor_players, match=match)
                 match = Match.query.get(match.id)
-                # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
+                app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
     except Exception as e:
-        app.logger.debug(f"Erreur dans la fonction 'play'!\n{e}")
+        app.logger.debug(f"Error in simulate_match_scores function!\n{e}")
+
+def play(app, db, pool: Pool):
+    schedule_matches(app, db, pool)
+    simulate_match_scores(app, db, pool)
+
+# def play(app, db, pool: Pool):
+#     try:
+#         teams = {i + 1: team for i, team in enumerate(pool.teams)}
+#         app.logger.debug(f'TEAMS = {teams}')
+#         n = len(teams)
+#         num_days = n - 1 if n % 2 == 0 else n
+#         schedule = distribute_matches(round_robin(n), num_days, n // 2)
+#         # app.logger.debug(f'MATCHS = {matchs_data}')
+#         matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+#         # app.logger.debug(f'{len(matchdays)} MATCHDAYS = {matchdays}')
+#         for i in range(len(matchdays)):
+#             matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+#             matchday = matchdays[i]
+#             matches = schedule[i + 1]
+#             # app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
+#             matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, visitorTeamId=teams[k].id, date=matchday.date) for j, k in matches]
+#             db.session.add_all(matches)
+#             # db.session.commit()
+#             # matchday.matches = matches
+#             # db.session.add(matchday)
+#             db.session.commit()
+#             # matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+#             # matchday = matchdays[i]
+#             matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+#             matchday = matchdays[i]
+#             # app.logger.debug(f'PROUT MATCHDAY {i + 1} = {len(matchday.matches)} matches')
+#             for match in matchday.matches:
+#                 if match.poolId != pool.id:
+#                     continue
+#                 # score = simulate_score(home_team=match.homeTeam, visitor_team=match.awayTeam, championship=pool.championship)
+#                 # Select Players for both teams
+#                 num_players = pool.championship.singlesCount + 2 * pool.championship.doublesCount
+#                 home_players = sorted(match.homeTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
+#                 # home_players.sort(key=lambda player: player.current_elo, reverse=True)
+#                 visitor_players = sorted(match.visitorTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
+#                 # visitor_players.sort(key=lambda player: player.current_elo, reverse=True)
+#                 simulate_score(app=app, db=db, home_players=home_players, visitor_players=visitor_players, match=match)
+#                 match = Match.query.get(match.id)
+#                 # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
+#     except Exception as e:
+#         app.logger.debug(f"Erreur dans la fonction 'play'!\n{e}")
 
 
 def extract_courts(club_json):
@@ -854,42 +891,59 @@ def calculer_classement(pool):
         # matches = Match.query.filter(Match.poolId == pool.id, Match.homeTeamId == team.id).all()
         logging.info(f'{team} : {len(matches)} matches')
 
-        team_matches_played: int = len(matches)
-        # matches_played = len(pool.teams) - 1
-        team_matches_won: int = (sum(1 for m in matches if team.is_visitor(match=m) and m.homeScore < m.visitorScore)
-                                 + sum(1 for m in matches if not team.is_visitor(match=m) and m.homeScore > m.visitorScore))
-        team_matches_lost: int = (sum(1 for m in matches if team.is_visitor(match=m) and m.homeScore > m.visitorScore)
-                                  + sum(1 for m in matches if not team.is_visitor(match=m) and m.homeScore < m.visitorScore))
-        team_matches_draw: int = sum(1 for m in matches if m.homeScore == m.visitorScore)
-        points = 3 * team_matches_won + 2 * team_matches_draw + team_matches_lost
+        if all(m.homeScore is None and m.visitorScore is None for m in matches):
+            # If no matches have been played, initialize all values to 0
+            team_matches_played = 0
+            team_matches_won = 0
+            team_matches_lost = 0
+            team_matches_draw = 0
+            points = 0
+            won_matches = 0
+            lost_matches = 0
+            diff_matchs = 0
+            sets_won = 0
+            sets_lost = 0
+            games_won = 0
+            games_lost = 0
+            diff_sets = 0
+            diff_games = 0
+        else:
+            team_matches_played: int = len(matches)
+            # matches_played = len(pool.teams) - 1
+            team_matches_won: int = (sum(1 for m in matches if team.is_visitor(match=m) and m.homeScore < m.visitorScore)
+                                     + sum(1 for m in matches if not team.is_visitor(match=m) and m.homeScore > m.visitorScore))
+            team_matches_lost: int = (sum(1 for m in matches if team.is_visitor(match=m) and m.homeScore > m.visitorScore)
+                                      + sum(1 for m in matches if not team.is_visitor(match=m) and m.homeScore < m.visitorScore))
+            team_matches_draw: int = sum(1 for m in matches if m.homeScore == m.visitorScore)
+            points = 3 * team_matches_won + 2 * team_matches_draw + team_matches_lost
 
-        won_matches: int = 0
-        lost_matches: int = 0
-        for m in matches:
-            if m.visitorTeamId == team.id:
-                team_is_visitor = True
-                visitor_score = m.visitorScore
-            elif m.homeTeamId == team.id:
-                team_is_visitor = False
-                home_score = m.homeScore
-            won_matches += visitor_score if team_is_visitor else home_score
-            # lost_matches += home_score if team_is_visitor else visitor_score
-        lost_matches: int = team_matches_played * num_matches - won_matches
-        diff_matchs = won_matches - lost_matches  # Différence de matchs
+            won_matches: int = 0
+            lost_matches: int = 0
+            for m in matches:
+                if m.visitorTeamId == team.id:
+                    team_is_visitor = True
+                    visitor_score = m.visitorScore
+                elif m.homeTeamId == team.id:
+                    team_is_visitor = False
+                    home_score = m.homeScore
+                won_matches += visitor_score if team_is_visitor else home_score
+                # lost_matches += home_score if team_is_visitor else visitor_score
+            lost_matches: int = team_matches_played * num_matches - won_matches
+            diff_matchs = won_matches - lost_matches  # Différence de matchs
 
-        sets_won = sets_lost = 0
-        games_won = games_lost = 0
-        for m in matches:
-            if not (m.visitorTeamId == team.id or m.homeTeamId == team.id):
-                continue
-            home_sets, visitor_sets = m.sets_count
-            home_games, visitor_games = m.games_count
-            sets_won += visitor_sets if team.is_visitor(match=m) else home_sets
-            sets_lost += home_sets if team.is_visitor(match=m) else visitor_sets
-            games_won += visitor_games if team.is_visitor(match=m) else home_games
-            games_lost += home_games if team.is_visitor(match=m) else visitor_games
-        diff_sets = sets_won - sets_lost  # Différence de sets
-        diff_games = games_won - games_lost  # Différence de jeux
+            sets_won = sets_lost = 0
+            games_won = games_lost = 0
+            for m in matches:
+                if not (m.visitorTeamId == team.id or m.homeTeamId == team.id):
+                    continue
+                home_sets, visitor_sets = m.sets_count
+                home_games, visitor_games = m.games_count
+                sets_won += visitor_sets if team.is_visitor(match=m) else home_sets
+                sets_lost += home_sets if team.is_visitor(match=m) else visitor_sets
+                games_won += visitor_games if team.is_visitor(match=m) else home_games
+                games_lost += home_games if team.is_visitor(match=m) else visitor_games
+            diff_sets = sets_won - sets_lost  # Différence de sets
+            diff_games = games_won - games_lost  # Différence de jeux
 
         # Ajouter les détails de l'équipe au classement
         # logging.info(classement)

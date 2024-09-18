@@ -26,7 +26,7 @@
         <tr>
             <td><a href="{{ url_for('club.update_team', id=team.id) }}">{{team.id}}</a></td>
             <td><button onclick="confirmDelete({{ team.id }})">{{team.id}}</button></td>
-            <td>{{ team.name }}</td>
+            <td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team.name }}</a></td>
             <td>{{ team.players|length }}</td>
             <td>{{ team.captainName or 'Pas de capitaine défini!' }}</td>
             <td>{{ team.championship_name }}</td>
