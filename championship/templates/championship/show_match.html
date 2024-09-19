@@ -14,7 +14,7 @@
         {% set sorted_home_players = match.homeTeam.players | sort_players_by_elo %}
         {% for player in sorted_home_players %}
         {% set icon_injury = "&#127973; " if player.injuries else '' %}
-            <li>{{ icon_injury | safe }}{{ player.full_info }}</li>
+            <li>{{ icon_injury | safe }}{{ player.full_info }} {{ player.elo_tuple }}</li>
         {% endfor %}
     </ul>
 
@@ -23,7 +23,7 @@
         {% set sorted_visitor_players = match.visitorTeam.players | sort_players_by_elo %}
         {% for player in sorted_visitor_players %}
         {% set icon_injury = "&#127973; " if player.injuries else '' %}
-            <li>{{ icon_injury | safe }}{{ player.full_info }}</li>
+            <li>{{ icon_injury | safe }}{{ player.full_info }} {{ player.elo_tuple }}</li>
         {% endfor %}
     </ul>
 
