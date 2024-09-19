@@ -347,13 +347,18 @@ def update_player(id):
         player.birthDate = datetime.strptime(birth_date, '%Y-%m-%d') if birth_date else None
         player.height = request.form.get('height')
         player.weight = request.form.get('weight')
+        license = License.query.get(player.licenseId)
+        license.bestRankingId = int(request.form['best_ranking'])
+        db.session.add(license)
+        # db.session.add(license)
+        current_app.logger.debug(f'license best ranking: {license.bestRanking}')
         player.isActive = False if request.form.get('is_active') is None else True
         # Récupérez les valeurs sélectionnées dans le formulaire
         selected_injuries = request.form.getlist('injuries[]')
         current_app.logger.debug(f'selected_injuries: {selected_injuries}')
         # Mettez à jour les blessures du joueur
         player.injuries = []
-        db.session.commit()
+        db.session.add(player)
         for injury_id in selected_injuries:
             injury = Injury.query.get(injury_id)
             if injury:  # Vérifiez si l'ID de la blessure est valide
@@ -370,7 +375,8 @@ def update_player(id):
         # club_id = current_app.serializer.loads(signed_club_id)
         # club = Club.query.get(club_id)
         injuries = Injury.query.join(InjurySite).order_by(asc(InjurySite.name), asc(Injury.type), asc(Injury.name)).all()
-        return render_template('update_player.html', player=player, injuries=injuries)
+        bestRankings = BestRanking.query.order_by(desc(BestRanking.id))
+        return render_template('update_player.html', player=player, injuries=injuries, best_rankings=bestRankings)
 
 @club_management_bp.route('/player/<int:id>')
 def show_player(id):

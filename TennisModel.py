@@ -250,6 +250,15 @@ class Player(db.Model):
         ranking = BestRanking.query.get(license.rankingId)
         return ranking.id
 
+    @best_ranking_id.setter
+    def best_ranking_id(self, value):
+        license = License.query.get(self.licenseId)
+        if license:
+            logging.info(f"Setting best_ranking_id to {value} - old license value = {license.bestRanking.value}")
+            license.bestRankingId = value
+        else:
+            raise AttributeError("Player does not have a license")
+
     @property
     def ranking(self):
         license = License.query.get(self.licenseId)
@@ -272,6 +281,10 @@ class Player(db.Model):
     @property
     def info(self):
         return f'{self.name} ({self.ranking}) {(self.current_elo, self.refined_elo, self.best_elo)}'  # (elo: {self.current_elo})'
+
+    @property
+    def elo_tuple(self):
+        return self.current_elo, self.refined_elo, self.best_elo
 
     @property
     def full_info(self):
