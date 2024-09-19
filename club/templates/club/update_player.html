@@ -31,22 +31,18 @@
                 <td>{{ player.ranking }}</td>
             </tr>
             <tr>
-                <td><label for="best_ranking">Meilleur Classement</label></td>
-                <td>{{ player.best_ranking}}</td>
-            </tr>
-<!--            <tr>
                 <td><label for="best_ranking">Meilleur classement</label></td>
                 <td>
                     <select name="best_ranking" id="best_ranking">
                         <option value="">Sélectionner un classement</option>
                         {% for best_ranking in best_rankings %}
-                            <option value="{{ best_ranking.id }}" {% if player.best_ranking_id == best_ranking.id %}selected{% endif %}>
+                            <option value="{{ best_ranking.id }}" {% if player.best_ranking.id == best_ranking.id %}selected{% endif %}>
                                 {{ best_ranking.value }}
                             </option>
                         {% endfor %}
                     </select>
                 </td>
-            </tr>-->
+            </tr>
             <tr>
                 <td><label for="is_active">Disponible</label></td>
                 <td><input type="checkbox" name="is_active" {% if player.isActive %}checked{% endif %}></td>
