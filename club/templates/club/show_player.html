@@ -28,6 +28,14 @@
                 <td>{{ player.weight if player.weight != 'None' else 'Non renseigné' }}</td>
             </tr>
             <tr>
+                <td><label for="ranking">Classement actuel</label></td>
+                <td>{{ player.ranking }}</td>
+            </tr>
+            <tr>
+                <td><label for="best_ranking">Meilleur Classement</label></td>
+                <td>{{ player.best_ranking}}</td>
+            </tr>
+            <tr>
                 <td><label for="is_active">Disponible</label></td>
                 <td>{% if player.isActive %}&#x2611;{%else%}&#129969;{% endif %}</td>
             </tr>
