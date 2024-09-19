@@ -13,9 +13,13 @@
             <button>Sommaire championnats</button>
         </a></td>
         {% endif %}
-        {% if request.endpoint == 'championship.show_pool' %}
+        {% if request.endpoint == 'championship.show_pools' %}
+        <td><a href="{{ url_for('championship.show_championships') }}">
+            <button>Retour championnat</button>
+        </a></td>
+        {% elif request.endpoint == 'championship.show_pool' %}
         <td><a href="{{ url_for('championship.show_pools', id=pool.championship.id) }}">
-            <button>Sommaire championnat</button>
+            <button>Retour championnat</button>
         </a></td>
         {% elif request.endpoint == 'championship.show_match' %}
         <td><a href="{{ url_for('championship.show_pool', id=match.pool.id) }}">
