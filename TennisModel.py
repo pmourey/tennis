@@ -347,8 +347,11 @@ class Player(db.Model):
             return self.current_elo
         age_factor = 1 - abs(self.age - best_rank_age) * age_decay_rate
         # Coefficient de pondération en fonction du nombre de blessures
-        injuries_weight = (1 - len(self.injuries) / 10)
+        # injuries_weight = (1 - len(self.injuries) / 15)
+        injuries_weight = 1
         return max(self.current_elo, round(self.best_elo * injuries_weight * age_factor))
+        # value = max(self.current_elo, round(self.best_elo * injuries_weight * age_factor))
+        # return int((self.current_elo + value) / 2)
 
     def has_injury(self, injury: Injury) -> bool:
         return any(i.id == injury.id for i in self.injuries)
