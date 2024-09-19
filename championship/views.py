@@ -133,7 +133,7 @@ def simulate_championship(championship_id):
         for pool in championship.pools:
             if pool.letter is None:
                 continue
-            matches = Match.query.filter_by(poolId=pool.id).all()
+            matches = Match.query.filter(Match.poolId == pool.id).all()
             # for m in matches:
             #     current_app.logger.debug(f'{len(m.singles)} singles for match {m}')
             if any(m.singles for m in matches):
