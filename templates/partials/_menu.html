@@ -15,7 +15,7 @@
         {% endif %}
         {% if request.endpoint == 'championship.show_pools' %}
         <td><a href="{{ url_for('championship.show_championships') }}">
-            <button>Retour championnat</button>
+            <button>Liste championnats</button>
         </a></td>
         {% elif request.endpoint == 'championship.show_pool' %}
         <td><a href="{{ url_for('championship.show_pools', id=pool.championship.id) }}">
