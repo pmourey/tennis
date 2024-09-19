@@ -660,7 +660,7 @@ class Match(db.Model):
         return f'{self.homeScore}-{self.visitorScore}' if self.homeScore is not None and self.visitorScore is not None else ''
 
     def __repr__(self):
-        return f'{self.score}'
+        return f'#{self.id} le {self.date} -> {self.homeTeam} vs {self.visitorTeam}: {self.score}'
 
     def winner(self) -> Optional[Team]:
         if self.homeScore > self.visitorScore:
