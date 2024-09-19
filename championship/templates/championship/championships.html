@@ -15,7 +15,7 @@
             <th>Nb journées</th>
             <th>Nb simples / doubles</th>
             <th>Période</th>
-<!--            <th>Action</th>-->
+            <th>Action</th>
         </tr>
         </thead>
         {% for championship in championships %}
@@ -30,11 +30,11 @@
                 <td>{{ championship.matchdays|length }}</td>
                 <td>{{ championship.singlesCount }} {{singles_label}} / {{ championship.doublesCount }} {{doubles_label}}</td>
                 <td>{{ championship.matchdays[0].date.strftime('%d/%m') }}-{{ championship.matchdays[-1].date.strftime('%d/%m') }}</td>
-<!--                <td>
+                <td>
                     <form action="{{ url_for('championship.simulate_championship', championship_id=championship.id) }}" method="post">
-                        <input type="submit" value="Simulate" onclick="return confirm('Are you sure you want to simulate this championship?')">
+                        <input type="submit" value="Simulate" onclick="return confirm('Are you sure you want to simulate this championship?<br>This will takes about 2 minutes')">
                     </form>
-                </td>-->
+                </td>
 <!--                <td>
                     <form action="{{ url_for('championship.delete_championship', championship_id=championship.id) }}" method="post">
                         <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this championship?')">
