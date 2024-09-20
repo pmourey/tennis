@@ -348,6 +348,7 @@ def update_player(id):
         player.height = request.form.get('height')
         player.weight = request.form.get('weight')
         license = License.query.get(player.licenseId)
+        license.rankingId = int(request.form['ranking'])
         license.bestRankingId = int(request.form['best_ranking'])
         db.session.add(license)
         # db.session.add(license)
@@ -375,8 +376,9 @@ def update_player(id):
         # club_id = current_app.serializer.loads(signed_club_id)
         # club = Club.query.get(club_id)
         injuries = Injury.query.join(InjurySite).order_by(asc(InjurySite.name), asc(Injury.type), asc(Injury.name)).all()
+        rankings = Ranking.query.order_by(desc(Ranking.id))
         bestRankings = BestRanking.query.order_by(desc(BestRanking.id))
-        return render_template('update_player.html', player=player, injuries=injuries, best_rankings=bestRankings)
+        return render_template('update_player.html', player=player, injuries=injuries, rankings=rankings, best_rankings=bestRankings)
 
 @club_management_bp.route('/player/<int:id>')
 def show_player(id):

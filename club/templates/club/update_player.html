@@ -27,8 +27,17 @@
                 <td><input type="text" name="weight" value="{{ player.weight | none_to_zero }}"></td>
             </tr>
             <tr>
-                <td><label for="ranking">Classement actuel</label></td>
-                <td>{{ player.ranking }}</td>
+                <td><label for="ranking">Classement</label></td>
+                <td>
+                    <select name="ranking" id="ranking">
+                        <option value="">Sélectionner un classement</option>
+                        {% for ranking in rankings %}
+                            <option value="{{ ranking.id }}" {% if player.ranking.id == ranking.id %}selected{% endif %}>
+                                {{ ranking.value }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </td>
             </tr>
             <tr>
                 <td><label for="best_ranking">Meilleur classement</label></td>
