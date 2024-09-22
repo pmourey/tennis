@@ -10,7 +10,7 @@ from flask import render_template, redirect, url_for, flash
 
 from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match
 from championship import championship_management_bp
-from common import populate_championship, calculer_classement, count_sundays_between_dates, simulate_match_scores
+from common import populate_championship, calculer_classement, count_sundays_between_dates, simulate_match_scores, create_pools_and_assign_teams, schedule_matches
 
 
 # Define routes for championship management
@@ -93,7 +93,6 @@ def new_championship():
                 matchday = Matchday(date=date, championshipId=championship.id)
                 championship.matchdays.append(matchday)
                 db.session.add(matchday)
-
             populate_championship(app=current_app, db=db, championship=championship)
             flash('Championnat créé avec succès!', 'success')
         except Exception as e:
@@ -124,30 +123,62 @@ def delete_championship(championship_id):
 
     return redirect(url_for('championship.show_championships'))
 
+@championship_management_bp.route('/simulate_pool/<int:pool_id>', methods=['POST'])
+def simulate_pool(pool_id):
+    pool = Pool.query.get(pool_id)
+    try:
+        matches = Match.query.filter(Match.poolId == pool_id).all()
+        # for m in matches:
+        #     current_app.logger.debug(f'{len(m.singles)} singles for match {m}')
+        if any(m.singles for m in matches):
+            for match in matches:
+                # Delete individual singles matches
+                for single in match.singles:
+                    db.session.delete(single)
+                # Delete individual doubles matches
+                for double in match.doubles:
+                    db.session.delete(double)
+                # Clear the lists
+                match.singles.clear()
+                match.doubles.clear()
+            db.session.commit()
+        # current_app.logger.debug(f'TRACE 1')
+        simulate_match_scores(current_app, db, pool)
+        current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
+        flash(f'{pool.championship} - Poule {pool.letter }: simulation completed!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error simulating pool: {str(e)}', 'error')
+
+    return redirect(url_for('championship.show_pools', id=pool.championship.id))
+
 @championship_management_bp.route('/simulate_championship/<int:championship_id>', methods=['POST'])
 def simulate_championship(championship_id):
     championship = Championship.query.get_or_404(championship_id)
-
+    # teams = Team.query.filter(Team.championshipId == championship_id).all()
+    teams = Team.query.join(Pool).filter(Pool.championshipId == championship_id).all()
     try:
-        # Section II: Génération des feuilles de matches
+
+        # pools = Pool.query.filter(Pool.championshipId == championship.id).all()
+        # current_app.logger.debug(f'COMMIT DONE = {len(pools) - int(len(exempted_teams) > 0)} POOLS of {num_teams_per_pool} teams for {championship}')
+        # Section II: Génération des ordonnancements de matches
+        for pool in championship.pools:
+            db.session.delete(pool)
+        # for matchday in championship.matchdays:
+        #     db.session.delete(matchday)
+        db.session.commit()
+        # Section I: Génération des poules et planning de rencontres
+        num_teams_per_pool, exempted_teams = create_pools_and_assign_teams(current_app, db, championship, teams)
+        # Pool.query.filter(Pool.championship_id == championship.id).delete(synchronize_session=False)
+        # Matchday.query.filter(Matchday.championship_id == championship.id).delete(synchronize_session=False)
+        # db.session.delete_all(championship.matchdays)
+        # db.session.commit()
         for pool in championship.pools:
             if pool.letter is None:
                 continue
-            matches = Match.query.filter(Match.poolId == pool.id).all()
-            # for m in matches:
-            #     current_app.logger.debug(f'{len(m.singles)} singles for match {m}')
-            if any(m.singles for m in matches):
-                for match in matches:
-                    # Delete individual singles matches
-                    for single in match.singles:
-                        db.session.delete(single)
-                    # Delete individual doubles matches
-                    for double in match.doubles:
-                        db.session.delete(double)
-                    # Clear the lists
-                    match.singles.clear()
-                    match.doubles.clear()
-                db.session.commit()
+            schedule_matches(current_app, db, pool)
+            current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
+            # Section III: Génération des feuilles de matches
             # current_app.logger.debug(f'TRACE 1')
             simulate_match_scores(current_app, db, pool)
             current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
@@ -178,7 +209,7 @@ def show_pools(id: int):
     championship = Championship.query.get(id)
     exempted_pool = Pool.query.filter(and_(Pool.championshipId == id, Pool.letter == None)).first()
     # current_app.logger.debug(f'championship: {championship} - pools: {pools} - exempted_teams: {exempted_teams}')
-    return render_template('pools.html', pools=pools, championship=championship, exempted_teams=exempted_pool.teams)
+    return render_template('pools.html', pools=pools, championship=championship, exempted_teams=exempted_pool.teams if exempted_pool else [])
 
 
 @championship_management_bp.route('/show_pool/<int:id>')

@@ -15,36 +15,42 @@
             <th>Nb équipes</th>
             <th>Equipe la plus forte</th>
             <th>Equipe la plus faible</th>
+            <th>Action</th>
         </tr>
         </thead>
         {% for pool in pools %}
-        <div id="pool">
-            <tr>
-                <td><a href="{{ url_for('championship.show_pool', id=pool.id) }}">{{pool.letter}}</a></td>
-                <td>
-                    <!-- Tooltip container -->
-                    <div class="tooltip" onclick="toggleTooltip(this)">
-                        {{ pool.teams|length}}
-                        <!-- Tooltip with championship match days -->
-                        <span class="tooltiptext">
-                            {% for team in pool.teams %}
-                            {{ team.name }}{% if not loop.last %}<br> {% endif %}
-                            {% endfor %}
-                        </span>
-                    </div>
-                </td>
-                {% if pool.best_team %}
-                    <td><a href="{{ url_for('club.show_team', id=pool.best_team.id) }}">{{ pool.best_team }} ({{ pool.best_team.weight(championship) }})</a></td>
-                {% else %}
-                    <td>N/A</td>
-                {% endif %}
-                {% if pool.worst_team %}
-                    <td><a href="{{ url_for('club.show_team', id=pool.worst_team.id) }}">{{ pool.worst_team }} ({{ pool.worst_team.weight(championship) }})</a></td>
-                {% else %}
-                    <td>N/A</td>
-                {% endif %}
-            </tr>
-        </div>
+            <div id="pool">
+                <tr>
+                    <td><a href="{{ url_for('championship.show_pool', id=pool.id) }}">{{pool.letter}}</a></td>
+                    <td>
+                        <!-- Tooltip container -->
+                        <div class="tooltip" onclick="toggleTooltip(this)">
+                            {{ pool.teams|length}}
+                            <!-- Tooltip with championship match days -->
+                            <span class="tooltiptext">
+                                {% for team in pool.teams %}
+                                {{ team.name }}{% if not loop.last %}<br> {% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+                    </td>
+                    {% if pool.best_team %}
+                        <td><a href="{{ url_for('club.show_team', id=pool.best_team.id) }}">{{ pool.best_team }} ({{ pool.best_team.weight(championship) }})</a></td>
+                    {% else %}
+                        <td>N/A</td>
+                    {% endif %}
+                    {% if pool.worst_team %}
+                        <td><a href="{{ url_for('club.show_team', id=pool.worst_team.id) }}">{{ pool.worst_team }} ({{ pool.worst_team.weight(championship) }})</a></td>
+                    {% else %}
+                        <td>N/A</td>
+                    {% endif %}
+                    <td>
+                        <form action="{{ url_for('championship.simulate_pool', pool_id=pool.id) }}" method="post">
+                            <input type="submit" value="Simulate" onclick="return confirm('Are you sure you want to simulate this pool?\nThis will takes about 1 minute!')">
+                        </form>
+                    </td>
+                </tr>
+            </div>
         {%endfor %}
     </table>
     <br>

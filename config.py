@@ -26,7 +26,9 @@ class Config:
              {'id': '62060315', 'active': False, 'name': 'TC ACACIAS', 'city': 'CAGNES SUR MER', 'csvfile': 'tc_acacias'},
              {'id': '62060195', 'active': False, 'name': 'AGASC TC MONTALEIGNE', 'city': 'CAGNES SUR MER', 'csvfile': 'agasc_montaleigne'},
              {'id': '62050084', 'active': False, 'name': 'TC GAP', 'city': 'GAP', 'csvfile': 'tc_gap'},
-             {'id': '62130030', 'active': True, 'name': 'COUNTRY CLUB AIXOIS', 'city': 'AIX-EN-PROVENCE', 'csvfile': 'country_club_aixois'}
+             {'id': '62130030', 'active': True, 'name': 'COUNTRY CLUB AIXOIS', 'city': 'AIX-EN-PROVENCE', 'csvfile': 'country_club_aixois'},
+             {'id': '62130136', 'active': True, 'name': 'TENNIS CLUB PENNES - MIRABEAU', 'city': 'LES PENNES MIRABEAU', 'csvfile': 'tc_pennes_mirabeau'},
+             {'id': '62130567', 'active': True, 'name': 'TENNIS CLUB ROUVIERE', 'city': 'MARSEILLE', 'csvfile': 'tc_rouviere'},
              ]
     YEARS = [2023, 2024]
     PARIS = timezone('Europe/Paris')

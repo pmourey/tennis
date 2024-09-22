@@ -148,7 +148,8 @@ def new_team():
             championship_id = int(request.form.get('championship_id'))
             team_name = request.form.get('name')
             captain_id = request.form.get('captain_id')
-            pool = Pool.query.join(Championship).filter(Championship.id == championship_id).first()
+            pool = Pool.query.join(Championship).filter(Championship.id == championship_id, Pool.letter == None).first()
+            # pool = Pool.query.join(Championship).filter(Championship.id == championship_id).first()
             championship = Championship.query.get(championship_id)
             current_app.logger.debug(f"gender: {gender} - championship: {championship} - team_name: {team_name} - pool: {pool}")
             # Créer l'équipe avec les informations fournies
@@ -158,7 +159,7 @@ def new_team():
             db.session.add(team)
             db.session.commit()
             flash(f"L'équipe '{team.name}' a été créée avec succès avec {len(team.players)} {'joueuses' if gender else 'joueurs'} et associé au championnat {championship} "
-                  f"qui a lieu du {championship.startDate} au {championship.endDate}!")
+                  f"qui a lieu du {championship.start_date} au {championship.end_date}!")
             return redirect(url_for('club.show_teams'))
     else:
         current_app.logger.debug(f"request.args GET = {request.args}")
@@ -182,7 +183,7 @@ def new_team():
         else:
             current_app.logger.debug(f'players: {active_players}')
             current_app.logger.debug(f'request.form: {request.form}')
-            max_players = min(10, len(active_players))
+            max_players = min(15, len(active_players))
             return render_template('new_team.html', gender=gender, championship=championship, players=active_players, max_players=max_players, form=request.form)
 
 

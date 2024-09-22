@@ -379,7 +379,88 @@ def remove_text_between_parentheses(text):
     return re.sub(r'\([^()]*\)', '', text).strip()
 
 
+# Section 1.1: formation des équipes
+def form_teams(championship):
+    teams = []
+    for club in Club.query.all():
+        players = get_players_order_by_ranking(
+            gender=championship.division.gender,
+            club_id=club.id,
+            asc_param=True,
+            age_category=championship.age_category,
+            is_active=True
+        )
+        if len(players) < championship.singlesCount:
+            continue
+        captain = max(players, key=lambda p: p.best_elo)
+        club_name = remove_text_between_parentheses(club.name)
+        team = Team(name=f'{club_name} 1', captainId=captain.id)
+        team.players = players[:15]
+        teams.append(team)
+    return teams
+
+# Section 1.2: Création des poules et assignation des équipes
+def create_pools_and_assign_teams(app, db, championship, teams):
+    M = min(len(teams) - 1, len(championship.matchdays))
+    num_teams_per_pool = M + 1 if M % 2 == 0 else M
+    num_pools = len(teams) // num_teams_per_pool
+    teams.sort(key=lambda t: t.weight(championship))
+    selected_teams = teams[:num_pools * num_teams_per_pool]
+    exempted_teams = teams[num_pools * num_teams_per_pool:]
+
+    for i in range(0, len(selected_teams), num_teams_per_pool):
+        pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
+        db.session.add(pool)
+        db.session.commit()
+
+    app.logger.debug(f'selected_teams = {selected_teams}')
+    team_candidates = [*selected_teams]
+    while team_candidates:
+        letters: list[str] = [p.letter for p in championship.pools]
+        shuffle(letters)
+        for letter in letters:
+            pool = Pool.query.filter(Pool.championshipId == championship.id, Pool.letter == letter).first()
+            team = team_candidates.pop()
+            team.poolId = pool.id
+
+    exempted_pool = Pool(championshipId=championship.id)
+    db.session.add(exempted_pool)
+    db.session.commit()
+    for team in exempted_teams:
+        team.poolId = exempted_pool.id
+    teams = selected_teams + exempted_teams
+    db.session.add_all(teams)
+    db.session.commit()
+
+    return num_teams_per_pool, exempted_teams
+
 def populate_championship(app, db, championship: Championship):
+    # Section I: Constitution des poules et journées de championnat
+    try:
+        # Section 1.1: formation des équipes
+        teams = form_teams(championship)
+
+        # Section 1.2: Création des poules et assignation des équipes
+        num_teams_per_pool, exempted_teams = create_pools_and_assign_teams(app, db, championship, teams)
+
+    except Exception as e:
+        app.logger.debug(f"Erreur dans la fonction 'populate_championship'!")
+    finally:
+        pools = Pool.query.filter(Pool.championshipId == championship.id).all()
+        app.logger.debug(f'COMMIT DONE = {len(pools) - int(len(exempted_teams) > 0)} POOLS of {num_teams_per_pool} teams for {championship}')
+
+    # Section II: Génération des ordonnancements de matches
+    for pool in championship.pools:
+        if pool.letter is None:
+            continue
+        schedule_matches(app, db, pool)
+        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
+
+    # Section III: génération du tableau final
+    # (This section remains commented out as in the original code)
+
+
+def populate_championship_old(app, db, championship: Championship):
     # Section I: Constitution des poules et journées de championnat
     try:
         # Section 1.1: formation des équipes

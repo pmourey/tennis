@@ -497,6 +497,14 @@ class Championship(db.Model):
     pools = relationship('Pool', back_populates='championship', cascade="all, delete-orphan")  # Relation avec les poules du championnat
 
     @property
+    def start_date(self):
+        return self.matchdays[0].date if self.matchdays else None
+
+    @property
+    def end_date(self):
+        return self.matchdays[-1].date if self.matchdays else None
+
+    @property
     def exempted_teams(self):
         return Team.query.join(Pool).filter(Pool.championshipId == self.id).all()
 
