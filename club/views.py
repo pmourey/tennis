@@ -148,8 +148,8 @@ def new_team():
             championship_id = int(request.form.get('championship_id'))
             team_name = request.form.get('name')
             captain_id = request.form.get('captain_id')
-            pool = Pool.query.join(Championship).filter(Championship.id == championship_id, Pool.letter == None).first()
-            # pool = Pool.query.join(Championship).filter(Championship.id == championship_id).first()
+            # pool = Pool.query.join(Championship).filter(Championship.id == championship_id, Pool.letter is None).first()
+            pool = Pool.query.join(Championship).filter(Championship.id == championship_id).first()
             championship = Championship.query.get(championship_id)
             current_app.logger.debug(f"gender: {gender} - championship: {championship} - team_name: {team_name} - pool: {pool}")
             # Créer l'équipe avec les informations fournies
@@ -209,13 +209,20 @@ def update_team(id):
                 flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
         else:
             # Récupérer les données du formulaire
+            current_app.logger.debug(f"request.form: {request.form}")
             team.name = request.form.get('name')
             captain_id = request.form.get('captain_id')
             team.captainId = int(captain_id) if captain_id else None
-            team.players = list(players_dict.values())
+            team.players = []
+            for player in players_dict.values():
+                team.players.append(player)
+            # team.players = list(players_dict.values())
             current_app.logger.debug(f'{len(team.players)} players: {team.players}')
             team.pool = Pool.query.get(int(request.form.get('pool_id')))
+            current_app.logger.debug(f"Before update: (pool_id in form = {request.form.get('pool_id')}) Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
+            # db.session.update(team)
             db.session.commit()
+            current_app.logger.debug(f"After update: Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('club.show_teams'))
     age_category = team.championship.division.ageCategory
