@@ -401,8 +401,8 @@ def form_teams(championship):
 
 # Section 1.2: Création des poules et assignation des équipes
 def create_pools_and_assign_teams(app, db, championship, teams):
-    M = min(len(teams) - 1, len(championship.matchdays))
-    num_teams_per_pool = M + 1 if M % 2 == 0 else M
+    M = min(len(teams), len(championship.matchdays))
+    num_teams_per_pool = M if M % 2 == 0 else M + 1
     num_pools = len(teams) // num_teams_per_pool
     teams.sort(key=lambda t: t.weight(championship))
     selected_teams = teams[:num_pools * num_teams_per_pool]
