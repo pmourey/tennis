@@ -87,6 +87,7 @@ class Club(db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
 
+
     # Define the relationship with Player
     players = relationship('Player', back_populates='club', cascade="all, delete-orphan")
 
@@ -347,8 +348,8 @@ class Player(db.Model):
             return self.current_elo
         age_factor = 1 - abs(self.age - best_rank_age) * age_decay_rate
         # Coefficient de pondération en fonction du nombre de blessures
-        # injuries_weight = (1 - len(self.injuries) / 15)
-        injuries_weight = 1
+        injuries_weight = (1 - len(self.injuries) / 15)
+        # injuries_weight = 1
         return max(self.current_elo, round(self.best_elo * injuries_weight * age_factor))
         # value = max(self.current_elo, round(self.best_elo * injuries_weight * age_factor))
         # return int((self.current_elo + value) / 2)
