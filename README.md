@@ -14,7 +14,7 @@ https://godot70.pythonanywhere.com
   - [x] Assignation de l'équipe créée à un championnat via la poule communiquée par la ligue
   - [x] Création du calendrier prévisionnel du championnat (identique presque chaque année) et journées de championnat
   - [ ] Formulaire d'ajout des équipes adverses présentes dans la poule et du planning des rencontres pour l'équipe (domicile/extérieur/exempt) (utilisé après envoi par la ligue du calendrier des rencontres)
-  - [ ] Gestion des disponibilités joueurs
+  - [x] Gestion des disponibilités joueurs
 - [ ] Administration:
   - [ ] Ajout club
     - [x] Ajout à partir des clubs listés en dur dans config.py (et 2 fichiers joueurs/joueuses présents dans static/data)
