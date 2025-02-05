@@ -53,11 +53,93 @@
             <td colspan="2"><a href="{{ url_for('club.infos_club', id=team.club.id) }}">Infos club</a></td>
         </tr>
     </table>
+    <table>
+    <!-- Previous table content -->
+</table>
+
+<!-- Add a button to show availability table -->
+<button onclick="updateAvailability()" class="btn btn-primary">Gérer les disponibilités</button>
+
+<!-- Add availability table (initially hidden) -->
+<div id="availabilityTable" style="display: none; margin-top: 20px;">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Joueur</th>
+                {% for matchday in team.match_days %}
+                <th>{{ matchday.date.strftime('%d/%m/%Y') }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in team.players %}
+            <tr>
+                <td>{{ player.name }}</td>
+                {% for matchday in team.match_days %}
+                <td>
+                    <input type="checkbox"
+                           name="availability"
+                           data-player-id="{{ player.id }}"
+                           data-date="{{ matchday.date.strftime('%Y-%m-%d') }}"
+                           {% if player.is_available(matchday) %}checked{% endif %}>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button onclick="saveAvailability()" class="btn btn-success">Enregistrer</button>
+</div>
+
+
+
 </main>
 <script>
     function updateTeam() {
-        // Rediriger vers la page de mise à jour de l'équipe
         window.location.href = "{{ url_for('club.update_team', id=team.id) }}";
+    }
+
+    function updateAvailability() {
+        const availabilityTable = document.getElementById('availabilityTable');
+        if (availabilityTable.style.display === 'none') {
+            availabilityTable.style.display = 'block';
+        } else {
+            availabilityTable.style.display = 'none';
+        }
+    }
+
+    function saveAvailability() {
+        const checkboxes = document.querySelectorAll('input[name="availability"]');
+        const availability = [];
+
+        checkboxes.forEach(checkbox => {
+            availability.push({
+                player_id: checkbox.dataset.playerId,
+                date: checkbox.dataset.date,
+                available: checkbox.checked
+            });
+        });
+
+        fetch("{{ url_for('club.save_availability', team_id=team.id) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ availability: availability })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Disponibilités enregistrées avec succès');
+            } else {
+                alert('Erreur lors de l\'enregistrement des disponibilités\n'
+                + data.error + '\n' + data.details);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de l\'enregistrement des disponibilités\n' + data.error + '\n' + data.details);
+        });
     }
 </script>
 {% endblock main %}

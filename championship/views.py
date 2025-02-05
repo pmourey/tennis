@@ -1,14 +1,14 @@
 # championship/views.py
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import request, current_app
 from sqlalchemy import desc, and_
 
 from flask import render_template, redirect, url_for, flash
 
-from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Player, Matchday, Match
+from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Matchday, Match, PlayerMatchdayAvailability
 from championship import championship_management_bp
 from common import populate_championship, calculer_classement, count_sundays_between_dates, simulate_match_scores, create_pools_and_assign_teams, schedule_matches
 
@@ -57,6 +57,7 @@ def new_championship():
     if request.method == 'POST':
         # Fetching the list of dates from the form
         date_strings = request.form.getlist('dates[]')
+        date_strings = list(filter(None, date_strings))
         selected_dates = [datetime.strptime(date_str, '%Y-%m-%d') for date_str in date_strings]
 
         singles_count = int(request.form['singles_count'])
@@ -90,7 +91,8 @@ def new_championship():
         try:
             # Create matchdays for each selected date
             for date in selected_dates:
-                matchday = Matchday(date=date, championshipId=championship.id)
+                report_date = date + timedelta(days=6)  # report au samedi suivant
+                matchday = Matchday(date=date, report_date=report_date, championshipId=championship.id)
                 championship.matchdays.append(matchday)
                 db.session.add(matchday)
             populate_championship(app=current_app, db=db, championship=championship)

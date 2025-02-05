@@ -36,7 +36,17 @@
         <ul>
             {% for matchday in matchdays %}
                 <li>
-                    <strong>Journée {{ loop.index }} :</strong> {{ matchday.date }}
+                    <strong>Journée {{ loop.index }} :</strong>
+                    {% if not matchday.is_completed %}
+                         <!-- Tooltip container -->
+                        <div class="tooltip" onclick="toggleTooltip(this)">
+                            {{ matchday.date }}
+                            <!-- Tooltip with championship match days -->
+                            <span class="tooltiptext">Date report possible: {{ matchday.report_date }}</span>
+                        </div>
+                    {% else %}
+                        {{ matchday.date }}
+                    {% endif %}
                     <ul>
                         {% if matches %}
                             {% for match in matches %}

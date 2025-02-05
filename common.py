@@ -764,8 +764,8 @@ def simulate_score(app, db, home_players: List[Player], visitor_players: List[Pl
     # app.logger.debug(f'Poule {pool} : {pool.championship.singlesCount} singles - {pool.championship.doublesCount} doubles')
     home_score = visitor_score = 0
     # SIMPLES
-    home_singles_players = []
-    visitor_singles_players = []
+    # active_home_players = [p for p in home_players if p.isActive]
+    # active_visitor_players = [p for p in visitor_players if p.isActive]
     home_singles_players = sorted(home_players, key=lambda player: player.current_elo, reverse=True)
     visitor_singles_players = sorted(visitor_players, key=lambda player: player.current_elo, reverse=True)
     for i in range(pool.championship.singlesCount):
@@ -865,6 +865,8 @@ def distribute_matches(matches, Q, num_match_per_pool):
 def schedule_matches(app, db, pool: Pool):
     try:
         teams = {i + 1: team for i, team in enumerate(pool.teams)}
+        for team in pool.teams:
+            team.initialize_player_availability()
         app.logger.debug(f'TEAMS = {teams}')
         n = len(teams)
         num_days = n - 1 if n % 2 == 0 else n
@@ -888,8 +890,24 @@ def simulate_match_scores(app, db, pool: Pool):
                 if match.poolId != pool.id:
                     continue
                 num_players = pool.championship.singlesCount + 2 * pool.championship.doublesCount
-                home_players = sorted(match.homeTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
-                visitor_players = sorted(match.visitorTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
+
+                home_player_ids = [player.id for player in match.homeTeam.get_available_players(matchday)]
+                active_home_players = Player.query.filter(
+                    and_(
+                        Player.id.in_(home_player_ids),
+                        Player.isActive.is_(True)  # Correct way to filter boolean in SQLAlchemy
+                    )
+                ).all()
+
+                visitor_player_ids = [player.id for player in match.visitorTeam.get_available_players(matchday)]
+                active_visitor_players = Player.query.filter(
+                    and_(
+                        Player.id.in_(visitor_player_ids),
+                        Player.isActive.is_(True)
+                    )
+                ).all()
+                home_players = sorted(active_home_players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
+                visitor_players = sorted(active_visitor_players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
                 simulate_score(app=app, db=db, home_players=home_players, visitor_players=visitor_players, match=match)
                 match = Match.query.get(match.id)
                 app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')

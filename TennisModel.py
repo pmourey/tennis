@@ -11,7 +11,6 @@ from sqlalchemy.orm import relationship, backref, DeclarativeBase, mapped_column
 
 db = SQLAlchemy()
 
-
 # db = SQLAlchemy(session_options={"autoflush": False})
 
 class BestRanking(db.Model):
@@ -145,6 +144,8 @@ player_team_association = Table(
     db.Column('team_id', db.Integer, db.ForeignKey('team.id'))
 )
 
+
+
 player_injury_association = Table(
     'player_injury_association',
     db.Model.metadata,
@@ -204,6 +205,17 @@ class Injury(db.Model):
         return self.name
 
 
+class PlayerMatchdayAvailability(db.Model):
+    __tablename__ = 'player_matchday_availability'
+
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id', ondelete='CASCADE'), primary_key=True)
+    matchday_id = db.Column(db.Integer, db.ForeignKey('matchday.id', ondelete='CASCADE'), primary_key=True)
+    is_available = db.Column(db.Boolean, default=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    player = relationship('Player', back_populates='matchday_availabilities')
+    matchday = relationship('Matchday', back_populates='player_availabilities')
+
 class Player(db.Model):
     __tablename__ = 'player'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -211,6 +223,13 @@ class Player(db.Model):
     weight = db.Column(db.Integer, nullable=True, default=0)
     height = db.Column(db.Integer, nullable=True, default=0)
     isActive = db.Column(db.Boolean, default=True)
+
+    # Replace the secondary relationship with direct relationship to the association model
+    matchday_availabilities = relationship(
+        'PlayerMatchdayAvailability',
+        back_populates='player',
+        cascade="all, delete-orphan"
+    )
 
     # Define the relationship with Team using many-to-many association
     injuries = relationship('Injury', secondary=player_injury_association, back_populates='players', single_parent=True)  # , cascade="all, delete-orphan")
@@ -226,6 +245,37 @@ class Player(db.Model):
     # Define the relationship with Team using many-to-many association
     teams = relationship('Team', secondary=player_team_association, back_populates='players', single_parent=True, cascade="all, delete-orphan")
 
+    def is_available(self, matchday) -> bool:
+        """Check if player is available for a specific matchday"""
+        availability = PlayerMatchdayAvailability.query.filter_by(
+            player_id=self.id,
+            matchday_id=matchday.id
+        ).first()
+        return availability.is_available if availability else False
+
+    def initialize_matchday_availability(self, championship):
+        """Initialize availability for all matchdays in a championship for this player"""
+        # Get all matchdays for the championship
+        matchdays = Matchday.query.filter_by(championshipId=championship.id).all()
+
+        # Create availability records for each matchday
+        for matchday in matchdays:
+            # Check if availability record already exists
+            existing = PlayerMatchdayAvailability.query.filter_by(
+                player_id=self.id,
+                matchday_id=matchday.id
+            ).first()
+
+            if not existing:
+                availability = PlayerMatchdayAvailability(
+                    player_id=self.id,
+                    matchday_id=matchday.id,
+                    is_available=True,
+                    updated_at=datetime.utcnow()
+                )
+                db.session.add(availability)
+
+        db.session.commit()
     @property
     def gender(self):
         return self.license.gender
@@ -374,6 +424,41 @@ class Team(db.Model):
 
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
+
+    def get_available_players(self, matchday):
+        """Get list of available players for a specific matchday"""
+        return Player.query.join(
+            PlayerMatchdayAvailability
+        ).filter(
+            PlayerMatchdayAvailability.matchday_id == matchday.id,
+            PlayerMatchdayAvailability.is_available == True,
+            Player.id.in_([p.id for p in self.players])
+        ).all()
+
+    def initialize_player_availability(self):
+        """Initialize availability for all players in the team"""
+        matchdays = Matchday.query.filter_by(championshipId=self.championship.id).all()
+
+        availabilities = []
+        for player in self.players:
+            for matchday in matchdays:
+                existing = PlayerMatchdayAvailability.query.filter_by(
+                    player_id=player.id,
+                    matchday_id=matchday.id
+                ).first()
+
+                if not existing:
+                    availability = PlayerMatchdayAvailability(
+                        player_id=player.id,
+                        matchday_id=matchday.id,
+                        is_available=True,
+                        updated_at=datetime.utcnow()
+                    )
+                    availabilities.append(availability)
+
+        if availabilities:
+            db.session.add_all(availabilities)
+            db.session.commit()
 
     def matches_played(self) -> int:
         return len(self.pool.teams) - 1
@@ -605,7 +690,15 @@ class Matchday(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False)
+    report_date = db.Column(db.Date, nullable=True)
     # tournament_round = db.Column(db.Integer, nullable=True)  # Champ pour le tour du tournoi (Null si phase de poule)
+
+    # Replace the secondary relationship with direct relationship to the association model
+    player_availabilities = relationship(
+        'PlayerMatchdayAvailability',
+        back_populates='matchday',
+        cascade="all, delete-orphan"
+    )
 
     # Define the many-to-one relationship with Pool
     championshipId = db.Column(db.Integer, db.ForeignKey('championship.id'), nullable=True)
@@ -614,6 +707,26 @@ class Matchday(db.Model):
     # Define the one-to-many relationship with Match
     # matches = relationship('Match', back_populates='matchday')
     matches = relationship('Match', back_populates='matchday', cascade="all, delete-orphan")
+
+    @property
+    def singles_count(self):
+        logging.info('prout')
+        return Championship.query.get(self.championshipId).singlesCount
+
+    @property
+    def is_completed(self):
+        return all(len(match.singles) == self.championship.singlesCount and
+                   len(match.doubles) == self.championship.doublesCount
+                   for match in self.matches)
+
+    def available_players(self) -> list[Player]:
+        # Get all available players for a matchday
+        available_players = PlayerMatchdayAvailability.query.filter_by(
+            matchday_id=self.id,
+            is_available=True
+        ).all()
+
+        return [p.player for p in available_players]
 
     def __repr__(self):
         return f'Journée #{self.id}'

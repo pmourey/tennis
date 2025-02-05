@@ -2,6 +2,8 @@
 
 https://godot70.pythonanywhere.com
 
+![Modèle Physique de Données](mpd.png)
+
 ### TODOS
 - [x] Création Club par défaut (USC Tennis)
 - [x] Création des joueurs licenciés
@@ -21,6 +23,7 @@ https://godot70.pythonanywhere.com
   - [x] Changement club
 - [ ] Définition des poids min/max d'équipe pour la création des équipes à une division donnée.
 
+* https://supports.uptime-formation.fr/03-python/partie-3/cours-3/16-stockage-de-donn%C3%A9es-et-orm/
 * https://docs.sqlalchemy.org/en/20/orm/join_conditions.html#relationship-foreign-keys
 * https://docs.sqlalchemy.org/en/13/orm/mapped_sql_expr.html#mapper-sql-expressions
 * https://realpython.com/flask-blueprint/
@@ -28,3 +31,6 @@ https://godot70.pythonanywhere.com
 * https://docs.mapbox.com/mapbox-gl-js/example/setstyle/
 * https://account.mapbox.com/
 * https://tennisabstract.com/reports/atp_elo_ratings.html
+* https://www.physio-pedia.com/Sport_Injury_Classification
+* https://www.betterhealth.vic.gov.au/health/healthyliving/sports-injuries
+* https://www.compart.com/fr/unicode/U+1F3E5

@@ -12,7 +12,7 @@ from flask import current_app
 from functools import wraps
 
 from flask import request
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, Date
 
 from flask import render_template, redirect, url_for, flash
 
@@ -216,12 +216,14 @@ def update_team(id):
             team.players = []
             for player in players_dict.values():
                 team.players.append(player)
+                player.initialize_matchday_availability(team.championship)
             # team.players = list(players_dict.values())
             current_app.logger.debug(f'{len(team.players)} players: {team.players}')
             team.pool = Pool.query.get(int(request.form.get('pool_id')))
             current_app.logger.debug(f"Before update: (pool_id in form = {request.form.get('pool_id')}) Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
             # db.session.update(team)
             db.session.commit()
+            team.initialize_player_availability()
             current_app.logger.debug(f"After update: Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('club.show_teams'))
@@ -287,6 +289,89 @@ def show_team(id: int):
         distance = elapsed_hours = elapsed_minutes = 0
     return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players,
                            visitor_club=visitor_club, distance=distance, duration=(int(elapsed_hours), round(elapsed_minutes)))
+
+
+@club_management_bp.route('/save_availability/<int:team_id>', methods=['POST'])
+def save_availability(team_id):
+    data = request.get_json()
+    availability = data.get('availability', [])
+    # current_app.logger.debug(f'availability: {availability}')
+
+    try:
+        for item in availability:
+            player_id = int(item['player_id'])
+            date: Date = datetime.strptime(item['date'], '%Y-%m-%d').date()
+            is_available = item['available']
+            # current_app.logger.debug(f"player_id: {player_id} - date: {date} - is_available: {is_available}")
+
+            # Get the player and matchday objects
+            player = Player.query.get_or_404(player_id)
+            matchday = Matchday.query.filter_by(date=date).first()
+
+            if not matchday:
+                current_app.logger.warning(f"No matchday found for date: {date}")
+                continue
+
+            # Check if relationship already exists
+            existing_availability = PlayerMatchdayAvailability.query.filter_by(
+                player_id=player_id,
+                matchday_id=matchday.id
+            ).first()
+
+            if existing_availability:
+                # Update existing relationship
+                existing_availability.is_available = is_available
+                existing_availability.updated_at = datetime.utcnow()
+            else:
+                # Create new relationship
+                new_availability = PlayerMatchdayAvailability(
+                    player_id=player_id,
+                    matchday_id=matchday.id,
+                    is_available=is_available
+                )
+                db.session.add(new_availability)
+
+        # Check available players for each matchday before committing
+        matchdays_with_issues = []
+        team = Team.query.get_or_404(team_id)
+
+        # Get unique dates from the availability data
+        unique_dates = set(datetime.strptime(item['date'], '%Y-%m-%d').date()
+                          for item in availability)
+
+        current_app.logger.debug(f"unique_dates: {unique_dates}")
+
+        for date in unique_dates:
+            matchday = Matchday.query.filter_by(date=date).first()
+            current_app.logger.debug(f"matchday: {matchday}")
+            if matchday:
+                available_players = team.get_available_players(matchday)
+                # We need at least singles_count * 2 players (2 players per singles match)
+                min_players_needed = matchday.singles_count
+                current_app.logger.debug(f"min_players_needed = {min_players_needed} - available_players_count: {len(available_players)}")
+
+                if len(available_players) < min_players_needed:
+                    matchdays_with_issues.append({
+                        'date': date.strftime('%Y-%m-%d'),
+                        'available_players': len(available_players),
+                        'required_players': min_players_needed
+                    })
+
+        current_app.logger.debug(f"matchdays_with_issues: {matchdays_with_issues}")
+
+        if matchdays_with_issues:
+            db.session.rollback()
+            return jsonify({
+                'success': False,
+                'error': 'insufficient_players',
+                'details': '\n'.join([str(m) for m in matchdays_with_issues])
+            }), 400
+
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 
 @club_management_bp.route('/new_player/', methods=['GET', 'POST'])

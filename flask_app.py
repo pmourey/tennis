@@ -15,12 +15,11 @@ from flask import Flask, jsonify
 from flask import render_template
 from itsdangerous import URLSafeSerializer
 
-from TennisModel import db, License, InjurySite
+from TennisModel import db, License
 from admin import admin_bp
 
 from club import club_management_bp
 from championship import championship_management_bp
-from common import InjuryType
 from medical import medical_management_bp
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -56,7 +55,8 @@ def welcome():
 
 @app.before_request
 def create_tables():
-    db.create_all()
+    with app.app_context():
+        db.create_all()
 
 
 @app.route('/licensees-by-gender', methods=['GET'])
