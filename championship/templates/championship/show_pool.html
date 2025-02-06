@@ -62,8 +62,83 @@
                 </li>
             {% endfor %}
         </ul>
+        {% if not pool.is_started %}
+            <h2>Modification du calendrier</h2>
+            <table class="update-form">
+                    {% for matchday in matchdays %}
+                        <table>
+                            <caption class="table-caption">Journée {{ loop.index }}</caption>
+                            {% for match in matchday.matches %}
+                                <tr>
+                                    <td>
+                                        <select name="home" data-match-id="{{ match.id }}">
+                                            <option value="">Sélectionner une équipe de cette poule</option> <!-- Option vide -->
+                                            {% for team in pool.teams %}
+                                                {% if match.homeTeamId == team.id %}
+                                                    <option value="{{ team.id }}" selected>{{ team.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="visitor" data-match-id="{{ match.id }}">
+                                            <option value="">Sélectionner une équipe de cette poule</option> <!-- Option vide -->
+                                            {% for team in pool.teams %}
+                                                {% if match.visitorTeamId == team.id %}
+                                                    <option value="{{ team.id }}" selected>{{ team.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    {% endfor %}
+                </table>
+            <button onclick="updateSchedule()" class="btn btn-success">Enregistrer</button>
+        {% endif %}
     {% else %}
         <p style="font-size: 16px; text-align: center;">Aucune journée de rencontres programmée dans cette poule! 📅</p>
     {% endif %}
 </main>
+<script>
+    function updateSchedule() {
+        const selectItems = document.querySelectorAll('select');
+        const schedule = [];
+        selectItems.forEach(item => {
+            schedule.push({
+                home: item.name == 'home',
+                match_id: item.dataset.matchId,
+                team_id: item.value
+            });
+        });
+        console.log('Schedule:', schedule);  // For debugging
+
+        fetch("{{ url_for('championship.update_schedule', pool_id=pool.id) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ schedule: schedule })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Nouveau calendrier enregistré avec succès');
+                window.location.href = "{{ url_for('championship.show_pool', id=pool.id) }}";
+            } else {
+                alert('Erreur lors de l\'enregistrement du calendrier\n' + data.error + '\n' + data.details);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de l\'enregistrement du calendrier\n' + data.error + '\n' + data.details);
+        });
+    }
+</script>
+
 {% endblock main %}

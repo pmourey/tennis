@@ -651,6 +651,21 @@ class Pool(db.Model):
     matches = relationship('Match', back_populates='pool', cascade="all, delete-orphan")
 
     @property
+    def is_valid_schedule(self) -> bool:
+        encounters = {team.id: [] for team in self.teams}
+        for match in self.matches:
+            encounters[match.homeTeamId].append(match.visitorTeamId)
+            encounters[match.visitorTeamId].append(match.homeTeamId)
+        for team_id in encounters:
+            if len(encounters[team_id]) != len(self.teams) - 1:
+                return False
+        return True
+
+    @property
+    def is_started(self) -> bool:
+        return any(m.is_started for m in self.matches)
+
+    @property
     def is_exempted(self) -> bool:
         return self.letter is None
 
@@ -773,6 +788,11 @@ class Match(db.Model):
 
     singles = relationship('Single', back_populates='match', cascade="all, delete-orphan")
     doubles = relationship('Double', back_populates='match', cascade="all, delete-orphan")
+
+
+    @property
+    def is_started(self) -> bool:
+        return self.singles or self.doubles
 
     @property
     def sets_count(self) -> tuple[int, int]:

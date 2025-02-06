@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from flask import request, current_app
+from flask import request, current_app, jsonify
 from sqlalchemy import desc, and_
 
 from flask import render_template, redirect, url_for, flash
@@ -222,6 +222,40 @@ def show_pool(id: int):
     matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all() # pool.matchdays
     current_app.logger.debug(f'matches: {pool.matches}')
     return render_template('show_pool.html', classement=resultat_classement, pool=pool, matches=pool.matches, matchdays=matchdays)
+
+@championship_management_bp.route('/update_schedule/<int:pool_id>', methods=['POST'])
+def update_schedule(pool_id: int):
+    data = request.get_json()
+    schedule = data.get('schedule', [])
+    current_app.logger.debug(f'schedule: {schedule}')
+    try:
+        for item in schedule:
+            home = item['home']
+            match_id = int(item['match_id'])
+            team_id = int(item['team_id'])
+            match = Match.query.get(match_id)
+            if home:
+                match.homeTeamId = team_id
+            else:
+                match.visitorTeamId = team_id
+        current_app.logger.debug(f'finished')
+
+        # Check issues before commit
+        pool = Pool.query.get(pool_id)
+        if not pool.is_valid_schedule:
+            db.session.rollback()
+            current_app.logger.debug(f'schedule: {schedule} - INCORRECT')
+            return jsonify({
+                'success': False,
+                'error': 'incorrect schedule',
+                'details': 'all teams must play against each other once'
+            }), 400
+
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 @championship_management_bp.route('/show_match/<int:id>')
 def show_match(id: int):
