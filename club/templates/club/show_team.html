@@ -7,7 +7,12 @@
 {% set icon_captain = " &#x1F3C5;" %}
 
 <main>
-    <button onclick="updateTeam()">Mettre à jour l'équipe</button>
+    <table>
+        <tr>
+            <td style="border: none;"><button onclick="updateTeam()">Mettre à jour l'équipe</button></td>
+            <td style="border: none;"><button id="availButton" onclick="updateAvailability()" class="btn btn-primary">Gérer les disponibilités</button></td>
+        </tr>
+    </table>
     <br>
     <table class="pool">
         <caption class="table-caption">{{ team.name }} - {{ team.championship.name }}</caption>
@@ -57,11 +62,8 @@
     <!-- Previous table content -->
 </table>
 
-<!-- Add a button to show availability table -->
-<button onclick="updateAvailability()" class="btn btn-primary">Gérer les disponibilités</button>
-
 <!-- Add availability table (initially hidden) -->
-<div id="availabilityTable" style="display: none; margin-top: 20px;">
+<div id="availabilityTable" style="display: none; margin-top: 10px;">
     <table class="table">
         <thead>
             <tr>
@@ -88,7 +90,9 @@
             {% endfor %}
         </tbody>
     </table>
-    <button onclick="saveAvailability()" class="btn btn-success">Enregistrer</button>
+    <div style="text-align: center; margin-top: 10px;">
+        <button onclick="saveAvailability()" class="btn btn-success">Enregistrer</button>
+    </div>
 </div>
 
 
@@ -101,10 +105,13 @@
 
     function updateAvailability() {
         const availabilityTable = document.getElementById('availabilityTable');
+        button = document.getElementById('availButton');
         if (availabilityTable.style.display === 'none') {
             availabilityTable.style.display = 'block';
+            button.textContent = 'Masquer les disponibilités';
         } else {
             availabilityTable.style.display = 'none';
+            button.textContent = 'Gérer les disponibilités';
         }
     }
 
