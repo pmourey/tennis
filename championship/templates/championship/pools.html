@@ -6,6 +6,11 @@
 {% block main %}
 
 <main>
+    <table>
+        <tr>
+            <td style="border: none;"><button onclick="newPool()" class="btn btn-primary">Nouvelle poule</button></td>
+        </tr>
+    </table>
     {% if pools %}
     <table class="pools">
         <caption class="table-caption">Liste des {{ pools|length }} poules du championnat {{championship.name}}</caption> <!-- Titre ajouté ici -->
@@ -15,6 +20,7 @@
             <th>Nb équipes</th>
             <th>Equipe la plus forte</th>
             <th>Equipe la plus faible</th>
+            <th>Action</th>
             <th>Action</th>
         </tr>
         </thead>
@@ -49,22 +55,40 @@
                             <input type="submit" value="Simulate" onclick="return confirm('Are you sure you want to simulate this pool?\nThis will takes about 1 minute!')">
                         </form>
                     </td>
+                    <td>
+                        <form action="{{ url_for('championship.delete_pool', pool_id=pool.id) }}" method="post">
+                            <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this pool?')">
+                        </form>
+                    </td>
                 </tr>
             </div>
         {%endfor %}
     </table>
     <br>
-    {% if exempted_teams %}
+    {% if exempted_pool %}
         <table class="pools">
             <caption class="table-caption">Equipes directement qualifiées pour le tableau final</caption> <!-- Titre ajouté ici -->
-            {% for team in exempted_teams %}
-                <tr><td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team }} ({{ team.weight(championship) }})</a></td></tr>
-<!--                <tr><td>{{ team.name }} ({{ team.weight(championship) }})</td></tr>-->
+                <tr>
+                    <td>
+                        <form action="{{ url_for('championship.delete_pool', pool_id=exempted_pool.id) }}" method="post">
+                            <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this pool?')">
+                        </form>
+                    </td>
+                </tr>
+            {% for team in exempted_pool.teams %}
+                <tr>
+                    <td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team }} ({{ team.weight(championship) }})</a></td>
+                </tr>
             {%endfor %}
         </table>
     {% endif %}
     {% else %}
-    <p style="font-size: 16px; text-align: center;">Pas d'équipe trouvée'! ✌️</p>
+        <p style="font-size: 16px; text-align: center;">Pas d'équipe trouvée'! ✌️</p>
     {% endif %}
 </main>
+<script>
+    function newPool() {
+        window.location.href = "{{ url_for('championship.new_pool', championship_id=championship.id) }}";
+    }
+</script>
 {% endblock main %}

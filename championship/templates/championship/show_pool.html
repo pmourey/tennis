@@ -68,8 +68,9 @@
                     {% for matchday in matchdays %}
                         <table>
                             <caption class="table-caption">Journée {{ loop.index }}</caption>
-                            {% for match in matchday.matches %}
-                                <tr>
+                            {% for match in matches %}
+                                {% if match.matchdayId == matchday.id %}
+                                    <tr>
                                     <td>
                                         <select name="home" data-match-id="{{ match.id }}">
                                             <option value="">Sélectionner une équipe de cette poule</option> <!-- Option vide -->
@@ -95,6 +96,7 @@
                                         </select>
                                     </td>
                                 </tr>
+                                {% endif %}
                             {% endfor %}
                         </table>
                     {% endfor %}

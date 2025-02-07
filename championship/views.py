@@ -1,6 +1,7 @@
 # championship/views.py
 from __future__ import annotations
 
+import string
 from datetime import datetime, timedelta
 
 from flask import request, current_app, jsonify
@@ -10,7 +11,7 @@ from flask import render_template, redirect, url_for, flash
 
 from TennisModel import AgeCategory, Division, Championship, db, Pool, Team, Matchday, Match, PlayerMatchdayAvailability
 from championship import championship_management_bp
-from common import populate_championship, calculer_classement, count_sundays_between_dates, simulate_match_scores, create_pools_and_assign_teams, schedule_matches
+from common import populate_championship, calculer_classement, count_sundays_between_dates, simulate_match_scores, create_pools_and_assign_teams, schedule_matches, form_teams
 
 
 # Define routes for championship management
@@ -51,6 +52,49 @@ def select_division():
     current_app.logger.debug(f'divisions: {new_divisions}')
     return render_template('select_division.html', divisions=new_divisions)
 
+@championship_management_bp.route('/new_pool/<int:championship_id>', methods=['GET', 'POST'])
+def new_pool(championship_id):
+    if request.method == 'POST':
+        # Fetching the list of team IDs from the form
+        team_ids = request.form.getlist('teams[]')
+        team_ids = list(filter(None, team_ids))
+        current_app.logger.debug(f'team_ids: {team_ids}')
+        teams = [Team.query.get(team_id) for team_id in team_ids]
+        current_app.logger.debug(f'teams: {teams}')
+
+        # Create a new pool
+        pools = Pool.query.filter_by(championshipId=championship_id).all()
+        pool_letters = [pool.letter for pool in pools]
+        current_app.logger.debug(f'pool_letters: {pool_letters}')
+        letter = chr(min([ord(l) for l in string.ascii_uppercase if l is not None and l not in pool_letters])) if pool_letters else None
+        current_app.logger.debug(f'letter: {letter}')
+        pool = Pool(letter=letter, championshipId=championship_id)
+        db.session.add(pool)
+        db.session.commit()
+
+        # Assign teams to the pool
+        for team in teams:
+            team.poolId = pool.id
+        db.session.add_all(teams)
+        db.session.commit()
+
+        # Génération des ordonnancements de matches
+        schedule_matches(current_app, db, pool)
+        current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
+
+        flash(f'Poule {pool.letter} créée avec succès!', 'success')
+        return redirect(url_for('championship.index'))
+
+    # Fetch all teams
+    championship = Championship.query.get(championship_id)
+    teams_in_pools = {team.name for pool in championship.pools for team in pool.teams}
+    current_app.logger.debug(f'teams_in_pools: {teams_in_pools}')
+    eligible_teams = form_teams(championship)
+    new_teams = [team for team in eligible_teams if team.name not in teams_in_pools]
+    db.session.add_all(new_teams)
+    db.session.commit()
+    current_app.logger.debug(f'new_teams: {new_teams}')
+    return render_template('new_pool.html', championship=championship, teams=new_teams)
 
 @championship_management_bp.route('/new_championship', methods=['GET', 'POST'])
 def new_championship():
@@ -124,6 +168,21 @@ def delete_championship(championship_id):
         flash(f'Error deleting championship: {str(e)}', 'error')
 
     return redirect(url_for('championship.show_championships'))
+
+@championship_management_bp.route('/delete_pool/<int:pool_id>', methods=['POST'])
+def delete_pool(pool_id):
+    pool = Pool.query.get_or_404(pool_id)
+    championship = Championship.query.get_or_404(pool.championshipId)
+    try:
+        pool_letter: str = pool.letter
+        db.session.delete(pool)
+        db.session.commit()
+        flash(f'Pool {pool_letter} deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting pool: {str(e)}', 'error')
+
+    return redirect(url_for('championship.show_pools', id=championship.id))
 
 @championship_management_bp.route('/simulate_pool/<int:pool_id>', methods=['POST'])
 def simulate_pool(pool_id):
@@ -207,11 +266,12 @@ def show_championships():
 def show_pools(id: int):
     # pools = Pool.query.filter_by(championshipId=championship_id).order_by(desc(Pool.name)).all()
     # pools appartenant au championship id et n'ayant pas poolId à None
-    pools = Pool.query.filter(and_(Pool.championshipId == id, Pool.letter != None)).all()
+    # Ascending order (A to Z)
+    pools = Pool.query.filter(and_(Pool.championshipId == id, Pool.letter != None)).order_by(Pool.letter.asc()).all()
     championship = Championship.query.get(id)
     exempted_pool = Pool.query.filter(and_(Pool.championshipId == id, Pool.letter == None)).first()
     # current_app.logger.debug(f'championship: {championship} - pools: {pools} - exempted_teams: {exempted_teams}')
-    return render_template('pools.html', pools=pools, championship=championship, exempted_teams=exempted_pool.teams if exempted_pool else [])
+    return render_template('pools.html', pools=pools, championship=championship, exempted_pool=exempted_pool)
 
 
 @championship_management_bp.route('/show_pool/<int:id>')

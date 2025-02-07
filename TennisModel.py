@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, date
 from typing import Optional, List, Iterable
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import ForeignKey, Table, Integer, String, Float, Boolean
+from sqlalchemy import ForeignKey, Table, Integer, String, Float, Boolean, and_
 from sqlalchemy.orm import relationship, backref, DeclarativeBase, mapped_column
 
 db = SQLAlchemy()
@@ -592,7 +592,7 @@ class Championship(db.Model):
 
     @property
     def exempted_teams(self):
-        return Team.query.join(Pool).filter(Pool.championshipId == self.id).all()
+        return Team.query.join(Pool).filter(and_(Pool.championshipId == self.id, Pool.letter == None)).all()
 
     @property
     def num_matches(self):
