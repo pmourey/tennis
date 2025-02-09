@@ -7,6 +7,7 @@
     <form action="{{ url_for('club.new_player') }}" , method="POST">
         <table class="update-form">
             <caption class="table-caption">Nouveau joueur ({{ club.name }})</caption> <!-- Titre ajouté ici -->
+            <input type="hidden" name="club_id" value="{{ club.id }}">
             <tr>
                 <td><label for="last_name">Nom</label></td>
                 <td><input type="text" name="last_name" placeholder="Nom" required></td>
