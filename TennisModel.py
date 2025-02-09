@@ -318,7 +318,7 @@ class Player(db.Model):
     @property
     def best_ranking(self):
         license = License.query.get(self.licenseId)
-        return BestRanking.query.get(license.bestRankingId)
+        return BestRanking.query.get(license.bestRankingId) if license.bestRankingId else None
 
     @property
     def last_name(self):
@@ -327,7 +327,7 @@ class Player(db.Model):
 
     @property
     def name(self):
-        return f'{self.license.firstName} {self.license.lastName[0]}.'
+        return f'{self.license.firstName} {self.license.lastName[0]}'
 
     @property
     def info(self):
@@ -382,7 +382,7 @@ class Player(db.Model):
         if self.ranking.id < second_series_threshold.id:
             ranking_delta = (second_series_threshold.id - self.best_ranking.id) // 10 + nc_ranking.id - second_series_threshold.id
         else:
-            ranking_delta = nc_ranking.id - self.best_ranking.id
+            ranking_delta = nc_ranking.id - self.best_ranking.id if self.best_ranking else nc_ranking.id
         return ranking_delta * elo_weight  # Meilleur classement ELO du joueur
 
     @property
