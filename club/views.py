@@ -19,7 +19,8 @@ from flask import render_template, redirect, url_for, flash
 from TennisModel import *
 from club import club_management_bp
 
-from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players, keys_with_same_value, calculate_distance_and_duration
+from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players, keys_with_same_value, calculate_distance_and_duration, \
+    CatType
 
 
 def check_club_cookie(func):
@@ -197,7 +198,7 @@ def update_team(id):
         for key, value in request.form.items():
             if value and key.startswith('player_name_'):
                 players_dict[key] = Player.query.get(value)
-        current_app.logger.debug(f'players_dict: {players_dict}')
+        # current_app.logger.debug(f'players_dict: {players_dict}')
         # test doublons
         duplicates = keys_with_same_value(players_dict)
         if not request.form['name']:
@@ -209,7 +210,7 @@ def update_team(id):
                 flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
         else:
             # Récupérer les données du formulaire
-            current_app.logger.debug(f"request.form: {request.form}")
+            # current_app.logger.debug(f"request.form: {request.form}")
             team.name = request.form.get('name')
             captain_id = request.form.get('captain_id')
             team.captainId = int(captain_id) if captain_id else None
@@ -218,16 +219,19 @@ def update_team(id):
                 team.players.append(player)
                 player.initialize_matchday_availability(team.championship)
             # team.players = list(players_dict.values())
-            current_app.logger.debug(f'{len(team.players)} players: {team.players}')
+            # current_app.logger.debug(f'{len(team.players)} players: {team.players}')
             team.pool = Pool.query.get(int(request.form.get('pool_id')))
-            current_app.logger.debug(f"Before update: (pool_id in form = {request.form.get('pool_id')}) Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
+            # current_app.logger.debug(f"Before update: (pool_id in form = {request.form.get('pool_id')}) Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
             # db.session.update(team)
             db.session.commit()
             team.initialize_player_availability()
-            current_app.logger.debug(f"After update: Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
+            # current_app.logger.debug(f"After update: Team {team.id} in pool {team.pool.id if team.pool else 'None'}")
             flash(f'Equipe {team.name} mise à jour avec succès!')
             return redirect(url_for('club.show_teams'))
     age_category = team.championship.division.ageCategory
+    other_age_categories = []
+    if age_category.type == CatType.Senior.value:
+        other_age_categories = [cat for cat in AgeCategory.query.filter(AgeCategory.type == CatType.Youth.value).all() if cat.minAge >= 15 and cat.maxAge <= 18]
     # current_app.logger.debug(f"gender = {team.gender} - age_category = {age_category}")
     # signed_club_id = request.cookies.get('club_id')
     # try:
@@ -235,9 +239,14 @@ def update_team(id):
     # except itsdangerous.exc.BadSignature:
     #     return redirect(url_for('admin.select_club'))
     active_players = get_players_order_by_ranking(gender=team.gender, club_id=team.club.id, age_category=age_category)
-    current_app.logger.debug(f"{len(active_players)} players = {active_players}")
+    if other_age_categories:
+        for cat in other_age_categories:
+            active_players += get_players_order_by_ranking(gender=team.gender, club_id=team.club.id, age_category=cat)
+        active_players = list(set(active_players))
+    active_players.sort(key=lambda p: p.ranking)
+    # current_app.logger.debug(f"{len(active_players)} players = {active_players}")
     sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
-    current_app.logger.debug(f"sorted_team_players = {sorted_team_players}")
+    # current_app.logger.debug(f"sorted_team_players = {sorted_team_players}")
     if active_players:
         max_players = min(15, len(active_players))
         return render_template('update_team.html', team=team, sorted_team_players=sorted_team_players, players=active_players, max_players=max_players, form=request.form)
@@ -409,7 +418,9 @@ def new_player():
                     ranking_id = int(request.form['ranking'])
                     is_active = False if request.form.get('is_active') is None else True
                     gender = int(request.form['gender'])
-                    club_id = request.form['club_id']
+                    # club_id = request.form['club_id']
+                    signed_club_id = request.cookies.get('club_id')
+                    club_id = current_app.serializer.loads(signed_club_id)
                     license = License(id=lic_num, firstName=first_name, lastName=last_name, letter=lic_letter, gender=gender, year=birth_date.year)
                     license.rankingId = ranking_id
                     db.session.add(license)
@@ -423,6 +434,7 @@ def new_player():
     signed_club_id = request.cookies.get('club_id')
     try:
         club_id = current_app.serializer.loads(signed_club_id)
+        current_app.logger.debug(f"club_id: {club_id}")
     except itsdangerous.exc.BadSignature:
         return redirect(url_for('admin.select_club'))
     club = Club.query.get(club_id)
