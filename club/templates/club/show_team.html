@@ -34,8 +34,7 @@
                     {% for player in sorted_team_players %}
                         {% set icon_brule = "&#x1F525; " if loop.index <= team.championship.singlesCount else '' %}
                         {% set icon_injury = "&#127973; " if player.injuries else '' %}
-                        {% set best_ranking = ' (ex ' + player.license.bestRanking.value + ')' if player.license.bestRanking and player.license.bestRanking.id < player.license.ranking.id %}
-                {{ icon_brule | safe }}{{ icon_injury | safe }}<a href="{{ url_for('club.show_player', id=player.id) }}">{{ player.name }}</a> {{player.ranking.value}} {{ best_ranking }} <br>
+                {{ icon_brule | safe }}{{ icon_injury | safe }}<a href="{{ url_for('club.show_player', id=player.id) }}">{{ player.full_info }}</a><br>
                     {% endfor %}
                 </ul>
             </td>

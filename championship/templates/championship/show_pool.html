@@ -21,7 +21,7 @@
             {% set team = pool.get_team_by_id(team_id) %}
             <tr>
                 <td>{{ loop.index }}</td>
-                <td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team.name }} ({{ team.weight(pool.championship) }})</a></td>
+                <td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team.name }} ({{ team.avg_age }} ans - poids: {{ team.weight(pool.championship) }})</a></td>
                 <td>{{ data['points'] }}</td>
                 <td>{{ data['matches_played'] }}</td>
                 <td>{{ data['diff_matchs'] }}</td>

@@ -339,7 +339,10 @@ class Player(db.Model):
 
     @property
     def full_info(self):
-        best_ranking = f', ex. {self.best_ranking}' if self.best_ranking and self.best_ranking.id < self.ranking.id else ''
+        if self.best_ranking:
+            best_ranking = f', ex. {self.best_ranking}' if self.best_ranking.id < self.ranking.id else ''
+        else:
+            best_ranking = ', unknown'
         age_and_ranking = f'({self.age} ans{best_ranking})'
         return f'{self.name} {self.ranking} {age_and_ranking}'
 
@@ -379,11 +382,14 @@ class Player(db.Model):
         elo_weight = 15  # to better fit with ELO rating system (10 is better)
         nc_ranking = Ranking.query.filter_by(value="NC").first()
         second_series_threshold = Ranking.query.filter_by(value="-15").first()
-        if self.ranking.id < second_series_threshold.id:
-            ranking_delta = (second_series_threshold.id - self.best_ranking.id) // 10 + nc_ranking.id - second_series_threshold.id
+        if self.best_ranking:
+            if self.ranking.id < second_series_threshold.id:
+                ranking_delta = (second_series_threshold.id - self.best_ranking.id) // 10 + nc_ranking.id - second_series_threshold.id
+            else:
+                ranking_delta = nc_ranking.id - self.best_ranking.id if self.best_ranking else nc_ranking.id
+            return ranking_delta * elo_weight  # Meilleur classement ELO du joueur
         else:
-            ranking_delta = nc_ranking.id - self.best_ranking.id if self.best_ranking else nc_ranking.id
-        return ranking_delta * elo_weight  # Meilleur classement ELO du joueur
+            return self.current_elo
 
     @property
     def refined_elo(self) -> int:
@@ -424,6 +430,10 @@ class Team(db.Model):
 
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
+
+    @property
+    def avg_age(self) -> int:
+        return round(sum([p.age for p in self.players]) / len(self.players))
 
     def get_available_players(self, matchday):
         """Get list of available players for a specific matchday"""
