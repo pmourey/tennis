@@ -6,7 +6,7 @@
 <main>
     <table>
         <tr>
-            <td style="border: none;"><button onclick="simulatePool()" class="btn btn-primary">Nouvelle simulation</button></td>
+            <td style="border: none;"><button onclick="batchSimulatePool()" class="btn btn-primary">Nouvelle simulation</button></td>
             <td style="border: none;"><button onclick="browseExistingSims()" class="btn btn-primary">Historique simulations</button></td>
         </tr>
     </table>
@@ -114,7 +114,7 @@
     {% endif %}
 </main>
 <script>
-    function simulatePool() {
+    function batchSimulatePool() {
         window.location.href = "{{ url_for('championship.simulate_pool_batch', pool_id=pool.id) }}";
     }
     function browseExistingSims() {
