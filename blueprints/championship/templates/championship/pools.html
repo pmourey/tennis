@@ -8,7 +8,7 @@
 <main>
     <table>
         <tr>
-            <td style="border: none;"><button onclick="newPool()" class="btn btn-primary">Nouvelle poule</button></td>
+            <td style="border: none"><button onclick="newPool()" class="btn btn-primary">Nouvelle poule</button></td>
         </tr>
     </table>
     {% if pools %}
@@ -88,7 +88,8 @@
 </main>
 <script>
     function newPool() {
-        window.location.href = "{{ url_for('championship.new_pool', championship_id=championship.id) }}";
+        alert('Feature disabled for debugging...\nThanks for your comprehension!\n:-) :-) :-) :-) :-)');
+        //window.location.href = "{{ url_for('championship.new_pool', championship_id=championship.id) }}";
     }
 </script>
 {% endblock main %}
