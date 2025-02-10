@@ -206,11 +206,14 @@ def simulate_pool_batch(pool_id):
     pool = Pool.query.get_or_404(pool_id)
     if request.method == 'POST':
         num_simulations = int(request.form.get('sim_count'))
-        current_app.logger.debug(f'num_simulations: {num_simulations}')
 
         # Run simulations and collect results
+        # time to run 10 simulations in development environment: 1 minute
+        # time to run 10 simulations in production environment: 10 minutes
         simulation_results = {team.id: [] for team in pool.teams}
-        for _ in range(num_simulations):
+        for i in range(num_simulations):
+            if not i % 5:
+                current_app.logger.debug(f'simulations to run: {num_simulations - i}')
             purge_pool(pool_id)
             # Simulate matches
             simulate_match_scores(current_app, db, pool)
@@ -257,7 +260,7 @@ def simulate_pool_batch(pool_id):
             db.session.add(team_result)
             db.session.commit()
 
-        return redirect(url_for('championship.show_simulation', sim_id=simulation))
+        return redirect(url_for('championship.show_simulation', sim_id=simulation.id))
 
     return render_template('simulate_pool.html', pool=pool)
 
