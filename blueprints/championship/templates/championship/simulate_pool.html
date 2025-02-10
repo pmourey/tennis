@@ -9,7 +9,7 @@
             <caption class="table-caption">Simulations poule {{pool}}</caption>
             <tr>
                 <td>
-                    <input type="number" name="sim_count" min="1" max="100" placeholder="0" required>
+                    <input type="number" id="sim_count" name="sim_count" min="1" max="100" placeholder="0" required>
                 </td>
             </tr>
             <tr>
@@ -26,7 +26,8 @@
             alert('Please enter a simulation count');
             return false;
         }
-        return confirm('Are you sure you want to simulate this pool' + simCount + ' times?\nThis will take about + simCount + ' minutes!`);
+        return confirm(`Are you sure you want to simulate this pool ${simCount} times?\nThis will take about ${simCount} minutes!`);
     }
 </script>
+
 {% endblock %}
