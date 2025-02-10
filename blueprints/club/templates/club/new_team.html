@@ -17,6 +17,16 @@
                 <td><label for="name">Nom équipe</label></td>
                 <td><input type="text" name="name" placeholder="Nom" {% if form['name'] %} value="{{ form['name'] }}" {% endif %} required></td>
             </tr>
+            <tr>
+                <td><label for="pool_id">N° de poule :</label></td>
+                <td>
+                    <select name="pool_id">
+                        {% for pool in championship.pools %}
+                        <option value="{{ pool.id }}"> {{ pool.letter }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
             {% for player_num in range(1, max_players + 1) %}
             {% set icon_brule = " &#x1F525;" if player_num <= championship.singlesCount else '' %}
             <tr>

@@ -1,12 +1,8 @@
 # club/views.py
 from __future__ import annotations
 
-import os
-from typing import List
-
 import itsdangerous
-import requests
-from flask import make_response, jsonify
+from flask import jsonify
 from flask import current_app
 
 from functools import wraps
@@ -16,10 +12,10 @@ from sqlalchemy import desc, asc, Date
 
 from flask import render_template, redirect, url_for, flash
 
-from TennisModel import *
-from club import club_management_bp
+from models import *
+from blueprints.club import club_management_bp
 
-from common import get_players_order_by_ranking, get_championships, Gender, check_license, import_all_data, import_players, keys_with_same_value, calculate_distance_and_duration, \
+from common import get_players_order_by_ranking, get_championships, Gender, check_license, keys_with_same_value, calculate_distance_and_duration, \
     CatType
 
 

@@ -17,7 +17,7 @@ from sqlalchemy import desc, asc, and_
 from random import random
 from typing import List
 
-from TennisModel import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, Single, Score, Double, Injury, InjurySite
+from models import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, Single, Score, Double, Injury, InjurySite
 from tools.import_csv import extract
 
 from mapbox import Directions
@@ -910,55 +910,13 @@ def simulate_match_scores(app, db, pool: Pool):
                 visitor_players = sorted(active_visitor_players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
                 simulate_score(app=app, db=db, home_players=home_players, visitor_players=visitor_players, match=match)
                 match = Match.query.get(match.id)
-                app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
+                # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
     except Exception as e:
         app.logger.debug(f"Error in simulate_match_scores function!\n{e}")
 
 def play(app, db, pool: Pool):
     schedule_matches(app, db, pool)
     simulate_match_scores(app, db, pool)
-
-# def play(app, db, pool: Pool):
-#     try:
-#         teams = {i + 1: team for i, team in enumerate(pool.teams)}
-#         app.logger.debug(f'TEAMS = {teams}')
-#         n = len(teams)
-#         num_days = n - 1 if n % 2 == 0 else n
-#         schedule = distribute_matches(round_robin(n), num_days, n // 2)
-#         # app.logger.debug(f'MATCHS = {matchs_data}')
-#         matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-#         # app.logger.debug(f'{len(matchdays)} MATCHDAYS = {matchdays}')
-#         for i in range(len(matchdays)):
-#             matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-#             matchday = matchdays[i]
-#             matches = schedule[i + 1]
-#             # app.logger.debug(f'MATCHDAY {i + 1} = {matches}')
-#             matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, visitorTeamId=teams[k].id, date=matchday.date) for j, k in matches]
-#             db.session.add_all(matches)
-#             # db.session.commit()
-#             # matchday.matches = matches
-#             # db.session.add(matchday)
-#             db.session.commit()
-#             # matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-#             # matchday = matchdays[i]
-#             matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
-#             matchday = matchdays[i]
-#             # app.logger.debug(f'PROUT MATCHDAY {i + 1} = {len(matchday.matches)} matches')
-#             for match in matchday.matches:
-#                 if match.poolId != pool.id:
-#                     continue
-#                 # score = simulate_score(home_team=match.homeTeam, visitor_team=match.awayTeam, championship=pool.championship)
-#                 # Select Players for both teams
-#                 num_players = pool.championship.singlesCount + 2 * pool.championship.doublesCount
-#                 home_players = sorted(match.homeTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
-#                 # home_players.sort(key=lambda player: player.current_elo, reverse=True)
-#                 visitor_players = sorted(match.visitorTeam.players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
-#                 # visitor_players.sort(key=lambda player: player.current_elo, reverse=True)
-#                 simulate_score(app=app, db=db, home_players=home_players, visitor_players=visitor_players, match=match)
-#                 match = Match.query.get(match.id)
-#                 # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
-#     except Exception as e:
-#         app.logger.debug(f"Erreur dans la fonction 'play'!\n{e}")
 
 
 def extract_courts(club_json):
@@ -988,7 +946,7 @@ def calculer_classement(pool):
             .filter(Match.poolId == pool.id) \
             .all()
         # matches = Match.query.filter(Match.poolId == pool.id, Match.homeTeamId == team.id).all()
-        logging.info(f'{team} : {len(matches)} matches')
+        # logging.info(f'{team} : {len(matches)} matches')
 
         if all(m.homeScore is None and m.visitorScore is None for m in matches):
             # If no matches have been played, initialize all values to 0

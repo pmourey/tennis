@@ -2,13 +2,12 @@
 from __future__ import annotations
 
 import os
-from typing import List
 
 import pandas as pd
 from flask import request, render_template, redirect, url_for, flash, make_response, current_app
 
-from TennisModel import *
-from admin import admin_bp
+from models import *
+from blueprints.admin import admin_bp
 
 from common import import_all_data, import_players
 from tools.import_csv import extract

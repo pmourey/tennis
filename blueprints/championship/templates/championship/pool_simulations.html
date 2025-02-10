@@ -1,0 +1,31 @@
+<!-- templates/simulate_result.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    {% if simulations %}
+    <table class="simulations">
+        <caption class="table-caption">Poule {{pool}} - Historique des simulations</caption> <!-- Titre ajouté ici -->
+        <thead>
+        <tr>
+            <th>Index</th>
+            <th>Nombre</th>
+            <th>Date création</th>
+        </tr>
+        </thead>
+        {% for simulation in simulations %}
+        <div id="pool">
+            <tr>
+                <td><a href="{{ url_for('championship.show_simulation', sim_id=simulation.id) }}">{{ loop.index }}</a></td>
+                <td>{{ simulation.num_simulations }}</td>
+                <td>{{ simulation.created_at.strftime('%d %b %Y à %H:%M:%S') }}</td>
+            </tr>
+        </div>
+        {%endfor %}
+    </table>
+    {% else %}
+    <p style="font-size: 16px; text-align: center;">>Pas de simulation! ✌️</p>
+    {% endif %}</main>
+
+{% endblock %}

@@ -4,6 +4,12 @@
 {% block main %}
 
 <main>
+    <table>
+        <tr>
+            <td style="border: none;"><button onclick="simulatePool()" class="btn btn-primary">Nouvelle simulation</button></td>
+            <td style="border: none;"><button onclick="browseExistingSims()" class="btn btn-primary">Historique simulations</button></td>
+        </tr>
+    </table>
     <table class="pool">
         <caption class="table-caption">{{ pool.championship.name }} (Poule {{ pool.letter }})</caption>
         <thead>
@@ -108,6 +114,12 @@
     {% endif %}
 </main>
 <script>
+    function simulatePool() {
+        window.location.href = "{{ url_for('championship.simulate_pool_batch', pool_id=pool.id) }}";
+    }
+    function browseExistingSims() {
+        window.location.href = "{{ url_for('championship.show_simulations', pool_id=pool.id) }}";
+    }
     function updateSchedule() {
         const selectItems = document.querySelectorAll('select');
         const schedule = [];

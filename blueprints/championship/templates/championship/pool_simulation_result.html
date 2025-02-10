@@ -1,0 +1,37 @@
+<!-- templates/simulate_result.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <table class="pool">
+        <caption class="table-caption">
+            {{ pool.championship.name }} (Poule {{ pool.letter }}) - Résultats de {{ simulation.num_simulations }} simulations
+        </caption>
+        <thead>
+        <tr>
+            <th>Classement Moyen</th>
+            <th>Équipe</th>
+            <th>Points Moyens</th>
+            <th>Meilleur Classement</th>
+            <th>Pire Classement</th>
+        </tr>
+        </thead>
+        {% for data in results %}
+            {% set team = pool.get_team_by_id(data.team_id) %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    <a href="{{ url_for('club.show_team', id=team.id) }}">
+                        {{ team.name }} ({{ team.avg_age }} ans - poids: {{ team.weight(pool.championship) }})
+                    </a>
+                </td>
+                <td>{{ "%.1f"|format(data.avg_points) }}</td>
+                <td>{{ data.best_ranking }}</td>
+                <td>{{ data.worst_ranking }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</main>
+
+{% endblock %}

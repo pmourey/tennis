@@ -1,13 +1,13 @@
 # medical/views.py
 import os
 
-from flask import url_for, render_template, current_app, render_template_string, request
+from flask import render_template, current_app, request
 import json
 
 from sqlalchemy import func
 
-from TennisModel import Player, License, Injury, InjurySite
-from medical import medical_management_bp
+from models import Player, License, Injury, InjurySite
+from blueprints.medical import medical_management_bp
 
 
 # Define routes for medical management
