@@ -1,0 +1,86 @@
+<!-- templates/new_pool.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    {% if teams %}
+        <form action="{{ url_for('championship.new_pool', championship_id=championship.id) }}" method="POST">
+        <table class="update-form">
+            <caption class="table-caption">Fiche création poule {{championship}}</caption>
+            <!-- Calendar dates selection -->
+            <tr>
+                <td>
+                    <div id="teams_container">
+                         <select name="teams[]" class="championship-team">
+                            <option value="">Sélectionner une équipe</option> <!-- Option vide -->
+                            {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <br>
+                    </div>
+                    <br><button type="button" id="add_team_button">Ajouter une équipe</button>
+                </td>
+            </tr>
+            <tr>
+                <td><input type="submit" value="Créer poule"></td>
+            </tr>
+        </table>
+    </form>
+    {% else %}
+        <p style="font-size: 16px; text-align: center;">Pas de nouveau club éligible pour ce championnat! ✌️</p>
+    {% endif %}
+</main>
+<script>
+    {% set M = championship.matchdays|length %}
+    {% set num_teams_per_pool = (M + 1) if (M % 2 == 0) else M %}
+
+    // First, define the teams array using data from your backend
+    const teams = [
+        {% for team in teams %}
+            {
+                id: {{ team.id }},
+                name: "{{ team.name }}"
+            }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    // Add more team select fields dynamically
+    document.getElementById('add_team_button').addEventListener('click', function() {
+        const teamsContainer = document.getElementById('teams_container');
+
+        // Create a wrapper div for the new line
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('mb-3'); // Bootstrap margin-bottom class
+
+        const newTeamSelect = document.createElement('select');
+        newTeamSelect.setAttribute('name', 'teams[]');
+        newTeamSelect.classList.add('championship-team', 'form-select');
+
+        // Create and append default option
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Sélectionner une équipe';
+        newTeamSelect.appendChild(defaultOption);
+
+        // Add team options
+        teams.forEach(team => {
+            const newTeamOption = document.createElement('option');
+            newTeamOption.value = team.id;
+            newTeamOption.textContent = team.name;
+            newTeamSelect.appendChild(newTeamOption);
+        });
+
+        // Add the select to the wrapper
+        wrapper.appendChild(newTeamSelect);
+
+        // Add newline
+        const newLine = document.createElement('br');
+        teamsContainer.appendChild(newLine);
+
+        // Add the wrapper to the container
+        teamsContainer.appendChild(wrapper);
+    });
+</script>
+
+{% endblock %}
