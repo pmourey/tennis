@@ -84,12 +84,17 @@ class Club(db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
 
-
     # Define the relationship with Player
     players = relationship('Player', back_populates='club', cascade="all, delete-orphan")
 
+    # # Define the relationship with Team
+    # teams = relationship('Team', back_populates='club', cascade="all, delete-orphan")
+
     def __repr__(self):
         return f'{self.name}'
+
+    def __eq__(self, other):
+        return self.id == other.id
 
     @property
     def info(self) -> str:
@@ -422,9 +427,13 @@ class Team(db.Model):
     captainId = db.Column(db.Integer, db.ForeignKey('player.id'))
     poolId = db.Column(db.Integer, db.ForeignKey('pool.id'), nullable=True)
     ranking = db.Column(db.Integer, nullable=True)
+    clubId = db.Column(db.String(8), db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)
 
     # Define the foreign key relationship with Pool
     pool = relationship('Pool', back_populates='teams')
+
+    # # Define the foreign key relationship with Club
+    # club = relationship('Club', back_populates='teams')  # Add this line
 
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici

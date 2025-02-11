@@ -22,6 +22,10 @@
             <td><a href="{{ url_for('championship.show_pools', id=pool.championship.id) }}">
                 <button>Retour championnat</button>
             </a></td>
+            {% elif request.endpoint == 'championship.new_pool' %}
+            <td><a href="{{ url_for('championship.show_pools', id=championship.id) }}">
+                <button>Retour championnat</button>
+            </a></td>
             {% elif request.endpoint == 'championship.show_match' %}
             <td><a href="{{ url_for('championship.show_pool', id=match.pool.id) }}">
                 <button>Retour poule</button>

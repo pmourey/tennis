@@ -380,9 +380,11 @@ def remove_text_between_parentheses(text):
 
 
 # Section 1.1: formation des équipes
-def form_teams(championship):
+def form_teams(championship, club_ids_to_filter: list[int] = None):
     teams = []
     for club in Club.query.all():
+        if club_ids_to_filter and club.id not in club_ids_to_filter:
+            continue
         players = get_players_order_by_ranking(
             gender=championship.division.gender,
             club_id=club.id,

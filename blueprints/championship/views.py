@@ -88,13 +88,17 @@ def new_pool(championship_id):
 
     # Fetch all teams
     championship = Championship.query.get(championship_id)
-    teams_in_pools = {team.name for pool in championship.pools for team in pool.teams}
-    # current_app.logger.debug(f'teams_in_pools: {teams_in_pools}')
-    eligible_teams = form_teams(championship)
-    new_teams = [team for team in eligible_teams if team.name not in teams_in_pools]
+    teams_in_pools = {team.id for pool in championship.pools for team in pool.teams}
+    current_app.logger.debug(f'teams_in_pools: {teams_in_pools}')
+    club_ids_to_filter = [team.clubId for team in championship.teams]
+    club_ids_to_filter = list(set(club_ids_to_filter))
+    current_app.logger.debug(f'clubs_to_filter: {club_ids_to_filter}')
+    eligible_teams = form_teams(championship, club_ids_to_filter=club_ids_to_filter)
+    # eligible_teams = form_teams(championship)
+    new_teams = [team for team in eligible_teams if team.id not in teams_in_pools]
     db.session.add_all(new_teams)
     db.session.commit()
-    # current_app.logger.debug(f'new_teams: {new_teams}')
+    current_app.logger.debug(f'new_teams: {new_teams}')
     return render_template('new_pool.html', championship=championship, teams=new_teams)
 
 @championship_management_bp.route('/new_championship', methods=['GET', 'POST'])

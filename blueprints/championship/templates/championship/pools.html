@@ -88,8 +88,8 @@
 </main>
 <script>
     function newPool() {
-        alert('Feature disabled for debugging...\nThanks for your comprehension!\n:-) :-) :-) :-) :-)');
-        //window.location.href = "{{ url_for('championship.new_pool', championship_id=championship.id) }}";
+        // yes = confirm('Feature disabled for debugging...\nThanks for your comprehension!\n:-) :-) :-) :-) :-)');
+        window.location.href = "{{ url_for('championship.new_pool', championship_id=championship.id) }}";
     }
 </script>
 {% endblock main %}
