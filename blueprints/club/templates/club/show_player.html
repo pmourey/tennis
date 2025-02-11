@@ -3,11 +3,17 @@
 {% include './partials/_menu.html' %}
 
 {% block main %}
+<script src="{{ url_for('club.static', filename='manage_player.js') }}"></script>
 {% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
 {% set acute_label = 'Aigüe'%}
 {% set overuse_label = 'Surmenage'%}
 <main>
-        <button onclick="updatePlayer()">Mettre à jour le joueur</button> <!-- Bouton pour mettre à jour le joueur -->
+        <table>
+            <tr>
+                <td style="border: none;"><button onclick="updatePlayer()">Mettre à jour</button></td>
+                <td style="border: none;"><button onclick="confirmDelete({{ player.id }})">Supprimer</button></td>
+            </tr>
+        </table>
         <br>
         <table class="pool">
             <caption class="table-caption">Fiche joueur ({{ player.club.name }})</caption> <!-- Titre ajouté ici -->
