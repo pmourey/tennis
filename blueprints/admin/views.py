@@ -26,7 +26,7 @@ def new_club():
         club_info = [d for d in current_app.config['CLUBS'] if d['id'] == club_id][0]
         # récupération autres infos dans fichier csv du club
         BASE_PATH = os.path.dirname(__file__)
-        csv_file = os.path.join(BASE_PATH, f'../static/data/clubs.csv')
+        csv_file = os.path.join(BASE_PATH, f'../../static/data/clubs.csv')
         df = pd.read_csv(csv_file)
         colonnes_a_recuperer = ['name', 'city', 'tennis_courts', 'padel_courts', 'beach_courts', 'latitude', 'longitude']
         club_tenup = extract(df=df, field_criteria='id', field_value=club_info['id'], columns=colonnes_a_recuperer)
