@@ -88,14 +88,13 @@ def new_pool(championship_id):
 
     # Fetch all teams
     championship = Championship.query.get(championship_id)
-    teams_in_pools = {team.id for pool in championship.pools for team in pool.teams}
-    current_app.logger.debug(f'teams_in_pools: {teams_in_pools}')
-    club_ids_to_filter = [team.clubId for team in championship.teams]
+    enrolled_teams = [team for pool in championship.pools for team in pool.teams]
+    current_app.logger.debug(f'enrolled_teams: {enrolled_teams}')
+    club_ids_to_filter = [team.clubId for team in enrolled_teams]
     club_ids_to_filter = list(set(club_ids_to_filter))
     current_app.logger.debug(f'clubs_to_filter: {club_ids_to_filter}')
-    eligible_teams = form_teams(championship, club_ids_to_filter=club_ids_to_filter)
+    new_teams = form_teams(championship, club_ids_to_filter=club_ids_to_filter)
     # eligible_teams = form_teams(championship)
-    new_teams = [team for team in eligible_teams if team.id not in teams_in_pools]
     db.session.add_all(new_teams)
     db.session.commit()
     current_app.logger.debug(f'new_teams: {new_teams}')
@@ -205,7 +204,7 @@ def purge_pool(pool_id: int):
         db.session.commit()
 
 
-@championship_management_bp.route('/simulate_pool/<int:pool_id>', methods=['GET', 'POST'])
+@championship_management_bp.route('/simulate_pool_batch/<int:pool_id>', methods=['GET', 'POST'])
 def simulate_pool_batch(pool_id):
     pool = Pool.query.get_or_404(pool_id)
     if request.method == 'POST':
