@@ -342,10 +342,11 @@ class Player(db.Model):
 
     @property
     def full_info(self):
-        if self.best_ranking:
-            best_ranking = f', ex. {self.best_ranking}' if self.best_ranking.id < self.ranking.id else ''
+        nd_ranking = Ranking.query.filter_by(value="ND").first()
+        if self.best_ranking.id == nd_ranking.id:
+            best_ranking = ', ex. ???'
         else:
-            best_ranking = ', unknown'
+            best_ranking = f', ex. {self.best_ranking}' if self.best_ranking.id < self.ranking.id else ''
         age_and_ranking = f'({self.age} ans{best_ranking})'
         return f'{self.name} {self.ranking} {age_and_ranking}'
 
@@ -375,7 +376,7 @@ class Player(db.Model):
             ranking_delta = (second_series_threshold.id - self.ranking.id) // 10 + nc_ranking.id - second_series_threshold.id
         else:
             ranking_delta = nc_ranking.id - self.ranking.id
-        return ranking_delta * elo_weight  # Classement ELO actuel du joueur
+        return ranking_delta * elo_weight # Classement ELO actuel du joueur
 
     @property
     def best_elo(self) -> int:
@@ -389,8 +390,8 @@ class Player(db.Model):
             if self.ranking.id < second_series_threshold.id:
                 ranking_delta = (second_series_threshold.id - self.best_ranking.id) // 10 + nc_ranking.id - second_series_threshold.id
             else:
-                ranking_delta = nc_ranking.id - self.best_ranking.id if self.best_ranking else nc_ranking.id
-            return ranking_delta * elo_weight  # Meilleur classement ELO du joueur
+                ranking_delta = nc_ranking.id - self.best_ranking.id
+            return ranking_delta * elo_weight if ranking_delta != -1 else self.current_elo # Meilleur classement ELO du joueur
         else:
             return self.current_elo
 
