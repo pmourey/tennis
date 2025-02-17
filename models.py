@@ -517,9 +517,12 @@ class Team(db.Model):
     def championship_name(self):
         return self.pool.championship.name if self.pool else None
 
+
     @property
     def match_days(self):
-        return self.championship.matchdays
+        return [matchday for matchday in self.championship.matchdays
+                if any(match.homeTeamId == self.id or match.visitorTeamId == self.id
+                       for match in matchday.matches)]
 
     @property
     def club(self):
@@ -773,7 +776,6 @@ class Matchday(db.Model):
 
     @property
     def singles_count(self):
-        logging.info('prout')
         return Championship.query.get(self.championshipId).singlesCount
 
     @property
