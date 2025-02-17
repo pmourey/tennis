@@ -277,11 +277,7 @@ def show_simulations(pool_id: int):
 def show_simulation(sim_id: int):
     simulation = PoolSimulation.query.get_or_404(sim_id)
     pool = Pool.query.get_or_404(simulation.pool_id)
-    # simTeamResults = TeamSimulationResult.query.filter(TeamSimulationResult.simulation_id == simulation.id).all()
-    simTeamResults = TeamSimulationResult.query \
-        .filter(TeamSimulationResult.simulation_id == simulation.id) \
-        .order_by(TeamSimulationResult.avg_points.desc()) \
-        .all()
+    simTeamResults = TeamSimulationResult.query.filter(TeamSimulationResult.simulation_id == simulation.id).all()
     return render_template('pool_simulation_result.html', results=simTeamResults, simulation=simulation, pool=pool)
 
 @championship_management_bp.route('/simulate_pool/<int:pool_id>', methods=['POST'])
