@@ -218,7 +218,7 @@ def load_rankings(db, Model: Ranking | BestRanking):
         rankings += [Model(value=f'N{i + 1}', series=Series.First.value)]
         rankings += [Model(value=f'T{i + 1}', series=Series.First.value)]
     # 2ème/3ème/4ème série
-    second_series = ['-15', '-4/6', '-2/6', '0', '1/6', '2/6', '3/6', '4/6', '5/6', '15']
+    second_series = ['-30', '-15', '-4/6', '-2/6', '0', '1/6', '2/6', '3/6', '4/6', '5/6', '15']
     third_series = ['15/1', '15/2', '15/3', '15/4', '15/5', '30']
     fourth_series = ['30/1', '30/2', '30/3', '30/4', '30/5', '40', 'NC']
     other = 'ND'
@@ -383,7 +383,7 @@ def remove_text_between_parentheses(text):
 def form_teams(championship, club_ids_to_filter: list[int] = None):
     teams = []
     for club in Club.query.all():
-        if club_ids_to_filter and club.id not in club_ids_to_filter:
+        if club.id in club_ids_to_filter:
             continue
         players = get_players_order_by_ranking(
             gender=championship.division.gender,

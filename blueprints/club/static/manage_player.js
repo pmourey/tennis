@@ -5,5 +5,6 @@
         var result = confirm("Êtes-vous sûr de vouloir supprimer ce joueur?");
         if (result) {
             window.location.href = "delete_player/" + playerId;
+            //window.location.href = "{{ url_for('club.delete_player', id=playerId) }}";
         }
     }
