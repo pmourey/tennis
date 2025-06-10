@@ -19,17 +19,20 @@ TennisManager est une solution complète pour la gestion des clubs de tennis, of
 ## ✨ Fonctionnalités principales
 
 ### 🏢 Gestion des clubs
+
 - Administration complète des clubs
 - Gestion des droits d'accès
 - Interface personnalisée par club
 
 ### 👥 Gestion des joueurs
+
 - Inscription et suivi des joueurs
 - Gestion des licences
 - Suivi des classements
 - Gestion des mutations
 
 ### 🏆 Championnats
+
 - Configuration des divisions
 - Gestion des poules
 - Planification des rencontres
@@ -46,16 +49,21 @@ TennisManager est une solution complète pour la gestion des clubs de tennis, of
 ## 🚀 Installation
 
 1. Cloner le repository
+
   ```bash
   git clone https://github.com/pmourey/tennis.git
   ```
+
 2. Créer un environnement virtuel
+
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 ```
+
 3. Installer les dépendances
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -63,6 +71,7 @@ pip install -r requirements.txt
 ## 📖 Documentation
 
 La documentation complète est disponible dans le wiki du projet, incluant :
+
 - Guide d'utilisation détaillé
 - Documentation API
 - Guides d'administration
@@ -85,43 +94,17 @@ Ce projet est sous licence MIT - voir le fichier `LICENSE.md` pour plus de déta
 ## 📞 Contact
 
 Pour toute question ou suggestion, n'hésitez pas à :
-- Ouvrir une issue
-- Contacter l'équipe de développement
 
-## 📖 Documentation
-
-La documentation complète est disponible dans le wiki du projet, incluant :
-- Guide d'utilisation détaillé
-- Documentation API
-- Guides d'administration
-- FAQ
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Voir `CONTRIBUTING.md` pour les lignes directrices.
-
-## 🔑 Prérequis
-
-- Python 3.9+
-- Base de données SQLite
-- Compte Mapbox pour les services de cartographie
-
-## 📝 Licence
-
-Ce projet est sous licence MIT - voir le fichier `LICENSE.md` pour plus de détails.
-
-## 📞 Contact
-
-Pour toute question ou suggestion, n'hésitez pas à :
 - Ouvrir une issue
 - Contacter l'équipe de développement
 
 ## 🌟 Démo
 
-Une version de démonstration est disponible sur PythonAnywhere : 
+Une version de démonstration est disponible sur PythonAnywhere :
 http://godot70.pythonanywhere.com
 
 Cette démo vous permet de tester les principales fonctionnalités de l'application :
+
 - Gestion des équipes
 - Suivi des championnats
 - Gestion des joueurs
