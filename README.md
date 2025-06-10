@@ -1,4 +1,28 @@
-# tennis
+# TennisManager
+
+Une application web pour la gestion des clubs de tennis, des championnats par équipes et la gestion des joueurs. Développée en Python, cette application aide les clubs de tennis dans :
+
+Fonctionnalités principales :
+- Gestion des clubs (USC Tennis comme club par défaut)
+- Gestion des licences joueurs
+- Création et gestion des équipes
+- Organisation des championnats par saison
+  - Gestion des catégories d'âge et divisions
+  - Attribution des poules aux équipes
+  - Gestion du calendrier des rencontres
+  - Suivi des disponibilités des joueurs
+- Fonctions administratives
+  - Support multi-clubs
+  - Gestion des mutations de joueurs
+  - Gestion du poids des équipes par division
+
+Stack technique :
+- Python
+- Flask
+- SQLAlchemy ORM
+- Mapbox GL JS pour les services de localisation
+
+L'application est actuellement hébergée sur pythonanywhere et fournit une solution complète pour les administrateurs de clubs de tennis afin de gérer efficacement leurs opérations.
 
 https://godot70.pythonanywhere.com
 
