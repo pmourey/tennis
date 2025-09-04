@@ -383,7 +383,7 @@ def remove_text_between_parentheses(text):
 def form_teams(championship, club_ids_to_filter: list[int] = None):
     teams = []
     for club in Club.query.all():
-        if club.id in club_ids_to_filter:
+        if club_ids_to_filter and club.id in club_ids_to_filter:
             continue
         players = get_players_order_by_ranking(
             gender=championship.division.gender,

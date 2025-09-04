@@ -4,23 +4,22 @@
 
 {% block main %}
 <main>
-    {% if teams %}
+    {% if clubs %}
         <form action="{{ url_for('championship.new_pool', championship_id=championship.id) }}" method="POST">
         <table class="update-form">
             <caption class="table-caption">Fiche création poule {{championship}}</caption>
-            <!-- Calendar dates selection -->
             <tr>
                 <td>
-                    <div id="teams_container">
-                         <select name="teams[]" class="championship-team">
-                            <option value="">Sélectionner une équipe</option> <!-- Option vide -->
-                            {% for team in teams %}
-                                <option value="{{ team.id }}">{{ team.name }}</option>
+                    <div id="clubs_container">
+                         <select name="clubs[]" class="championship-club">
+                            <option value="">Sélectionner un club</option>
+                            {% for club in clubs %}
+                                <option value="{{ club.id }}" {% if selected_clubs and club.id in selected_clubs %}selected{% endif %}>{{ club.name }}</option>
                             {% endfor %}
                         </select>
                         <br>
                     </div>
-                    <br><button type="button" id="add_team_button">Ajouter une équipe</button>
+                    <br><button type="button" id="add_club_button">Ajouter un club</button>
                 </td>
             </tr>
             <tr>
@@ -29,57 +28,73 @@
         </table>
     </form>
     {% else %}
-        <p style="font-size: 16px; text-align: center;">Pas de nouveau club éligible pour ce championnat! ✌️</p>
+        <p style="font-size: 16px; text-align: center;">Pas de club éligible pour ce championnat! ✌️</p>
     {% endif %}
 </main>
 <script>
     {% set M = championship.matchdays|length %}
     {% set num_teams_per_pool = (M + 1) if (M % 2 == 0) else M %}
 
-    // First, define the teams array using data from your backend
-    const teams = [
-        {% for team in teams %}
+    const clubs = [
+        {% for club in clubs %}
             {
-                id: {{ team.id }},
-                name: "{{ team.name }}"
+                id: "{{ club.id }}",
+                name: "{{ club.name }}"
             }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
-    // Add more team select fields dynamically
-    document.getElementById('add_team_button').addEventListener('click', function() {
-        const teamsContainer = document.getElementById('teams_container');
-
-        // Create a wrapper div for the new line
+    
+    function createClubSelect(selectedValue = '') {
         const wrapper = document.createElement('div');
-        wrapper.classList.add('mb-3'); // Bootstrap margin-bottom class
+        wrapper.classList.add('mb-3');
 
-        const newTeamSelect = document.createElement('select');
-        newTeamSelect.setAttribute('name', 'teams[]');
-        newTeamSelect.classList.add('championship-team', 'form-select');
+        const newClubSelect = document.createElement('select');
+        newClubSelect.setAttribute('name', 'clubs[]');
+        newClubSelect.classList.add('championship-club', 'form-select');
 
-        // Create and append default option
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
-        defaultOption.textContent = 'Sélectionner une équipe';
-        newTeamSelect.appendChild(defaultOption);
+        defaultOption.textContent = 'Sélectionner un club';
+        newClubSelect.appendChild(defaultOption);
 
-        // Add team options
-        teams.forEach(team => {
-            const newTeamOption = document.createElement('option');
-            newTeamOption.value = team.id;
-            newTeamOption.textContent = team.name;
-            newTeamSelect.appendChild(newTeamOption);
+        clubs.forEach(club => {
+            const newClubOption = document.createElement('option');
+            newClubOption.value = club.id;
+            newClubOption.textContent = club.name;
+            if (club.id === selectedValue) {
+                newClubOption.selected = true;
+            }
+            newClubSelect.appendChild(newClubOption);
         });
 
-        // Add the select to the wrapper
-        wrapper.appendChild(newTeamSelect);
-
-        // Add newline
+        wrapper.appendChild(newClubSelect);
+        return wrapper;
+    }
+    
+    // Recreate additional selects for selected clubs on page load
+    {% if selected_clubs and selected_clubs|length > 0 %}
+    const selectedClubs = {{ selected_clubs|tojson }};
+    const clubsContainer = document.getElementById('clubs_container');
+    
+    // Set first select value
+    const firstSelect = document.querySelector('select[name="clubs[]"]');
+    if (firstSelect && selectedClubs.length > 0) {
+        firstSelect.value = selectedClubs[0];
+    }
+    
+    // Create additional selects for remaining selections
+    for (let i = 1; i < selectedClubs.length; i++) {
         const newLine = document.createElement('br');
-        teamsContainer.appendChild(newLine);
-
-        // Add the wrapper to the container
-        teamsContainer.appendChild(wrapper);
+        clubsContainer.appendChild(newLine);
+        clubsContainer.appendChild(createClubSelect(selectedClubs[i]));
+    }
+    {% endif %}
+    
+    document.getElementById('add_club_button').addEventListener('click', function() {
+        const clubsContainer = document.getElementById('clubs_container');
+        const newLine = document.createElement('br');
+        clubsContainer.appendChild(newLine);
+        clubsContainer.appendChild(createClubSelect());
     });
 </script>
 

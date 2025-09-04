@@ -11,7 +11,7 @@ from flask import render_template, redirect, url_for, flash
 
 from models import AgeCategory, Division, Championship, db, Pool, Team, Matchday, Match, PoolSimulation, TeamSimulationResult
 from blueprints.championship import championship_management_bp
-from common import populate_championship, calculer_classement, simulate_match_scores, create_pools_and_assign_teams, schedule_matches, form_teams
+from common import populate_championship, calculer_classement, simulate_match_scores, create_pools_and_assign_teams, schedule_matches, form_teams, get_players_order_by_ranking, remove_text_between_parentheses
 
 
 # Define routes for championship management
@@ -55,50 +55,160 @@ def select_division():
 
 @championship_management_bp.route('/new_pool/<int:championship_id>', methods=['GET', 'POST'])
 def new_pool(championship_id):
+    championship = Championship.query.get(championship_id)
+    
     if request.method == 'POST':
-        # Fetching the list of team IDs from the form
-        team_ids = request.form.getlist('teams[]')
-        team_ids = list(filter(None, team_ids))
-        # current_app.logger.debug(f'team_ids: {team_ids}')
-        teams = [Team.query.get(team_id) for team_id in team_ids]
-        # current_app.logger.debug(f'teams: {teams}')
-
-        # Create a new pool
+        # Get selected clubs
+        club_ids = request.form.getlist('clubs[]')
+        club_ids = list(filter(None, club_ids))
+        
+        # Check for same club teams in same pool
+        if len(club_ids) != len(set(club_ids)):
+            from collections import Counter
+            from models import Club
+            duplicates = [club_id for club_id, count in Counter(club_ids).items() if count > 1]
+            duplicate_names = [Club.query.get(club_id).name for club_id in duplicates]
+            flash(f'Impossible de mettre plusieurs équipes du même club dans la même poule! Club(s) en erreur: {", ".join(duplicate_names)}', 'error')
+            
+            available_clubs = Club.query.all()
+            return render_template('new_pool.html', championship=championship, clubs=available_clubs, selected_clubs=club_ids, preserve_all=True)
+        
+        # Create teams for selected clubs
+        teams = []
+        current_app.logger.debug(f'Selected club_ids: {club_ids}')
+        
+        for club_id in club_ids:
+            current_app.logger.debug(f'Processing club_id: {club_id}')
+            
+            # Get existing teams for this club in championship using simple query
+            existing_teams = Team.query.filter_by(clubId=club_id).filter(
+                Team.poolId.in_([p.id for p in championship.pools])
+            ).all()
+            current_app.logger.debug(f'Existing teams for club {club_id}: {[t.name for t in existing_teams]}')
+            
+            # Extract existing numbers
+            existing_numbers = []
+            for team in existing_teams:
+                parts = team.name.split(' ')
+                current_app.logger.debug(f'Team name parts: {parts}')
+                if parts and parts[-1].isdigit():
+                    number = int(parts[-1])
+                    existing_numbers.append(number)
+                    current_app.logger.debug(f'Found existing number: {number}')
+            
+            current_app.logger.debug(f'All existing numbers for club {club_id}: {existing_numbers}')
+            
+            # Find next available number
+            team_number = 1
+            while team_number in existing_numbers:
+                team_number += 1
+            current_app.logger.debug(f'Next team number for club {club_id}: {team_number}')
+            
+            # Get club and create team directly
+            from models import Club
+            club = Club.query.get(club_id)
+            if club:
+                # Get eligible players for this club
+                players = get_players_order_by_ranking(
+                    gender=championship.division.gender,
+                    club_id=club_id,
+                    asc_param=True,
+                    age_category=championship.age_category,
+                    is_active=True
+                )
+                
+                if len(players) >= championship.singlesCount:
+                    captain = max(players, key=lambda p: p.best_elo)
+                    club_name = remove_text_between_parentheses(club.name)
+                    
+                    team = Team(name=f'{club_name} {team_number}', captainId=captain.id, clubId=club_id)
+                    team.players = players[:15]
+                    teams.append(team)
+                    current_app.logger.debug(f'Created team: {team.name} with {len(team.players)} players')
+                else:
+                    current_app.logger.debug(f'Club {club.name} has insufficient players: {len(players)}')
+            else:
+                current_app.logger.debug(f'Club {club_id} not found')
+        
+        current_app.logger.debug(f'Total teams created: {len(teams)}')
+        
+        # Create pool and assign teams
         pools = Pool.query.filter_by(championshipId=championship_id).all()
-        pool_letters = [pool.letter for pool in pools]
-        # current_app.logger.debug(f'pool_letters: {pool_letters}')
-        letter = chr(min([ord(l) for l in string.ascii_uppercase if l is not None and l not in pool_letters])) if pool_letters else None
-        # current_app.logger.debug(f'letter: {letter}')
+        pool_letters = [pool.letter for pool in pools if pool.letter]
+        letter = chr(min([ord(l) for l in string.ascii_uppercase if l not in pool_letters])) if pool_letters else 'A'
+        
         pool = Pool(letter=letter, championshipId=championship_id)
         db.session.add(pool)
         db.session.commit()
-
-        # Assign teams to the pool
-        for team in teams:
-            team.poolId = pool.id
+        
+        # Add and commit teams first
         db.session.add_all(teams)
         db.session.commit()
-
-        # Génération des ordonnancements de matches
+        
+        # Then assign to pool
+        for team in teams:
+            team.poolId = pool.id
+        db.session.commit()
+        
         schedule_matches(current_app, db, pool)
-        # current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
-
         flash(f'Poule {pool.letter} créée avec succès!', 'success')
-        return redirect(url_for('championship.index'))
+        return redirect(url_for('championship.show_pools', id=championship_id))
+    
+    # Get available clubs (not teams)
+    from models import Club
+    available_clubs = Club.query.all()
+    
+    return render_template('new_pool.html', championship=championship, clubs=available_clubs)
 
-    # Fetch all teams
-    championship = Championship.query.get(championship_id)
-    enrolled_teams = [team for pool in championship.pools for team in pool.teams]
-    current_app.logger.debug(f'enrolled_teams: {enrolled_teams}')
-    club_ids_to_filter = [team.clubId for team in enrolled_teams]
-    club_ids_to_filter = list(set(club_ids_to_filter))
-    current_app.logger.debug(f'clubs_to_filter: {club_ids_to_filter}')
-    new_teams = form_teams(championship, club_ids_to_filter=club_ids_to_filter)
-    # eligible_teams = form_teams(championship)
-    db.session.add_all(new_teams)
+@championship_management_bp.route('/configure_pools/<int:championship_id>', methods=['GET', 'POST'])
+def configure_pools(championship_id):
+    championship = Championship.query.get_or_404(championship_id)
+    
+    if request.method == 'POST':
+        num_pools = int(request.form['num_pools'])
+        
+        # Create pools
+        for i in range(num_pools):
+            pool = Pool(letter=chr(ord('A') + i), championshipId=championship.id)
+            db.session.add(pool)
+        
+        db.session.commit()
+        flash(f'{num_pools} poules créées avec succès!', 'success')
+        return redirect(url_for('championship.assign_teams', championship_id=championship.id))
+    
+    return render_template('configure_pools.html', championship=championship)
+
+@championship_management_bp.route('/assign_teams/<int:championship_id>', methods=['GET', 'POST'])
+def assign_teams(championship_id):
+    championship = Championship.query.get_or_404(championship_id)
+    
+    if request.method == 'POST':
+        # Process team assignments
+        for pool in championship.pools:
+            team_ids = request.form.getlist(f'pool_{pool.id}_teams[]')
+            team_ids = list(filter(None, team_ids))
+            
+            for team_id in team_ids:
+                team = Team.query.get(team_id)
+                if team:
+                    team.poolId = pool.id
+        
+        db.session.commit()
+        
+        # Schedule matches for all pools
+        for pool in championship.pools:
+            if pool.teams:
+                schedule_matches(current_app, db, pool)
+        
+        flash('Equipes assignées et matches programmés avec succès!', 'success')
+        return redirect(url_for('championship.show_pools', id=championship.id))
+    
+    # Get available teams
+    available_teams = form_teams(championship, club_ids_to_filter=[])
+    db.session.add_all(available_teams)
     db.session.commit()
-    current_app.logger.debug(f'new_teams: {new_teams}')
-    return render_template('new_pool.html', championship=championship, teams=new_teams)
+    
+    return render_template('assign_teams.html', championship=championship, teams=available_teams)
 
 @championship_management_bp.route('/new_championship', methods=['GET', 'POST'])
 def new_championship():
@@ -137,21 +247,23 @@ def new_championship():
         db.session.add(championship)
 
         try:
+            db.session.commit()  # Commit championship first to get ID
+            
             # Create matchdays for each selected date
             for date in selected_dates:
                 report_date = date + timedelta(days=6)  # report au samedi suivant
                 matchday = Matchday(date=date, report_date=report_date, championshipId=championship.id)
                 championship.matchdays.append(matchday)
                 db.session.add(matchday)
-            populate_championship(app=current_app, db=db, championship=championship)
+            
+            db.session.commit()
             flash('Championnat créé avec succès!', 'success')
+            return redirect(url_for('championship.configure_pools', championship_id=championship.id))
         except Exception as e:
             db.session.rollback()  # Rollback if an error occurs
             flash(f'Erreur: {e}\nImpossible de créer le championnat.', 'error')
             division = Division.query.get(division_id)
             return render_template('new_championship.html', selected_division=division)
-
-        db.session.commit()
         return render_template('championship_index.html')
 
     # GET request: Render the form with divisions
@@ -164,6 +276,18 @@ def delete_championship(championship_id):
     championship = Championship.query.get_or_404(championship_id)
 
     try:
+        # Get all team IDs for this championship
+        team_ids = [team.id for pool in championship.pools for team in pool.teams]
+        
+        # Manually delete from association table
+        if team_ids:
+            placeholders = ','.join([f':id{i}' for i in range(len(team_ids))])
+            params = {f'id{i}': team_id for i, team_id in enumerate(team_ids)}
+            db.session.execute(
+                db.text(f"DELETE FROM player_team_association WHERE team_id IN ({placeholders})"),
+                params
+            )
+        
         db.session.delete(championship)
         db.session.commit()
         flash('Championship deleted successfully.', 'success')
@@ -310,33 +434,23 @@ def simulate_pool(pool_id):
 @championship_management_bp.route('/simulate_championship/<int:championship_id>', methods=['POST'])
 def simulate_championship(championship_id):
     championship = Championship.query.get_or_404(championship_id)
-    # teams = Team.query.filter(Team.championshipId == championship_id).all()
     teams = Team.query.join(Pool).filter(Pool.championshipId == championship_id).all()
+    
     try:
-
-        # pools = Pool.query.filter(Pool.championshipId == championship.id).all()
-        # current_app.logger.debug(f'COMMIT DONE = {len(pools) - int(len(exempted_teams) > 0)} POOLS of {num_teams_per_pool} teams for {championship}')
-        # Section II: Génération des ordonnancements de matches
+        # Delete existing pools
         for pool in championship.pools:
             db.session.delete(pool)
-        # for matchday in championship.matchdays:
-        #     db.session.delete(matchday)
         db.session.commit()
-        # Section I: Génération des poules et planning de rencontres
-        num_teams_per_pool, exempted_teams = create_pools_and_assign_teams(current_app, db, championship, teams)
-        # Pool.query.filter(Pool.championship_id == championship.id).delete(synchronize_session=False)
-        # Matchday.query.filter(Matchday.championship_id == championship.id).delete(synchronize_session=False)
-        # db.session.delete_all(championship.matchdays)
-        # db.session.commit()
+        
+        # Create pools and assign teams
+        create_pools_and_assign_teams(current_app, db, championship, teams)
+        
+        # Schedule and simulate matches for each pool
         for pool in championship.pools:
-            if pool.letter is None:
-                continue
-            schedule_matches(current_app, db, pool)
-            # current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
-            # Section III: Génération des feuilles de matches
-            # current_app.logger.debug(f'TRACE 1')
-            simulate_match_scores(current_app, db, pool)
-            # current_app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES for pool {pool}')
+            if pool.letter is not None:
+                schedule_matches(current_app, db, pool)
+                simulate_match_scores(current_app, db, pool)
+                
         flash(f'{championship} simulation completed!', 'success')
     except Exception as e:
         db.session.rollback()
