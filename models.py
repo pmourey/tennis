@@ -590,6 +590,7 @@ class Championship(db.Model):
     # endDate = db.Column(db.Date, nullable=False)
     singlesCount = db.Column(db.Integer, nullable=False)
     doublesCount = db.Column(db.Integer, nullable=False)
+    season = db.Column(db.String(10), nullable=True, default=None)  # e.g., '2025/2026'
 
     # dates = relationship('ChampionshipDate', backref='championship', lazy='dynamic')
 
@@ -622,7 +623,8 @@ class Championship(db.Model):
     @property
     def name(self):
         division = Division.query.get(self.divisionId)
-        return f'{division.name}' if division else None
+        season_str = f' ({self.season})' if hasattr(self, 'season') and self.season else ''
+        return f'{division.name}{season_str}' if division else None
 
     @property
     def age_category(self):
@@ -924,6 +926,50 @@ class Double(db.Model):
         player3, player4 = Player.query.get(self.player3Id), Player.query.get(self.player4Id)
         return player3.weight + player4.weight
 
+
+class AppSettings(db.Model):
+    __tablename__ = 'app_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.String(100), nullable=False)
+    
+    @staticmethod
+    def get_current_season():
+        """Get current sports season (e.g., '2025/2026')"""
+        from datetime import datetime
+        now = datetime.now()
+        if now.month >= 10:  # October to September
+            start_year = now.year
+            end_year = now.year + 1
+        else:
+            start_year = now.year - 1
+            end_year = now.year
+        return f'{start_year}/{end_year}'
+    
+    @staticmethod
+    def get_season():
+        """Get configured season or current season as default"""
+        try:
+            setting = AppSettings.query.filter_by(key='current_season').first()
+            return setting.value if setting else AppSettings.get_current_season()
+        except:
+            return AppSettings.get_current_season()
+    
+    @staticmethod
+    def set_season(season):
+        """Set the current season"""
+        try:
+            setting = AppSettings.query.filter_by(key='current_season').first()
+            if setting:
+                setting.value = season
+            else:
+                setting = AppSettings(key='current_season', value=season)
+                db.session.add(setting)
+            db.session.commit()
+        except:
+            # Table doesn't exist yet, will be created by migration
+            pass
 
 class Score(db.Model):
     __tablename__ = 'score'

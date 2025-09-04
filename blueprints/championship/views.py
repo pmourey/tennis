@@ -237,10 +237,12 @@ def new_championship():
             return render_template('new_championship.html', selected_division=division)
 
         # Create the championship
+        from models import AppSettings
         championship = Championship(
             singlesCount=singles_count,
             doublesCount=doubles_count,
-            divisionId=division_id
+            divisionId=division_id,
+            season=AppSettings.get_season()
         )
 
         # current_app.logger.debug(f'championship: {championship}')
