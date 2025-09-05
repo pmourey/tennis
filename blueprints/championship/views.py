@@ -44,7 +44,20 @@ def select_division():
             flash(f"Le championnat {championship} a déjà été créé pour la saison {current_season}!")
             return redirect(url_for('championship.select_division', selected_age_category_id=selected_division.ageCategoryId))
         else:
-            return render_template('new_championship.html', selected_division=selected_division)
+            from models import AppSettings
+            from datetime import datetime, timedelta
+            current_season = AppSettings.get_season()
+            # Calculate first Sunday of October
+            season_year = int(current_season.split('/')[0])
+            oct_first = datetime(season_year, 10, 1)
+            days_until_sunday = (6 - oct_first.weekday()) % 7
+            first_sunday = oct_first + timedelta(days=days_until_sunday)
+            season_start = f"{season_year}-10-01"
+            default_date = first_sunday.strftime('%Y-%m-%d')
+            return render_template('new_championship.html', 
+                                 selected_division=selected_division,
+                                 season_start=season_start,
+                                 default_date=default_date)
     # Retrieve the selected age category ID from the URL parameters
     selected_age_category_id = request.args.get('selected_age_category_id')
     divisions = Division.query.filter_by(ageCategoryId=selected_age_category_id).order_by(desc(Division.type)).all()

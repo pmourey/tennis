@@ -27,5 +27,24 @@
             </tr>
         </table>
     </form>
+    
+    <form action="{{ url_for('admin.create_season') }}" method="POST" style="margin-top: 30px;">
+        <table class="update-form">
+            <caption class="table-caption">Créer une nouvelle saison sportive</caption>
+            
+            <tr>
+                <td><label for="new_season">Nouvelle saison :</label></td>
+                <td>
+                    <input type="text" id="new_season" name="new_season" 
+                           pattern="\d{4}/\d{4}" placeholder="2026/2027" required>
+                    <small>Format: YYYY/YYYY (ex: 2026/2027)</small>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2"><input type="submit" value="Créer saison"></td>
+            </tr>
+        </table>
+    </form>
 </main>
 {% endblock %}

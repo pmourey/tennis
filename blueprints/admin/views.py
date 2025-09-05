@@ -135,3 +135,28 @@ def settings():
 	existing_seasons = [season[0] for season in existing_seasons if season[0]]
 	
 	return render_template('settings.html', current_season=current_season, existing_seasons=existing_seasons)
+
+@admin_bp.route('/create_season', methods=['POST'])
+def create_season():
+	new_season = request.form['new_season']
+	
+	# Validate season format
+	import re
+	if not re.match(r'^\d{4}/\d{4}$', new_season):
+		flash('Format de saison invalide. Utilisez YYYY/YYYY', 'error')
+		return redirect(url_for('admin.settings'))
+	
+	# Check if season already exists
+	existing_seasons = db.session.query(Championship.season).filter(
+		Championship.season.isnot(None)
+	).distinct().all()
+	existing_seasons = [season[0] for season in existing_seasons if season[0]]
+	
+	if new_season in existing_seasons:
+		flash(f'La saison {new_season} existe déjà!', 'error')
+		return redirect(url_for('admin.settings'))
+	
+	# Set as current season
+	AppSettings.set_season(new_season)
+	flash(f'Nouvelle saison {new_season} créée et activée!', 'success')
+	return redirect(url_for('admin.settings'))
