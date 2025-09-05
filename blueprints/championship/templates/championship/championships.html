@@ -4,9 +4,21 @@
 
 {% block main %}
 <main>
+    <!-- Season filter -->
+    <div style="margin-bottom: 20px;">
+        <label for="season-filter">Filtrer par année sportive :</label>
+        <select id="season-filter" onchange="filterBySeason()">
+            {% for season in available_seasons %}
+                <option value="{{ season }}" {% if season == selected_season %}selected{% endif %}>
+                    {{ season }}{% if season == current_season %} (actuelle){% endif %}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    
     {% if championships %}
     <table class="championships">
-        <caption class="table-caption">{{exempted_pool}} Liste des championnats ouverts</caption> <!-- Titre ajouté ici -->
+        <caption class="table-caption">Liste des championnats - {{ selected_season }}</caption>
         <thead>
         <tr>
             <th>Nom</th>
@@ -47,7 +59,16 @@
         {%endfor %}
     </table>
     {% else %}
-    <p style="font-size: 16px; text-align: center;">>Pas de championnat! ✌️</p>
+    <p style="font-size: 16px; text-align: center;">Pas de championnat pour la saison {{ selected_season }}! ✌️</p>
     {% endif %}
 </main>
+
+<script>
+function filterBySeason() {
+    const select = document.getElementById('season-filter');
+    const selectedSeason = select.value;
+    window.location.href = '{{ url_for("championship.show_championships") }}?season=' + selectedSeason;
+}
+</script>
+
 {% endblock main %}

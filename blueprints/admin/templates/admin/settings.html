@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <form action="{{ url_for('admin.settings') }}" method="POST">
+        <table class="update-form">
+            <caption class="table-caption">Paramètres de l'application</caption>
+            
+            <tr>
+                <td><label for="season">Année sportive :</label></td>
+                <td>
+                    <select id="season" name="season" required>
+                        <option value="{{ current_season }}" selected>{{ current_season }} (actuelle)</option>
+                        {% for season in existing_seasons %}
+                            {% if season != current_season %}
+                                <option value="{{ season }}">{{ season }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <small>Sélectionnez une année sportive existante</small>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2"><input type="submit" value="Sauvegarder"></td>
+            </tr>
+        </table>
+    </form>
+</main>
+{% endblock %}

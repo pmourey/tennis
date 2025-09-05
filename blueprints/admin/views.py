@@ -119,4 +119,19 @@ def settings():
 		return redirect(url_for('admin.settings'))
 
 	current_season = AppSettings.get_season()
-	return render_template('settings.html', current_season=current_season)
+	
+	# Initialize current season in database if not present
+	try:
+		setting = AppSettings.query.filter_by(key='current_season').first()
+		if not setting:
+			AppSettings.set_season(current_season)
+	except:
+		pass
+	
+	# Get existing seasons from championships
+	existing_seasons = db.session.query(Championship.season).filter(
+		Championship.season.isnot(None)
+	).distinct().order_by(Championship.season.desc()).all()
+	existing_seasons = [season[0] for season in existing_seasons if season[0]]
+	
+	return render_template('settings.html', current_season=current_season, existing_seasons=existing_seasons)
