@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <form action="{{ url_for('championship.configure_pools', championship_id=championship.id) }}" method="POST">
+        <table class="update-form">
+            <caption class="table-caption">Configuration des poules - {{championship}}</caption>
+            
+            <tr>
+                <td><label for="num_pools">Nombre de poules :</label></td>
+                <td><input type="number" id="num_pools" name="num_pools" min="1" max="10" required></td>
+            </tr>
+
+            <tr>
+                <td colspan="2"><input type="submit" value="Créer les poules"></td>
+            </tr>
+        </table>
+    </form>
+</main>
+{% endblock %}

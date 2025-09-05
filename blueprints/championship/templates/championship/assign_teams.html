@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <form action="{{ url_for('championship.assign_teams', championship_id=championship.id) }}" method="POST">
+        <table class="update-form">
+            <caption class="table-caption">Assignation des équipes - {{championship}}</caption>
+            
+            {% for pool in championship.pools %}
+            <tr>
+                <td><strong>Poule {{ pool.letter }}</strong></td>
+                <td>
+                    <select name="pool_{{ pool.id }}_teams[]" multiple size="5" style="width: 100%;">
+                        {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small>Maintenez Ctrl/Cmd pour sélectionner plusieurs équipes</small>
+                </td>
+            </tr>
+            {% endfor %}
+
+            <tr>
+                <td colspan="2"><input type="submit" value="Assigner les équipes"></td>
+            </tr>
+        </table>
+    </form>
+</main>
+{% endblock %}
