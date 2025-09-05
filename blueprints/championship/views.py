@@ -482,7 +482,9 @@ def show_championships():
     current_season = AppSettings.get_season()
     
     # Get season filter from query parameter
-    selected_season = request.args.get('season', current_season)
+    selected_seasons = request.args.getlist('seasons')
+    if not selected_seasons:
+        selected_seasons = [current_season]
     
     # Get all available seasons
     available_seasons = db.session.query(Championship.season).filter(
@@ -490,13 +492,19 @@ def show_championships():
     ).distinct().order_by(Championship.season.desc()).all()
     available_seasons = [season[0] for season in available_seasons if season[0]]
     
-    # Filter championships by selected season
-    championships = Championship.query.filter_by(season=selected_season).all()
+    # Filter championships by selected seasons
+    if 'all' in selected_seasons:
+        championships = Championship.query.filter(Championship.season.isnot(None)).all()
+        display_title = "Toutes les saisons"
+    else:
+        championships = Championship.query.filter(Championship.season.in_(selected_seasons)).all()
+        display_title = ", ".join(selected_seasons)
     
     return render_template('championships.html', 
                          championships=championships, 
                          available_seasons=available_seasons,
-                         selected_season=selected_season,
+                         selected_seasons=selected_seasons,
+                         display_title=display_title,
                          current_season=current_season)
 
 

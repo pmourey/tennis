@@ -5,20 +5,29 @@
 {% block main %}
 <main>
     <!-- Season filter -->
-    <div style="margin-bottom: 20px;">
-        <label for="season-filter">Filtrer par année sportive :</label>
-        <select id="season-filter" onchange="filterBySeason()">
+    <div style="margin-bottom: 20px; position: relative; display: inline-block;">
+        <label>Filtrer par saison sportive :</label>
+        <button id="season-dropdown" onclick="toggleDropdown()" style="padding: 8px 12px; border: 1px solid #ccc; background: white; cursor: pointer;">
+            {{ display_title }} ▼
+        </button>
+        <button onclick="resetFilter()" style="padding: 8px 12px; margin-left: 5px; border: 1px solid #ccc; background: #f0f0f0; cursor: pointer;">
+            Saison courante
+        </button>
+        <div id="dropdown-content" style="display: none; position: absolute; background: white; border: 1px solid #ccc; z-index: 1000; min-width: 200px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            <div class="dropdown-option {% if 'all' in selected_seasons %}selected{% endif %}" data-value="all" onclick="toggleOption(this)" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;">
+                Toutes les années
+            </div>
             {% for season in available_seasons %}
-                <option value="{{ season }}" {% if season == selected_season %}selected{% endif %}>
+                <div class="dropdown-option {% if season in selected_seasons %}selected{% endif %}" data-value="{{ season }}" onclick="toggleOption(this)" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;">
                     {{ season }}{% if season == current_season %} (actuelle){% endif %}
-                </option>
+                </div>
             {% endfor %}
-        </select>
+        </div>
     </div>
     
     {% if championships %}
     <table class="championships">
-        <caption class="table-caption">Liste des championnats - {{ selected_season }}</caption>
+        <caption class="table-caption">Liste des championnats - {{ display_title }}</caption>
         <thead>
         <tr>
             <th>Nom</th>
@@ -59,16 +68,74 @@
         {%endfor %}
     </table>
     {% else %}
-    <p style="font-size: 16px; text-align: center;">Pas de championnat pour la saison {{ selected_season }}! ✌️</p>
+    <p style="font-size: 16px; text-align: center;">Pas de championnat pour {{ display_title }}! ✌️</p>
     {% endif %}
 </main>
 
-<script>
-function filterBySeason() {
-    const select = document.getElementById('season-filter');
-    const selectedSeason = select.value;
-    window.location.href = '{{ url_for("championship.show_championships") }}?season=' + selectedSeason;
+<style>
+.dropdown-option.selected {
+    background-color: #007cba;
+    color: white;
 }
+.dropdown-option:hover {
+    background-color: #f0f0f0;
+}
+.dropdown-option.selected:hover {
+    background-color: #005a87;
+}
+</style>
+
+<script>
+function toggleDropdown() {
+    const dropdown = document.getElementById('dropdown-content');
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+function resetFilter() {
+    window.location.href = '{{ url_for("championship.show_championships") }}?seasons={{ current_season }}';
+}
+
+function toggleOption(element) {
+    const isAll = element.dataset.value === 'all';
+    
+    if (isAll) {
+        // If "all" is selected, deselect all other options
+        document.querySelectorAll('.dropdown-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        element.classList.add('selected');
+    } else {
+        // If a specific season is selected, deselect "all"
+        const allOption = document.querySelector('.dropdown-option[data-value="all"]');
+        if (allOption) {
+            allOption.classList.remove('selected');
+        }
+        element.classList.toggle('selected');
+    }
+    
+    const selectedOptions = document.querySelectorAll('.dropdown-option.selected');
+    const selectedSeasons = Array.from(selectedOptions).map(opt => opt.dataset.value);
+    
+    if (selectedSeasons.length === 0) {
+        return;
+    }
+    
+    const params = new URLSearchParams();
+    selectedSeasons.forEach(season => {
+        params.append('seasons', season);
+    });
+    
+    window.location.href = '{{ url_for("championship.show_championships") }}?' + params.toString();
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('dropdown-content');
+    const button = document.getElementById('season-dropdown');
+    if (!button.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = 'none';
+    }
+});
 </script>
 
 {% endblock main %}
