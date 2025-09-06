@@ -24,6 +24,14 @@ TennisManager est une solution complète pour la gestion des clubs de tennis, of
 - Gestion des droits d'accès
 - Interface personnalisée par club
 
+### 📅 Gestion des saisons sportives
+
+- Création et gestion des saisons sportives (format YYYY/YYYY)
+- Calcul automatique de l'année sportive courante (octobre à septembre)
+- Historisation complète des championnats par saison
+- Interface de filtrage multi-saisons
+- Paramétrage de la saison active
+
 ### 👥 Gestion des joueurs
 
 - Inscription et suivi des joueurs
@@ -33,10 +41,12 @@ TennisManager est une solution complète pour la gestion des clubs de tennis, of
 
 ### 🏆 Championnats
 
-- Configuration des divisions
+- Configuration des divisions par saison sportive
 - Gestion des poules
 - Planification des rencontres
 - Saisie et suivi des résultats
+- Historisation des championnats par saison
+- Filtrage et consultation des saisons précédentes
 
 ## 🛠 Technologies utilisées
 
@@ -105,10 +115,12 @@ http://godot70.pythonanywhere.com
 
 Cette démo vous permet de tester les principales fonctionnalités de l'application :
 
-- Gestion des équipes
-- Suivi des championnats
-- Gestion des joueurs
+- Gestion des équipes par saison sportive
+- Suivi des championnats avec historique
+- Gestion des joueurs et mutations
 - Planification des rencontres
+- Administration des saisons sportives
+- Filtrage et consultation multi-saisons
 
 Note : Les données de la démo sont réinitialisées périodiquement.
 
