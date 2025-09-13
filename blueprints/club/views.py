@@ -112,13 +112,19 @@ def show_invalid_players():
 @check_club_cookie
 def show_teams():
     signed_club_id = request.cookies.get('club_id')
+    current_season = AppSettings.get_season()
     try:
         club_id = current_app.serializer.loads(signed_club_id)
     except itsdangerous.exc.BadSignature:
         return redirect(url_for('admin.select_club'))
     # teams = Team.query.order_by(desc(Team.name)).all()
-    club_teams = Team.query.join(Player).filter(Player.clubId == club_id).order_by(desc(Team.name)).all()
-    return render_template('teams.html', teams=club_teams)
+    # club_teams = Team.query.join(Player).filter(Player.clubId == club_id).order_by(desc(Team.name)).all()
+    # jointure interne vers Pool + Championship pour les équipes bien associées
+    teams = Team.query.filter(Team.clubId == club_id, Championship.season == current_season).join(Pool).join(Championship).all()
+    # all_club_teams = Team.query.filter(Team.clubId == club_id).all()
+    # for t in all_club_teams:
+    #     current_app.logger.debug(f"Team #{t.id}: {t.name} - poolId: {t.poolId} - championship's season: {getattr(t.pool.championship, 'season', None)}")
+    return render_template('teams.html', teams=teams)
 
 
 @club_management_bp.route('/new_team/', methods=['GET', 'POST'])

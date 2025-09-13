@@ -58,11 +58,19 @@
 <!--                        <input type="submit" value="Simulate" onclick="return confirm('Are you sure you want to simulate this championship?\nThis will takes about 2 minutes!')">-->
 <!--                    </form>-->
 <!--                </td>-->
-                <td>
-                    <form action="{{ url_for('championship.delete_championship', championship_id=championship.id) }}" method="post">
-                        <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this championship?')">
-                    </form>
-                </td>
+                {% if championship.pools %}
+                    <td>
+                        <form action="{{ url_for('championship.delete_championship', championship_id=championship.id) }}" method="post">
+                            <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this championship?')">
+                        </form>
+                    </td>
+                {% else %}
+                    <td>
+                        <form action="{{ url_for('championship.configure_pools', championship_id=championship.id) }}" method="get">
+                            <input type="submit" value="Configure Pools">
+                        </form>
+                    </td>
+                {% endif %}
             </tr>
         </div>
         {%endfor %}
