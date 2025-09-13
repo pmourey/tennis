@@ -396,7 +396,7 @@ def form_teams(championship, club_ids_to_filter: list[int] = None):
             continue
         captain = max(players, key=lambda p: p.best_elo)
         club_name = remove_text_between_parentheses(club.name)
-        team = Team(name=f'{club_name} 1', captainId=captain.id)
+        team = Team(name=f'{club_name} 1', captainId=captain.id, clubId=club.id)
         team.players = players[:15]
         teams.append(team)
     return teams
