@@ -220,7 +220,7 @@ def load_rankings(db, Model: Ranking | BestRanking):
     # 2ème/3ème/4ème série
     second_series = ['-30', '-15', '-4/6', '-2/6', '0', '1/6', '2/6', '3/6', '4/6', '5/6', '15']
     third_series = ['15/1', '15/2', '15/3', '15/4', '15/5', '30']
-    fourth_series = ['30/1', '30/2', '30/3', '30/4', '30/5', '40', 'NC']
+    fourth_series = ['30/1', '30/2', '30/3', '30/4', '30/5', '40', '40/1', '40/2', 'NC']
     other = 'ND'
     for i, series in enumerate([second_series, third_series, fourth_series]):
         for value in series:
@@ -252,63 +252,68 @@ def load_injuries(app, db):
 
 
 def import_players(app, gender, csvfile, club, db):
-    with open(csvfile, 'r', newline='') as file:
-        reader = csv.DictReader(file, delimiter='\t')
-        for row in reader:
-            # app.logger(f'row: {row}')
-            # Formatting player data
-            first_name = row['Prénom']
-            last_name = row['Nom']
-            birth_year = row['Né en']
-            license_info = row['Licence']
-            ranking_value = row['C. Tennis']
-            # Utilisation d'une expression régulière pour extraire les deux parties
-            ranking_list = ranking_value.split(' ')
-            if len(ranking_list) > 1:
-                a, b, c = ranking_list
-                current_ranking_value = a
-                best_ranking_value = c[:-1]
-            else:
-                current_ranking_value = ranking_list[0]
-                best_ranking_value = None
-            current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
-            best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
-            # app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
-            match = re.match(r'(\d+)\s*(\w)', license_info)
-            if not match:
-                continue
-            lic_number = int(match.group(1))  # Récupère le nombre comme entier
-            lic_letter = match.group(2)  # Récupère la lettre
-            # Convertir la chaîne en objet datetime
-            year_date = datetime.strptime(birth_year, '%Y')
-            # Ajuster le mois et le jour pour démarrer au 1er janvier
-            year_start_date = year_date.replace(month=1, day=1)
-            # logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
-            license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=year_start_date.year,
-                              rankingId=current_ranking.id, bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
-            player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
-            player.clubId, player.licenseId = club.id, license.id
-            db.session.add(license)
-            db.session.add(player)
+    try:
+        with open(csvfile, 'r', newline='') as file:
+            reader = csv.DictReader(file, delimiter='\t')
+            for row in reader:
+                # Formatting player data
+                first_name = row['Prénom']
+                last_name = row['Nom']
+                birth_year = row['Né en']
+                license_info = row['Licence']
+                ranking_value = row['C. Tennis']
+                # Utilisation d'une expression régulière pour extraire les deux parties
+                ranking_list = ranking_value.split(' ')
+                if len(ranking_list) > 1:
+                    a, b, c = ranking_list
+                    current_ranking_value = a
+                    best_ranking_value = c[:-1]
+                else:
+                    current_ranking_value = ranking_list[0]
+                    best_ranking_value = None
+                current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
+                best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
+                # app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
+                match = re.match(r'(\d+)\s*(\w)', license_info)
+                if not match:
+                    continue
+                lic_number = int(match.group(1))  # Récupère le nombre comme entier
+                lic_letter = match.group(2)  # Récupère la lettre
+                # Convertir la chaîne en objet datetime
+                year_date = datetime.strptime(birth_year, '%Y')
+                # Ajuster le mois et le jour pour démarrer au 1er janvier
+                year_start_date = year_date.replace(month=1, day=1)
+                # app.logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
+                license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=year_start_date.year,
+                                  rankingId=current_ranking.id, bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
+                player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
+                player.clubId, player.licenseId = club.id, license.id
+                db.session.add(license)
+                db.session.add(player)
+                db.session.commit()
+                player = Player.query.get(player.id)
+                injuries = Injury.query.all()
+                injuries_id = [i.id for i in injuries]
+                # app.logger.debug(f'injuries: {len(injuries)}')
+                # for injury_id in selected_injuries:
+                #     injury = Injury.query.get(injury_id)
+                #     if injury:  # Vérifiez si l'ID de la blessure est valide
+                #         player.injuries.append(injury)
+                if (player.age > 45 and randint(1, 10) == 1) or (player.age > 35 and randint(1, 20) == 1):
+                    # app.logger.debug(f'player: {player.id} - age: {player.age}')
+                    max_injuries_count = (player.age // 20)
+                    selected_injuries = sample(injuries_id, randint(1, max_injuries_count))
+                    for injury_id in selected_injuries:
+                        player.injuries.append(Injury.query.get(injury_id))
+                db.session.add(player)
             db.session.commit()
-            player = Player.query.get(player.id)
-            injuries = Injury.query.all()
-            injuries_id = [i.id for i in injuries]
-            # app.logger.debug(f'injuries: {len(injuries)}')
-            # for injury_id in selected_injuries:
-            #     injury = Injury.query.get(injury_id)
-            #     if injury:  # Vérifiez si l'ID de la blessure est valide
-            #         player.injuries.append(injury)
-            if (player.age > 45 and randint(1, 10) == 1) or (player.age > 35 and randint(1, 20) == 1):
-                # app.logger.debug(f'player: {player.id} - age: {player.age}')
-                max_injuries_count = (player.age // 20)
-                selected_injuries = sample(injuries_id, randint(1, max_injuries_count))
-                for injury_id in selected_injuries:
-                    player.injuries.append(Injury.query.get(injury_id))
-            db.session.add(player)
-        db.session.commit()
-        players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
-        app.logger.debug(f'COMMIT PLAYERS DONE = {players_count}')
+            players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
+            app.logger.debug(f'COMMIT PLAYERS DONE = {players_count}')
+    except FileNotFoundError:
+        if hasattr(app, 'logger'):
+            app.logger.warning("Aucun joueur importé : aucun fichier CSV défini.")
+        else:
+            print("Aucun joueur importé : aucun fichier CSV défini.")
 
 
 def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None, is_active=True) -> List[Player]:
