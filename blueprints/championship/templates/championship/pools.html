@@ -50,11 +50,19 @@
                     {% else %}
                         <td>N/A</td>
                     {% endif %}
-                    <td>
-                        <form action="{{ url_for('championship.simulate_pool', pool_id=pool.id) }}" method="post">
-                            <input type="submit" value="Simulate" onclick="return confirm('Are you sure you want to simulate this pool?\nThis will takes about 1 minute!')">
-                        </form>
-                    </td>
+                    {% if pool.teams %}
+                        <td>
+                            <form action="{{ url_for('championship.simulate_pool', pool_id=pool.id) }}" method="post">
+                                <input type="submit" value="Simulate" onclick="return confirm('Are you sure you want to simulate this pool?\nThis will takes about 1 minute!')">
+                            </form>
+                        </td>
+                    {% else %}
+                        <td>
+                            <form action="{{ url_for('championship.assign_teams', championship_id=championship.id) }}" method="post">
+                                <input type="submit" value="Assign teams">
+                            </form>
+                        </td>
+                    {% endif %}
                     <td>
                         <form action="{{ url_for('championship.delete_pool', pool_id=pool.id) }}" method="post">
                             <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this pool?')">
