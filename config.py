@@ -40,6 +40,9 @@ class Config:
              {'id': '62060004', 'active': True, 'name': 'MONTE CARLO COUNTRY CLUB', 'city': 'ROQUEBRUNE CAP MARTIN', 'csvfile': 'monte_carlo_cc'},
              {'id': '62130004', 'active': True, 'name': 'TENNIS PARK MARSEILLE', 'city': 'MARSEILLE', 'csvfile': 'tp_marseille'},
              {'id': '62130033', 'active': True, 'name': 'NOSTRA TENNIS CLUB', 'city': 'SALON-DE-PROVENCE', 'csvfile': 'nostra_tc'},
+			 {'id': '62060454', 'active': True, 'name': 'CANNES TENNIS LACOUR', 'city': 'CANNES', 'csvfile': 'cannes_tennis_lacour'},
+			 {'id': '62060401', 'active': True, 'name': 'ASOA TENNIS', 'city': 'ANTIBES', 'csvfile': 'asoa_tennis_antibes'},
+			 {'id': '62060296', 'active': True, 'name': 'TCM COLOMARS', 'city': 'COLOMARS', 'csvfile': 'tennis_pour_tous_colomars'}
              ]
     YEARS = [2023, 2024]
     PARIS = timezone('Europe/Paris')
