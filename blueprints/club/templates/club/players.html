@@ -25,7 +25,7 @@
         <div id="player">
             <tr>
                 <td><a href="{{ url_for('club.update_player', id=player.id) }}">{{player.id}}</a></td>
-                <td><button onclick="confirmDelete({{ player.id }})">{{player.id}}</button></td>
+                <td><button onclick="confirmDelete('{{ url_for('club.delete_player', id=player.id) }}')">{{player.id}}</button></td>
                 <td><a href="{{ url_for('club.show_player', id=player.id) }}">{{ player.name }}</a></td>
                 <td>{{ player.age }}</td>
                 <td>{{ player.ranking }}{{ best_ranking}}</td>

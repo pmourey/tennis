@@ -41,6 +41,7 @@ def new_club():
 		db.session.commit()
 		current_app.logger.debug(f'nouveau club créé: {club}')
 		message = f'Club {club} créé avec succès!\n'
+		all_conflicts = []
 		# Chargement des joueurs du club
 		for gender, gender_label in enumerate(['men', 'women']):
 			players_csvfile = f"static/data/players/{club_info['csvfile']}_{gender_label}.csv"
@@ -50,12 +51,23 @@ def new_club():
 				message += f'Fichier {file_path} non trouvé!\n'
 				flash(message, 'error')
 				continue
-			import_players(app=current_app, gender=gender, csvfile=file_path, club=club, db=db)
-			# players_count = Player.query.filter(Player.clubId == club.id).count()
-			players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
-			# db.session.flush()
-			message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
-		flash(message, 'warning')
+			success, conflicts, players_count = import_players(app=current_app, gender=gender, csvfile=file_path, club=club, db=db)
+
+			if not success and conflicts:
+				all_conflicts.extend(conflicts)
+				message += f"ERREUR: {len(conflicts)} conflit(s) détecté(s) pour les {'joueuses' if gender else 'joueurs'}!\n"
+			else:
+				# players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
+				message += f"{players_count} {'joueuses' if gender else 'joueurs'} ajoutés au club {club.name}!\n"
+
+		# Si des conflits ont été détectés, supprimer le club et afficher les conflits
+		if all_conflicts:
+			db.session.delete(club)
+			db.session.commit()
+			flash(f"Importation annulée : {len(all_conflicts)} joueur(s) déjà enregistré(s) dans un autre club!", 'error')
+			return render_template('import_conflicts.html', conflicts=all_conflicts, club_name=club.name)
+
+		flash(message, 'success')
 		return render_template('admin_index.html')
 	clubs = Club.query.all()
 	existing_clubs = [club.id for club in clubs]
@@ -101,10 +113,17 @@ def delete_club():
 	if request.method == 'POST':
 		club_id = request.form.get('club_id')
 		club = Club.query.get(club_id)
-		db.session.delete(club)
-		db.session.commit()
-		current_app.logger.debug(f'Club {club} supprimé!')
-		flash(f"Club \"{club.name}\" ne fait plus partie de l'application!")
+		if club:
+			# Compter les joueurs avant suppression
+			players_count = len(club.players)
+			club_name = club.name
+			# Supprimer le club (les joueurs seront supprimés en cascade grâce à cascade="all, delete-orphan")
+			db.session.delete(club)
+			db.session.commit()
+			current_app.logger.debug(f'Club {club_name} et {players_count} joueur(s) supprimés!')
+			flash(f"Club \"{club_name}\" supprimé avec succès! ({players_count} joueur(s) supprimé(s) également)", 'success')
+		else:
+			flash(f"Club non trouvé!", 'error')
 		return redirect(url_for('admin.index'))
 	clubs = Club.query.all()
 	return render_template('delete_club.html', clubs=clubs)

@@ -25,7 +25,7 @@
         {% for team in teams %}
         <tr>
             <td><a href="{{ url_for('club.update_team', id=team.id) }}">{{team.id}}</a></td>
-            <td><button onclick="confirmDelete({{ team.id }})">{{team.id}}</button></td>
+            <td><button onclick="confirmDelete('{{ url_for('club.delete_team', id=team.id) }}')">{{team.id}}</button></td>
             <td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team.name }}</a></td>
             <td>{{ team.players|length }}</td>
             <td>{{ team.captainName or 'Pas de capitaine défini!' }}</td>

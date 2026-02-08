@@ -1,10 +1,10 @@
 // club/static/show_teams.js
 
 // Fonction pour supprimer une équipe du club
-function confirmDelete(teamId) {
+function confirmDelete(deleteUrl) {
     var result = confirm("Êtes-vous sûr de vouloir supprimer cette équipe?");
     if (result) {
-        window.location.href = "delete_team/" + teamId;
+        window.location.href = deleteUrl;
     }
 }
 // Fonction pour afficher ou masquer l'info-bulle

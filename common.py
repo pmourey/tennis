@@ -148,10 +148,11 @@ def import_all_data(app, db) -> str:
         for gender, gender_label in enumerate(['men', 'women']):
             players_csvfile = f"static/data/players/{club_info['csvfile']}_{gender_label}.csv"
             file_path = os.path.join(app.config['BASE_PATH'], players_csvfile)
-            import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
-            players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
-            # db.session.flush()
-            message += [f"{players_count} {'joueuses ajoutées' if gender else 'joueurs ajoutés'}!"]
+            success, conflicts, players_count = import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
+            if not success and conflicts:
+                message += [f"ERREUR: {len(conflicts)} conflit(s) détecté(s) pour les {'joueuses' if gender else 'joueurs'}!"]
+            else:
+                message += [f"{players_count} {'joueuses ajoutées' if gender else 'joueurs ajoutés'}!"]
         message += ['<br>']
     message += ['<br>']
     # app.logger.debug(message)
@@ -252,6 +253,11 @@ def load_injuries(app, db):
 
 
 def import_players(app, gender, csvfile, club, db):
+    """
+    Import players from CSV file.
+    Returns: (success: bool, conflicts: list, players_count: int)
+    """
+    conflicts = []
     try:
         with open(csvfile, 'r', newline='') as file:
             reader = csv.DictReader(file, delimiter='\t')
@@ -279,16 +285,41 @@ def import_players(app, gender, csvfile, club, db):
                     continue
                 lic_number = int(match.group(1))  # Récupère le nombre comme entier
                 lic_letter = match.group(2)  # Récupère la lettre
+
+                # Vérifier si la licence existe déjà
+                existing_license = License.query.filter_by(id=lic_number).first()
+                if existing_license:
+                    # Vérifier si un joueur avec cette licence existe déjà
+                    existing_player = Player.query.filter_by(licenseId=existing_license.id).first()
+                    if existing_player and existing_player.clubId != club.id:
+                        # Conflit : le joueur existe dans un autre club
+                        existing_club = Club.query.get(existing_player.clubId)
+                        conflicts.append({
+                            'license_number': f'{lic_number} {lic_letter}',
+                            'name': f'{first_name} {last_name}',
+                            'ranking': current_ranking.value if current_ranking else 'N/A',
+                            'current_club': existing_club.name if existing_club else 'Inconnu',
+                            'new_club': club.name
+                        })
+                        continue
+
                 # Convertir la chaîne en objet datetime
                 year_date = datetime.strptime(birth_year, '%Y')
                 # Ajuster le mois et le jour pour démarrer au 1er janvier
                 year_start_date = year_date.replace(month=1, day=1)
                 # app.logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
-                license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=year_start_date.year,
-                                  rankingId=current_ranking.id, bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
+
+                if existing_license:
+                    # Utiliser la licence existante
+                    license = existing_license
+                else:
+                    # Créer une nouvelle licence
+                    license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=year_start_date.year,
+                                      rankingId=current_ranking.id, bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
+                    db.session.add(license)
+
                 player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
                 player.clubId, player.licenseId = club.id, license.id
-                db.session.add(license)
                 db.session.add(player)
                 db.session.commit()
                 player = Player.query.get(player.id)
@@ -306,14 +337,23 @@ def import_players(app, gender, csvfile, club, db):
                     for injury_id in selected_injuries:
                         player.injuries.append(Injury.query.get(injury_id))
                 db.session.add(player)
+
+            # Si des conflits ont été détectés, faire un rollback
+            if conflicts:
+                db.session.rollback()
+                app.logger.warning(f'{len(conflicts)} conflit(s) détecté(s) lors de l\'importation des joueurs.')
+                return False, conflicts, 0
+
             db.session.commit()
             players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
             app.logger.debug(f'COMMIT PLAYERS DONE = {players_count}')
+            return True, [], players_count
     except FileNotFoundError:
         if hasattr(app, 'logger'):
             app.logger.warning("Aucun joueur importé : aucun fichier CSV défini.")
         else:
             print("Aucun joueur importé : aucun fichier CSV défini.")
+        return False, [], 0
 
 
 def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None, is_active=True) -> List[Player]:

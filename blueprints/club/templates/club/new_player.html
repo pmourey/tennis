@@ -25,12 +25,23 @@
                 <td><input type="date" name="birth_date" placeholder="Date de naissance" required></td>
             </tr>
             <tr>
-                <td><label for=ranking">Classement</label></td>
+                <td><label for="ranking">Classement</label></td>
                 <td>
                     <select name="ranking" required>
                         <option value="">Sélectionner un classement</option> <!-- Option vide -->
                         {% for ranking in rankings %}
                         <option value="{{ ranking.id }}">{{ ranking.value }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="best_ranking">Meilleur classement</label></td>
+                <td>
+                    <select name="best_ranking" required>
+                        <option value="">Sélectionner un meilleur classement</option> <!-- Option vide -->
+                        {% for best_ranking in best_rankings %}
+                        <option value="{{ best_ranking.id }}">{{ best_ranking.value }}</option>
                         {% endfor %}
                     </select>
                 </td>

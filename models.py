@@ -243,7 +243,7 @@ class Player(db.Model):
 
     # Define the relationship with License
     licenseId = db.Column(db.Integer, db.ForeignKey('license.id', ondelete='CASCADE'), nullable=False)
-    license = relationship('License', back_populates='players', single_parent=True, cascade="all, delete-orphan")  # Add cascade option here
+    license = relationship('License', back_populates='players')  # Removed cascade and single_parent to avoid license deletion
 
     # Define the relationship with Team using many-to-many association
     teams = relationship('Team', secondary=player_team_association, back_populates='players', single_parent=True, cascade="all, delete-orphan")
@@ -330,7 +330,7 @@ class Player(db.Model):
 
     @property
     def name(self):
-        return f'{self.license.firstName} {self.license.lastName[0]}'
+        return f'{self.license.firstName} {self.license.lastName}'
 
     @property
     def info(self):

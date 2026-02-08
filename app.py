@@ -52,6 +52,11 @@ def create_app():
 	app.jinja_env.filters['sort_players_by'] = sort_players_by
 	app.jinja_env.filters['none_to_zero'] = none_to_zero
 
+	@app.before_request
+	def create_tables():
+		with app.app_context():
+			db.create_all()
+
 	@app.route('/')
 	def welcome():
 		return render_template('index.html')
@@ -76,10 +81,6 @@ def create_app():
 	return app
 
 
-# @app.before_request
-# def create_tables(app):
-#     with app.app_context():
-#         db.create_all()
 
 
 # Define a custom filter function

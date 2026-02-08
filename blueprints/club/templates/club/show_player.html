@@ -11,7 +11,7 @@
         <table>
             <tr>
                 <td style="border: none;"><button onclick="updatePlayer()">Mettre à jour</button></td>
-                <td style="border: none;"><button onclick="confirmDelete({{ player.id }})">Supprimer</button></td>
+                <td style="border: none;"><button onclick="confirmDelete('{{ url_for('club.delete_player', id=player.id) }}')">Supprimer</button></td>
             </tr>
         </table>
         <br>

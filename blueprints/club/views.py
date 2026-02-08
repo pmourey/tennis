@@ -233,7 +233,8 @@ def update_team(id):
     age_category = team.championship.division.ageCategory
     other_age_categories = []
     if age_category.type == CatType.Senior.value:
-        other_age_categories = [cat for cat in AgeCategory.query.filter(AgeCategory.type == CatType.Youth.value).all() if cat.minAge >= 15 and cat.maxAge <= 18]
+        # Permettre l'ajout de joueurs U13 et plus dans les équipes Seniors
+        other_age_categories = [cat for cat in AgeCategory.query.filter(AgeCategory.type == CatType.Youth.value).all() if cat.minAge >= 13 and cat.maxAge <= 18]
     # current_app.logger.debug(f"gender = {team.gender} - age_category = {age_category}")
     # signed_club_id = request.cookies.get('club_id')
     # try:
@@ -245,9 +246,9 @@ def update_team(id):
         for cat in other_age_categories:
             active_players += get_players_order_by_ranking(gender=team.gender, club_id=team.club.id, age_category=cat)
         active_players = list(set(active_players))
-    active_players.sort(key=lambda p: p.ranking)
+    active_players.sort(key=lambda p: p.ranking.id)
     # current_app.logger.debug(f"{len(active_players)} players = {active_players}")
-    sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
+    sorted_team_players = sorted(team.players, key=lambda p: p.ranking.id)
     # current_app.logger.debug(f"sorted_team_players = {sorted_team_players}")
     if active_players:
         max_players = min(15, len(active_players))
@@ -269,7 +270,7 @@ def infos_club(id):
 def show_team(id: int):
     # Récupérez l'objet de l'équipe à partir de la base de données
     team = Team.query.get(id)
-    sorted_team_players = sorted(team.players, key=lambda p: p.ranking)
+    sorted_team_players = sorted(team.players, key=lambda p: p.ranking.id)
     # Info trajet
     signed_club_id = request.cookies.get('club_id')
     try:
@@ -391,48 +392,40 @@ def new_player():
     if request.method == 'POST':
         license_number = request.form['license_number']
         license_info = check_license(license_number)
-        if not (request.form['first_name'] and request.form['last_name'] and request.form['birth_date'] and request.form['license_number']):
-            flash('Veuillez renseigner tous les champs, svp!', 'error')
+        if not (request.form['first_name'] and request.form['last_name'] and request.form['birth_date'] and request.form['license_number'] and request.form.get('ranking') and request.form.get('best_ranking')):
+            flash('Veuillez renseigner tous les champs obligatoires, svp!', 'error')
         else:
             if not license_info:
                 flash('N° de license invalide!', 'error')
             else:
                 lic_num, lic_letter = license_info
+                first_name = request.form['first_name']
+                last_name = request.form['last_name']
+                birth_date = datetime.strptime(request.form['birth_date'], '%Y-%m-%d')
+                gender = int(request.form['gender'])
+                ranking_id = int(request.form['ranking'])
+                best_ranking_id = int(request.form['best_ranking'])
+                weight = request.form.get('weight')
+                height = request.form.get('height')
+                is_active = False if request.form.get('is_active') is None else True
+                signed_club_id = request.cookies.get('club_id')
+                club_id = current_app.serializer.loads(signed_club_id)
                 existing_license = License.query.filter_by(id=lic_num).first()
                 if existing_license:
-                    player = Player.query.filter_by(licenseId=existing_license.id).first()
-                    club = Club.query.get(player.clubId)
-                    gender = Gender(existing_license.gender)
-                    if gender == Gender.Male:
-                        flash(
-                            f"N° de license <{lic_num} {lic_letter}> déjà utilisé par le joueur {player.name} classé {player.ranking}, âgé de {player.age} ans et licencié au club de {club.name}!",
-                            'error')
-                    else:
-                        flash(
-                            f"N° de license <{lic_num} {lic_letter}> déjà utilisée par la joueuse {player.name} classée {player.ranking}, âgée de {player.age} ans et licenciée au club de {club.name}!",
-                            'error')
+                    # Utiliser la licence existante
+                    license = existing_license
                 else:
-                    first_name = request.form['first_name']
-                    last_name = request.form['last_name']
-                    birth_date: datetime = datetime.strptime(request.form['birth_date'], '%Y-%m-%d')
-                    height = request.form.get('height')
-                    weight = request.form.get('weight')
-                    ranking_id = int(request.form['ranking'])
-                    is_active = False if request.form.get('is_active') is None else True
-                    gender = int(request.form['gender'])
-                    # club_id = request.form['club_id']
-                    signed_club_id = request.cookies.get('club_id')
-                    club_id = current_app.serializer.loads(signed_club_id)
                     license = License(id=lic_num, firstName=first_name, lastName=last_name, letter=lic_letter, gender=gender, year=birth_date.year)
                     license.rankingId = ranking_id
+                    license.bestRankingId = best_ranking_id
                     db.session.add(license)
-                    player = Player(birthDate=birth_date, height=weight, weight=height, isActive=is_active)
-                    player.licenseId, player.clubId = license.id, club_id
-                    db.session.add(player)
-                    db.session.commit()
-                    club = Club.query.get(player.clubId)
-                    flash(f'{player.name} ajouté avec succès dans le club {club.name}!')
-                    return redirect(url_for('club.index'))
+                player = Player(birthDate=birth_date, height=height, weight=weight, isActive=is_active)
+                player.licenseId, player.clubId = license.id, club_id
+                db.session.add(player)
+                db.session.commit()
+                club = Club.query.get(player.clubId)
+                flash(f'{player.name} ajouté avec succès dans le club {club.name}!')
+                return redirect(url_for('club.index'))
     signed_club_id = request.cookies.get('club_id')
     try:
         club_id = current_app.serializer.loads(signed_club_id)
@@ -442,7 +435,8 @@ def new_player():
     club = Club.query.get(club_id)
     genders = [Gender.Male.value, Gender.Female.value]
     rankings = Ranking.query.order_by(desc(Ranking.id)).all()
-    return render_template('new_player.html', club=club, genders=genders, rankings=rankings)
+    best_rankings = BestRanking.query.order_by(desc(BestRanking.id)).all()
+    return render_template('new_player.html', club=club, genders=genders, rankings=rankings, best_rankings=best_rankings)
 
 
 @club_management_bp.route('/update_player/<int:id>', methods=['GET', 'POST'])
