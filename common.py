@@ -1029,84 +1029,104 @@ def play_game(app, home_players: List[Player], visitor_players: List[Player], ho
     return winning_team, final_score
 
 
-def simulate_score(app, db, home_players: List[Player], visitor_players: List[Player], match: Match):
+def simulate_score(app, db, home_players: List[Player], visitor_players: List[Player], match: Match,
+                   home_doubles_players: List[Player] = None, visitor_doubles_players: List[Player] = None):
+    """Simulate the score of a match.
+
+    :param home_players:            joueurs domicile pour les simples (et doubles si non fournis séparément)
+    :param visitor_players:         joueurs visiteurs pour les simples (et doubles si non fournis séparément)
+    :param home_doubles_players:    joueurs domicile pour les doubles (None = utiliser home_players)
+    :param visitor_doubles_players: joueurs visiteurs pour les doubles (None = utiliser visitor_players)
     """
-        Simulate the score of a match
-    :param app:
-    :param db:
-    :param home_players: selected players for the match
-    :param visitor_players: selected players for the match
-    :param match:
-    :return:
-    """
-    # app.logger.debug(f'Simulating score for {match.homeTeam} vs {match.visitorTeam} - match sheet: {match}')
     pool = match.homeTeam.pool
-    # app.logger.debug(f'Poule {pool} : {pool.championship.singlesCount} singles - {pool.championship.doublesCount} doubles')
+    singles_count = pool.championship.singlesCount
+    doubles_count = pool.championship.doublesCount
     home_score = visitor_score = 0
-    # SIMPLES
-    # active_home_players = [p for p in home_players if p.isActive]
-    # active_visitor_players = [p for p in visitor_players if p.isActive]
-    home_singles_players = sorted(home_players, key=lambda player: player.current_elo, reverse=True)
-    visitor_singles_players = sorted(visitor_players, key=lambda player: player.current_elo, reverse=True)
-    for i in range(pool.championship.singlesCount):
+
+    # SIMPLES — trier et compléter si nécessaire par fallback sur tous les joueurs de l'équipe
+    home_singles_players    = sorted(home_players,    key=lambda p: p.current_elo, reverse=True)
+    visitor_singles_players = sorted(visitor_players, key=lambda p: p.current_elo, reverse=True)
+
+    # Fallback : si trop peu de joueurs sélectionnés, compléter avec les joueurs de l'équipe triés par ELO
+    def _pad_with_team(players: List[Player], team, needed: int) -> List[Player]:
+        if len(players) >= needed:
+            return players
+        existing_ids = {p.id for p in players}
+        extras = sorted(
+            [p for p in team.players if p.id not in existing_ids and p.isActive],
+            key=lambda p: p.current_elo, reverse=True
+        )
+        return players + extras
+
+    home_singles_players    = _pad_with_team(home_singles_players,    match.homeTeam,    singles_count)
+    visitor_singles_players = _pad_with_team(visitor_singles_players, match.visitorTeam, singles_count)
+
+    for i in range(singles_count):
+        if i >= len(home_singles_players) or i >= len(visitor_singles_players):
+            app.logger.warning(f"Match {match.id} simple {i+1} ignoré : pas assez de joueurs "
+                               f"(home={len(home_singles_players)} visitor={len(visitor_singles_players)})")
+            break
         player1, player2 = home_singles_players[i], visitor_singles_players[i]
         result = play_game(app, home_players=[player1], visitor_players=[player2], home_team=match.homeTeam, visitor_team=match.visitorTeam)
-        # app.logger.debug(f'result play_game single {i + 1}: {result}')
         winning_team = result[0]
-        final_score = result[1]
-        # app.logger.debug(f'final_score: {final_score}')
-        first_set = final_score[0]
+        final_score  = result[1]
+        first_set  = final_score[0]
         second_set = final_score[1]
-        third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
-        # app.logger.debug(f'{len(final_score)} sets -> first_set: {first_set}, second_set: {second_set}, third_set: {third_set}')
-        firstSetP1, firstSetP2, firstTieBreak = first_set
+        third_set  = final_score[2] if len(final_score) == 3 else (None, None, False)
+        firstSetP1,  firstSetP2,  firstTieBreak  = first_set
         secondSetP1, secondSetP2, secondTieBreak = second_set
-        thirdSetP1, thirdSetP2, superTieBreak = third_set
-        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak, secondSetP1=secondSetP1, secondSetP2=secondSetP2,
-                      secondTieBreak=secondTieBreak, thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
+        thirdSetP1,  thirdSetP2,  superTieBreak  = third_set
+        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak,
+                      secondSetP1=secondSetP1, secondSetP2=secondSetP2, secondTieBreak=secondTieBreak,
+                      thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
         db.session.add(score)
         db.session.commit()
         if winning_team == match.homeTeam:
             home_score += 1
         else:
             visitor_score += 1
-        # app.logger.debug(f'home_score: {home_score}, visitor_score: {visitor_score}')
         single = Single(player1Id=player1.id, player2Id=player2.id, scoreId=score.id, matchId=match.id)
         db.session.add(single)
         db.session.commit()
         match.singles += [single]
-        # home_singles_players += [player1]
-        # visitor_singles_players += [player2]
-    # DOUBLES
-    # home_candidates = [player for player in match.homeTeam.players if player not in home_singles_players]
-    # visitor_candidates = [player for player in match.visitorTeam.players if player not in visitor_singles_players]
-    home_doublers_candidates = sorted(home_players, key=lambda player: player.refined_elo, reverse=True)
-    visitor_doublers_candidates = sorted(visitor_players, key=lambda player: player.refined_elo, reverse=True)
-    for i in range(pool.championship.doublesCount):
-        home_doublers, visitor_doublers = home_doublers_candidates[2 * i:2 * i + 2], visitor_doublers_candidates[2 * i:2 * i + 2]
+
+    # DOUBLES — utiliser les listes spécifiques si fournies, sinon home/visitor_players
+    home_doublers_candidates    = sorted(home_doubles_players    or home_players,    key=lambda p: p.refined_elo, reverse=True)
+    visitor_doublers_candidates = sorted(visitor_doubles_players or visitor_players, key=lambda p: p.refined_elo, reverse=True)
+
+    # Compléter si besoin
+    home_doublers_candidates    = _pad_with_team(home_doublers_candidates,    match.homeTeam,    doubles_count * 2)
+    visitor_doublers_candidates = _pad_with_team(visitor_doublers_candidates, match.visitorTeam, doubles_count * 2)
+
+    for i in range(doubles_count):
+        home_doublers    = home_doublers_candidates[2 * i:2 * i + 2]
+        visitor_doublers = visitor_doublers_candidates[2 * i:2 * i + 2]
+        if len(home_doublers) < 2 or len(visitor_doublers) < 2:
+            app.logger.warning(f"Match {match.id} double {i+1} ignoré : pas assez de joueurs "
+                               f"(home={len(home_doublers_candidates)} visitor={len(visitor_doublers_candidates)})")
+            break
         result = play_game(app, home_doublers, visitor_doublers, match.homeTeam, match.visitorTeam)
-        # app.logger.debug(f'result play_game double {i + 1}: {result}')
         winning_team = result[0]
-        final_score = result[1]
-        first_set = final_score[0]
+        final_score  = result[1]
+        first_set  = final_score[0]
         second_set = final_score[1]
-        third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
-        firstSetP1, firstSetP2, firstTieBreak = first_set
+        third_set  = final_score[2] if len(final_score) == 3 else (None, None, False)
+        firstSetP1,  firstSetP2,  firstTieBreak  = first_set
         secondSetP1, secondSetP2, secondTieBreak = second_set
-        thirdSetP1, thirdSetP2, superTieBreak = third_set
-        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak, secondSetP1=secondSetP1, secondSetP2=secondSetP2,
-                      secondTieBreak=secondTieBreak, thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
-        # app.logger.debug(f'Score = {score}')
+        thirdSetP1,  thirdSetP2,  superTieBreak  = third_set
+        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak,
+                      secondSetP1=secondSetP1, secondSetP2=secondSetP2, secondTieBreak=secondTieBreak,
+                      thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
         db.session.add(score)
         db.session.commit()
         if winning_team == match.homeTeam:
             home_score += 1
         else:
             visitor_score += 1
-        # app.logger.debug(f'home_score: {home_score}, visitor_score: {visitor_score}')
         player1, player2 = home_doublers
         player3, player4 = visitor_doublers
-        double = Double(player1Id=player1.id, player2Id=player2.id, player3Id=player3.id, player4Id=player4.id, scoreId=score.id, matchId=match.id)
+        double = Double(player1Id=player1.id, player2Id=player2.id, player3Id=player3.id, player4Id=player4.id,
+                        scoreId=score.id, matchId=match.id)
         db.session.add(double)
         match.doubles += [double]
     match.homeScore, match.visitorScore = home_score, visitor_score
@@ -1164,35 +1184,44 @@ def schedule_matches(app, db, pool: Pool):
 
 def simulate_match_scores(app, db, pool: Pool):
     try:
+        singles_count = pool.championship.singlesCount
+        doubles_count = pool.championship.doublesCount
         matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
         for matchday in matchdays:
             for match in matchday.matches:
                 if match.poolId != pool.id:
                     continue
-                num_players = pool.championship.singlesCount + 2 * pool.championship.doublesCount
+                # Ignorer les matchs dont une équipe est absente (supprimée)
+                if match.homeTeam is None or match.visitorTeam is None:
+                    app.logger.debug(f"Match {match.id} ignoré : homeTeam={match.homeTeamId} visitorTeam={match.visitorTeamId} (équipe manquante)")
+                    continue
 
-                home_player_ids = [player.id for player in match.homeTeam.get_available_players(matchday)]
-                active_home_players = Player.query.filter(
-                    and_(
-                        Player.id.in_(home_player_ids),
-                        Player.isActive.is_(True)  # Correct way to filter boolean in SQLAlchemy
+                # Récupérer les joueurs selon la sélection du capitaine (ou tous si pas de sélection)
+                try:
+                    home_singles, home_doubles = match.homeTeam.get_players_for_simulation(
+                        matchday, singles_count, doubles_count)
+                    visitor_singles, visitor_doubles = match.visitorTeam.get_players_for_simulation(
+                        matchday, singles_count, doubles_count)
+                    app.logger.debug(
+                        f"Match {match.id} [{match.homeTeam} vs {match.visitorTeam}] J{matchday.id} : "
+                        f"home S={len(home_singles)} D={len(home_doubles)} | "
+                        f"visitor S={len(visitor_singles)} D={len(visitor_doubles)}"
                     )
-                ).all()
-
-                visitor_player_ids = [player.id for player in match.visitorTeam.get_available_players(matchday)]
-                active_visitor_players = Player.query.filter(
-                    and_(
-                        Player.id.in_(visitor_player_ids),
-                        Player.isActive.is_(True)
+                    simulate_score(
+                        app=app, db=db,
+                        home_players=home_singles, visitor_players=visitor_singles,
+                        home_doubles_players=home_doubles, visitor_doubles_players=visitor_doubles,
+                        match=match
                     )
-                ).all()
-                home_players = sorted(active_home_players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
-                visitor_players = sorted(active_visitor_players, key=lambda player: player.refined_elo, reverse=True)[:num_players]
-                simulate_score(app=app, db=db, home_players=home_players, visitor_players=visitor_players, match=match)
+                except Exception as match_err:
+                    app.logger.warning(
+                        f"Erreur match {match.id} [{match.homeTeam} vs {match.visitorTeam}] J{matchday.id} : {match_err}"
+                    )
+                    continue
                 match = Match.query.get(match.id)
-                # app.logger.debug(f'MATCH {match.id} = {match.homeTeam} - {match.score} - {match.visitorTeam}')
     except Exception as e:
-        app.logger.debug(f"Error in simulate_match_scores function!\n{e}")
+        import traceback
+        app.logger.debug(f"Error in simulate_match_scores function!\n{e}\n{traceback.format_exc()}")
 
 def play(app, db, pool: Pool):
     schedule_matches(app, db, pool)
@@ -1225,6 +1254,9 @@ def calculer_classement(pool):
             (Match.visitorTeamId == team.id)) \
             .filter(Match.poolId == pool.id) \
             .all()
+        # Ignorer uniquement les matchs où AUCUNE des deux équipes n'est connue
+        # (les matchs vs équipe supprimée sont conservés pour le classement)
+        matches = [m for m in matches if m.homeTeamId is not None or m.visitorTeamId is not None]
         # matches = Match.query.filter(Match.poolId == pool.id, Match.homeTeamId == team.id).all()
         # logging.info(f'{team} : {len(matches)} matches')
 

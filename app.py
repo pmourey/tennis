@@ -52,10 +52,35 @@ def create_app():
 	app.jinja_env.filters['sort_players_by'] = sort_players_by
 	app.jinja_env.filters['none_to_zero'] = none_to_zero
 
-	@app.before_request
-	def create_tables():
-		with app.app_context():
-			db.create_all()
+	# Créer les tables et migrations au démarrage (une seule fois)
+	with app.app_context():
+		db.create_all()
+		_run_column_migrations(app, db)
+
+	@app.route('/admin/run-migration')
+	def run_migration_endpoint():
+		"""Endpoint pour forcer la migration des colonnes manquantes."""
+		try:
+			_run_column_migrations(app, db)
+			# Vérifier l'état après migration
+			from sqlalchemy import inspect
+			inspector = inspect(db.engine)
+			pma_cols = [c['name'] for c in inspector.get_columns('player_matchday_availability')]
+			tmj_cols = [c['name'] for c in inspector.get_columns('team_matchday_joker')] if 'team_matchday_joker' in inspector.get_table_names() else []
+			from models import PlayerMatchdayAvailability
+			total = db.session.query(PlayerMatchdayAvailability).count()
+			with_roles = db.session.execute(
+				db.text('SELECT COUNT(*) FROM player_matchday_availability WHERE plays_single=1 OR plays_double=1 OR is_substitute=1')
+			).scalar()
+			return jsonify({
+				'status': 'ok',
+				'pma_columns': pma_cols,
+				'tmj_columns': tmj_cols,
+				'total_pma': total,
+				'pma_with_roles': with_roles,
+			})
+		except Exception as e:
+			return jsonify({'status': 'error', 'error': str(e)}), 500
 
 	@app.route('/')
 	def welcome():
@@ -81,6 +106,39 @@ def create_app():
 	return app
 
 
+
+
+def _run_column_migrations(app, db):
+	"""Ajoute les colonnes manquantes sans utiliser Alembic (SQLite compatible).
+	   Appelée une seule fois au démarrage de l'app."""
+	from sqlalchemy import inspect, text
+	inspector = inspect(db.engine)
+	tables = inspector.get_table_names()
+
+	# ── player_matchday_availability ─────────────────────────────────────
+	if 'player_matchday_availability' in tables:
+		pma_cols = {c['name'] for c in inspector.get_columns('player_matchday_availability')}
+		for col, ddl in [
+			('plays_single',  'INTEGER NOT NULL DEFAULT 0'),
+			('plays_double',  'INTEGER NOT NULL DEFAULT 0'),
+			('is_substitute', 'INTEGER NOT NULL DEFAULT 0'),
+		]:
+			if col not in pma_cols:
+				db.session.execute(text(f'ALTER TABLE player_matchday_availability ADD COLUMN {col} {ddl}'))
+				app.logger.info(f'Migration: player_matchday_availability.{col} ajouté')
+
+	# ── team_matchday_joker ───────────────────────────────────────────────
+	if 'team_matchday_joker' in tables:
+		tmj_cols = {c['name'] for c in inspector.get_columns('team_matchday_joker')}
+		for col, ddl in [
+			('plays_single', 'INTEGER NOT NULL DEFAULT 0'),
+			('plays_double', 'INTEGER NOT NULL DEFAULT 0'),
+		]:
+			if col not in tmj_cols:
+				db.session.execute(text(f'ALTER TABLE team_matchday_joker ADD COLUMN {col} {ddl}'))
+				app.logger.info(f'Migration: team_matchday_joker.{col} ajouté')
+
+	db.session.commit()
 
 
 # Define a custom filter function

@@ -419,9 +419,46 @@ def simulate_pool_batch(pool_id):
 
 @championship_management_bp.route('/show_simulations/<int:pool_id>')
 def show_simulations(pool_id: int):
-    simulations = PoolSimulation.query.filter(PoolSimulation.pool_id == pool_id).all()
+    simulations = PoolSimulation.query.filter(PoolSimulation.pool_id == pool_id).order_by(PoolSimulation.created_at.desc()).all()
     pool = Pool.query.get_or_404(pool_id)
     return render_template('pool_simulations.html', simulations=simulations, pool=pool)
+
+@championship_management_bp.route('/delete_simulation/<int:sim_id>', methods=['POST'])
+def delete_simulation(sim_id: int):
+    simulation = PoolSimulation.query.get_or_404(sim_id)
+    pool_id = simulation.pool_id
+    db.session.delete(simulation)
+    db.session.commit()
+    flash(f'Simulation #{sim_id} supprimée.', 'success')
+    return redirect(url_for('championship.show_simulations', pool_id=pool_id))
+
+@championship_management_bp.route('/delete_simulations_bulk/<int:pool_id>', methods=['POST'])
+def delete_simulations_bulk(pool_id: int):
+    Pool.query.get_or_404(pool_id)
+    ids = request.form.getlist('sim_ids')
+    if not ids:
+        flash('Aucune simulation sélectionnée.', 'error')
+        return redirect(url_for('championship.show_simulations', pool_id=pool_id))
+    count = 0
+    for sid in ids:
+        sim = PoolSimulation.query.get(int(sid))
+        if sim and sim.pool_id == pool_id:
+            db.session.delete(sim)
+            count += 1
+    db.session.commit()
+    flash(f'{count} simulation(s) supprimée(s).', 'success')
+    return redirect(url_for('championship.show_simulations', pool_id=pool_id))
+
+@championship_management_bp.route('/delete_all_simulations/<int:pool_id>', methods=['POST'])
+def delete_all_simulations(pool_id: int):
+    Pool.query.get_or_404(pool_id)
+    sims = PoolSimulation.query.filter_by(pool_id=pool_id).all()
+    count = len(sims)
+    for sim in sims:
+        db.session.delete(sim)
+    db.session.commit()
+    flash(f'Toutes les simulations ({count}) supprimées.', 'success')
+    return redirect(url_for('championship.show_simulations', pool_id=pool_id))
 
 @championship_management_bp.route('/show_simulation/<int:sim_id>')
 def show_simulation(sim_id: int):

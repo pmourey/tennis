@@ -138,30 +138,55 @@ def new_team():
                 players_dict[key] = Player.query.get(value)
         # test doublons
         duplicates = keys_with_same_value(players_dict)
-        if not request.form['name']:
-            flash('Veuillez renseigner tous les champs, svp!', 'error')
+
+        # Helper pour réafficher le formulaire avec les données actuelles
+        def _redisplay_form(error_msg):
+            flash(error_msg, 'error')
+            championship_id = int(request.form.get('championship_id'))
+            gender = int(request.form.get('gender', 0))
+            championship = Championship.query.get(championship_id)
+            signed_club_id = request.cookies.get('club_id')
+            try:
+                club_id = current_app.serializer.loads(signed_club_id)
+            except itsdangerous.exc.BadSignature:
+                return redirect(url_for('admin.select_club'))
+            age_category = championship.division.ageCategory
+            active_players = get_players_order_by_ranking(gender=gender, club_id=club_id, age_category=age_category)
+            max_players = min(15, len(active_players))
+            return render_template('new_team.html', gender=gender, championship=championship,
+                                   players=active_players, max_players=max_players, form=request.form)
+
+        if not request.form.get('name'):
+            return _redisplay_form('Veuillez renseigner tous les champs, svp!')
         elif duplicates:
-            if len(duplicates) == 1:
-                flash(f'Le joueur {duplicates[0]} est en doublon, veuillez en sélectionner un autre!', 'error')
-            else:
-                flash(f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!', 'error')
+            msg = (f'Le joueur {duplicates[0]} est en doublon, veuillez en sélectionner un autre!'
+                   if len(duplicates) == 1
+                   else f'Les joueurs {duplicates} sont en doublons, veuillez en sélectionner d\'autres!')
+            return _redisplay_form(msg)
         else:
             # Récupérer les données du formulaire
             gender = int(request.form['gender'])
             championship_id = int(request.form.get('championship_id'))
             team_name = request.form.get('name')
             captain_id = request.form.get('captain_id')
-            # pool = Pool.query.join(Championship).filter(Championship.id == championship_id, Pool.letter is None).first()
             pool = Pool.query.join(Championship).filter(Championship.id == championship_id).first()
             championship = Championship.query.get(championship_id)
             current_app.logger.debug(f"gender: {gender} - championship: {championship} - team_name: {team_name} - pool: {pool}")
+            # Récupérer le club_id depuis le cookie
+            signed_club_id = request.cookies.get('club_id')
+            try:
+                club_id = current_app.serializer.loads(signed_club_id)
+            except itsdangerous.exc.BadSignature:
+                return redirect(url_for('admin.select_club'))
             # Créer l'équipe avec les informations fournies
             team_players = list(players_dict.values())
             team_players.sort(key=lambda p: p.ranking_id)
-            team = Team(name=team_name, captainId=int(captain_id) if captain_id else None, poolId=pool.id, players=team_players)
+            team = Team(name=team_name, captainId=int(captain_id) if captain_id else None,
+                        poolId=pool.id, clubId=club_id, players=team_players)
             db.session.add(team)
             db.session.commit()
-            flash(f"L'équipe '{team.name}' a été créée avec succès avec {len(team.players)} {'joueuses' if gender else 'joueurs'} et associé au championnat {championship} "
+            flash(f"L'équipe '{team.name}' a été créée avec succès avec {len(team.players)} "
+                  f"{'joueuses' if gender else 'joueurs'} et associée au championnat {championship} "
                   f"qui a lieu du {championship.start_date} au {championship.end_date}!")
             return redirect(url_for('club.show_teams'))
     else:
@@ -187,7 +212,8 @@ def new_team():
             current_app.logger.debug(f'players: {active_players}')
             current_app.logger.debug(f'request.form: {request.form}')
             max_players = min(15, len(active_players))
-            return render_template('new_team.html', gender=gender, championship=championship, players=active_players, max_players=max_players, form=request.form)
+            return render_template('new_team.html', gender=gender, championship=championship,
+                                   players=active_players, max_players=max_players, form=request.form)
 
 
 @club_management_bp.route('/update_team/<int:id>', methods=['GET', 'POST'])
@@ -299,90 +325,192 @@ def show_team(id: int):
         elapsed_minutes = (elapsed_hours - int(elapsed_hours)) * 60
     else:
         distance = elapsed_hours = elapsed_minutes = 0
+    # Joueurs du club non dans l'équipe (candidats jokers), même genre
+    team_player_ids = {p.id for p in team.players}
+    singles_count = team.championship.singlesCount if team.championship else 4
+
+    # Dernier joueur brûlé = le N-ième joueur de la liste nominative classée
+    # (les N premiers sont "brûlés", le joker ne peut pas être meilleur que le dernier)
+    last_burned = sorted_team_players[singles_count - 1] if len(sorted_team_players) >= singles_count else None
+    burned_ranking_id = last_burned.ranking.id if last_burned else None  # id plus grand = moins bon classement
+
+    joker_query = Player.query.join(Player.license).filter(
+        Player.clubId == team.club.id,
+        License.gender == team.gender,
+        ~Player.id.in_(team_player_ids)
+    )
+    if burned_ranking_id is not None:
+        # Garder uniquement les joueurs dont le classement est >= au dernier brûlé
+        # (ranking.id plus élevé = classement moins bon → joker ne peut pas être meilleur)
+        joker_query = joker_query.filter(License.rankingId >= burned_ranking_id)
+
+    joker_candidates = joker_query.order_by(License.rankingId).all()
+
+    # Jokers actuels par journée {matchday_id: {player, plays_single, plays_double}}
+    current_jokers = {
+        j.matchday_id: {
+            'player':       j.player,
+            'plays_single': j.plays_single,
+            'plays_double': j.plays_double,
+        }
+        for j in team.jokers if j.player
+    }
+
+    # Construire avail_map : {player_id: {matchday_id: PlayerMatchdayAvailability}}
+    # pour éviter le bug Jinja dict.update() qui retourne None
+    match_day_ids = {md.id for md in team.match_days}
+    avail_map = {}
+    for player in team.players:
+        avail_map[player.id] = {
+            a.matchday_id: a
+            for a in player.matchday_availabilities
+            if a.matchday_id in match_day_ids
+        }
+
     return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players,
-                           visitor_club=visitor_club, distance=distance, duration=(int(elapsed_hours), round(elapsed_minutes)))
+                           visitor_club=visitor_club, distance=distance,
+                           duration=(int(elapsed_hours), round(elapsed_minutes)),
+                           joker_candidates=joker_candidates,
+                           current_jokers=current_jokers,
+                           last_burned=last_burned,
+                           singles_count=singles_count,
+                           avail_map=avail_map)
+
+
+@club_management_bp.route('/save_joker/<int:team_id>', methods=['POST'])
+def save_joker(team_id):
+    """Enregistre ou supprime le joueur joker d'une équipe pour une journée donnée."""
+    team = Team.query.get_or_404(team_id)
+    data = request.get_json()
+    matchday_id  = data.get('matchday_id')
+    player_id    = data.get('player_id')   # None = suppression du joker
+    plays_single = bool(data.get('plays_single', False))
+    plays_double = bool(data.get('plays_double', False))
+
+    try:
+        existing = TeamMatchdayJoker.query.filter_by(
+            team_id=team_id, matchday_id=matchday_id
+        ).first()
+
+        if player_id:
+            player_id = int(player_id)
+            # Vérifier que le joueur n'est pas déjà dans l'équipe
+            if any(p.id == player_id for p in team.players):
+                return jsonify({'success': False,
+                                'error': 'Ce joueur est déjà dans la liste nominative de l\'équipe.'}), 400
+            # Vérifier la règle de classement : le joker ne peut pas être meilleur que le dernier brûlé
+            singles_count = team.championship.singlesCount if team.championship else 4
+            sorted_players = sorted(team.players, key=lambda p: p.ranking.id)
+            if len(sorted_players) >= singles_count:
+                last_burned = sorted_players[singles_count - 1]
+                joker_player = Player.query.get(player_id)
+                if joker_player and joker_player.ranking.id < last_burned.ranking.id:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Le joker ({joker_player.ranking}) ne peut pas être meilleur '
+                                 f'que le {singles_count}e joueur brûlé ({last_burned.name} – {last_burned.ranking}).'
+                    }), 400
+            if existing:
+                existing.player_id    = player_id
+                existing.plays_single = plays_single
+                existing.plays_double = plays_double
+            else:
+                db.session.add(TeamMatchdayJoker(
+                    team_id=team_id, matchday_id=matchday_id, player_id=player_id,
+                    plays_single=plays_single, plays_double=plays_double
+                ))
+        else:
+            # Suppression du joker
+            if existing:
+                db.session.delete(existing)
+
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @club_management_bp.route('/save_availability/<int:team_id>', methods=['POST'])
 def save_availability(team_id):
     data = request.get_json()
     availability = data.get('availability', [])
-    # current_app.logger.debug(f'availability: {availability}')
 
     try:
         for item in availability:
-            player_id = int(item['player_id'])
-            date: Date = datetime.strptime(item['date'], '%Y-%m-%d').date()
-            is_available = item['available']
-            # current_app.logger.debug(f"player_id: {player_id} - date: {date} - is_available: {is_available}")
+            player_id     = int(item['player_id'])
+            date          = datetime.strptime(item['date'], '%Y-%m-%d').date()
+            is_available  = item.get('available', False)
+            plays_single  = item.get('plays_single', False)
+            plays_double  = item.get('plays_double', False)
+            is_substitute = item.get('is_substitute', False)
 
-            # Get the player and matchday objects
-            player = Player.query.get_or_404(player_id)
-            matchday = Matchday.query.filter_by(date=date).first()
-
+            Player.query.get_or_404(player_id)
+            # Chercher la journée correspondant à la date ET au championnat de l'équipe
+            team = Team.query.get_or_404(team_id)
+            matchday = Matchday.query.filter(
+                Matchday.date == date,
+                Matchday.championshipId == team.championship.id
+            ).first()
             if not matchday:
-                current_app.logger.warning(f"No matchday found for date: {date}")
+                current_app.logger.warning(f"Aucune journée trouvée pour date={date} championnat={team.championship.id}")
                 continue
 
-            # Check if relationship already exists
-            existing_availability = PlayerMatchdayAvailability.query.filter_by(
-                player_id=player_id,
-                matchday_id=matchday.id
+            existing = PlayerMatchdayAvailability.query.filter_by(
+                player_id=player_id, matchday_id=matchday.id
             ).first()
-
-            if existing_availability:
-                # Update existing relationship
-                existing_availability.is_available = is_available
-                existing_availability.updated_at = datetime.utcnow()
+            if existing:
+                existing.is_available  = is_available
+                existing.plays_single  = plays_single
+                existing.plays_double  = plays_double
+                existing.is_substitute = is_substitute
+                existing.updated_at    = datetime.utcnow()
             else:
-                # Create new relationship
-                new_availability = PlayerMatchdayAvailability(
+                db.session.add(PlayerMatchdayAvailability(
                     player_id=player_id,
                     matchday_id=matchday.id,
-                    is_available=is_available
-                )
-                db.session.add(new_availability)
+                    is_available=is_available,
+                    plays_single=plays_single,
+                    plays_double=plays_double,
+                    is_substitute=is_substitute,
+                ))
 
-        # Check available players for each matchday before committing
-        matchdays_with_issues = []
-        team = Team.query.get_or_404(team_id)
-
-        # Get unique dates from the availability data
-        unique_dates = set(datetime.strptime(item['date'], '%Y-%m-%d').date()
-                          for item in availability)
-
-        current_app.logger.debug(f"unique_dates: {unique_dates}")
-
-        for date in unique_dates:
-            matchday = Matchday.query.filter_by(date=date).first()
-            current_app.logger.debug(f"matchday: {matchday}")
-            if matchday:
-                available_players = team.get_available_players(matchday)
-                # We need at least singles_count * 2 players (2 players per singles match)
-                min_players_needed = matchday.singles_count
-                current_app.logger.debug(f"min_players_needed = {min_players_needed} - available_players_count: {len(available_players)}")
-
-                if len(available_players) < min_players_needed:
-                    matchdays_with_issues.append({
-                        'date': date.strftime('%Y-%m-%d'),
-                        'available_players': len(available_players),
-                        'required_players': min_players_needed
-                    })
-
-        current_app.logger.debug(f"matchdays_with_issues: {matchdays_with_issues}")
-
-        if matchdays_with_issues:
-            db.session.rollback()
-            return jsonify({
-                'success': False,
-                'error': 'insufficient_players',
-                'details': '\n'.join([str(m) for m in matchdays_with_issues])
-            }), 400
-
+        # Commit d'abord — les sélections sont toujours sauvegardées
         db.session.commit()
-        return jsonify({'success': True})
+
+        # Vérification informative (non bloquante) du nombre minimum de joueurs en simple
+        team = Team.query.get_or_404(team_id)
+        unique_dates = {datetime.strptime(item['date'], '%Y-%m-%d').date() for item in availability}
+        warnings = []
+        for date in unique_dates:
+            matchday = Matchday.query.filter(
+                Matchday.date == date,
+                Matchday.championshipId == team.championship.id
+            ).first()
+            if matchday:
+                needed = matchday.singles_count
+                # Joueurs nominatifs de l'équipe en simple
+                nb_singles = PlayerMatchdayAvailability.query.filter_by(
+                    matchday_id=matchday.id, plays_single=True
+                ).filter(PlayerMatchdayAvailability.player_id.in_(
+                    [p.id for p in team.players]
+                )).count()
+                # Ajouter le joueur joker s'il est sélectionné en simple pour cette journée
+                joker_entry = TeamMatchdayJoker.query.filter_by(
+                    team_id=team_id, matchday_id=matchday.id
+                ).first()
+                if joker_entry and joker_entry.player_id and joker_entry.plays_single:
+                    nb_singles += 1
+                if nb_singles < needed:
+                    warnings.append(
+                        f"{date.strftime('%d/%m/%Y')} : {nb_singles}/{needed} joueur(s) sélectionné(s) en simple"
+                    )
+
+        return jsonify({'success': True, 'warnings': warnings})
+
     except Exception as e:
         db.session.rollback()
+        current_app.logger.error(f"save_availability error: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 
@@ -609,12 +737,27 @@ def show_player(id):
 def delete_player(id):
     if request.method == 'GET':
         player = Player.query.get_or_404(id)
-        current_app.logger.debug(f'Joueur {player} supprimé!')
+        club = Club.query.get(player.clubId)
+        player_name = player.name
+
+        # Nullifier les références dans Single (simples) sans supprimer les résultats
+        Single.query.filter(Single.player1Id == id).update({'player1Id': None})
+        Single.query.filter(Single.player2Id == id).update({'player2Id': None})
+
+        # Nullifier les références dans Double sans supprimer les résultats
+        Double.query.filter(Double.player1Id == id).update({'player1Id': None})
+        Double.query.filter(Double.player2Id == id).update({'player2Id': None})
+        Double.query.filter(Double.player3Id == id).update({'player3Id': None})
+        Double.query.filter(Double.player4Id == id).update({'player4Id': None})
+
+        # Nullifier le capitaine d'équipe si nécessaire
+        Team.query.filter(Team.captainId == id).update({'captainId': None})
+
         db.session.delete(player)
         db.session.commit()
-        current_app.logger.debug(f'Joueur {player} supprimé!')
-        club = Club.query.get(player.clubId)
-        flash(f"Joueur \"{player.name}\" ne fait plus partie du club {club}!")
+
+        current_app.logger.debug(f'Joueur {player_name} supprimé (Single/Double/Captain nullifiés).')
+        flash(f'Joueur "{player_name}" supprimé du club {club}.', 'success')
         return redirect(url_for('club.index'))
 
 

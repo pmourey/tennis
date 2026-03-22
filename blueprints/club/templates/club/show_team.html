@@ -6,11 +6,83 @@
 {% set gender_label = 'joueuses' if team.gender else 'joueurs' %}
 {% set icon_captain = " &#x1F3C5;" %}
 
+<style>
+/* ── Ligne joker ────────────────────────────────────── */
+tr.joker-row {
+    background: #fffde7;
+    border-top: 2px solid #f9a825;
+}
+tr.joker-row td:first-child {
+    text-align: left;
+    padding: 8px 10px;
+    min-width: 140px;
+}
+.joker-label {
+    font-weight: bold;
+    font-size: 14px;
+    color: #5d4037;
+}
+.joker-hint {
+    font-size: 11px;
+    color: #888;
+    display: block;
+    margin-top: 2px;
+}
+.joker-limit {
+    font-size: 11px;
+    font-weight: bold;
+    color: #e65100;
+    display: block;
+    margin-top: 3px;
+}
+
+/* ── Select joker ───────────────────────────────────── */
+select.joker-select {
+    width: 100%;
+    min-width: 160px;
+    max-width: 220px;
+    font-size: 13px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #333;
+    background-color: #fff9e6;
+    border: 1px solid #f9a825;
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+    appearance: auto;
+}
+select.joker-select:hover {
+    border-color: #e65100;
+}
+select.joker-select:focus {
+    outline: none;
+    border-color: #e65100;
+    box-shadow: 0 0 0 2px rgba(230,81,0,.18);
+}
+/* Option "— aucun —" en gris */
+select.joker-select option:first-child {
+    color: #aaa;
+    font-style: italic;
+}
+/* Option sélectionnée surlignée en jaune doux */
+select.joker-select option:checked {
+    background: #fff59d;
+}
+
+/* ── Cellule joker dans le tableau ──────────────────── */
+tr.joker-row td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 6px 8px;
+}
+</style>
+
 <main>
     <table>
         <tr>
             <td style="border: none;"><button onclick="updateTeam()">Mettre à jour l'équipe</button></td>
-            <td style="border: none;"><button id="availButton" onclick="updateAvailability()" class="btn btn-primary">Gérer les disponibilités</button></td>
+            <td style="border: none;"><button id="availButton" onclick="updateAvailability()" class="btn btn-primary">Sélection des joueurs</button></td>
         </tr>
     </table>
     <br>
@@ -60,37 +132,145 @@
     <!-- Previous table content -->
 </table>
 
-<!-- Add availability table (initially hidden) -->
-<div id="availabilityTable" style="display: none; margin-top: 10px;">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Joueur</th>
-                {% for matchday in team.match_days %}
-                <th>{{ matchday.date.strftime('%d/%m/%Y') }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for player in team.players %}
-            <tr>
-                <td>{{ player.name }}</td>
-                {% for matchday in team.match_days %}
-                <td>
-                    <input type="checkbox"
-                           name="availability"
-                           data-player-id="{{ player.id }}"
-                           data-date="{{ matchday.date.strftime('%Y-%m-%d') }}"
-                           {% if player.is_available(matchday) %}checked{% endif %}>
-                </td>
-                {% endfor %}
-            </tr>
+<!-- Tableau de sélection des joueurs (initialement masqué) -->
+<div id="availabilityTable" style="display:none; margin-top:10px; overflow-x:auto;">
+
+<style>
+.avail-table { border-collapse: collapse; width: 100%; }
+.avail-table th, .avail-table td { border: 1px solid #ddd; padding: 6px 8px; text-align: center; }
+.avail-table th { background: #f2f2f2; font-size: 13px; }
+.avail-table td.player-name { text-align: left; white-space: nowrap; font-size: 13px; font-weight: bold; min-width: 140px; }
+.avail-table td.ranking-cell { font-size: 12px; color: #555; white-space: nowrap; }
+
+/* En-tête journée */
+.matchday-header { background: #e3f2fd !important; font-size: 12px; }
+
+/* Groupe de 3 checkboxes par journée */
+.role-group { display: flex; flex-direction: column; gap: 3px; align-items: center; min-width: 90px; }
+.role-item  { display: flex; align-items: center; gap: 4px; font-size: 11px; white-space: nowrap; cursor: pointer; }
+.role-item input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; accent-color: #1565c0; }
+
+/* Couleurs par rôle */
+.role-item.single   { color: #1565c0; }
+.role-item.double   { color: #2e7d32; }
+.role-item.sub      { color: #e65100; }
+.role-item.single   input { accent-color: #1565c0; }
+.role-item.double   input { accent-color: #2e7d32; }
+.role-item.sub      input { accent-color: #e65100; }
+</style>
+
+<table class="avail-table">
+    <thead>
+        <tr>
+            <th rowspan="2" style="min-width:140px; text-align:left;">Joueur</th>
+            <th rowspan="2" style="min-width:60px;">Classement</th>
+            {% for matchday in team.match_days %}
+            <th class="matchday-header">{{ matchday.date.strftime('%d/%m/%Y') }}</th>
             {% endfor %}
-        </tbody>
-    </table>
-    <div style="text-align: center; margin-top: 10px;">
-        <button onclick="saveAvailability()" class="btn btn-success">Enregistrer</button>
-    </div>
+        </tr>
+        <tr>
+            {% for matchday in team.match_days %}
+            <th style="font-size:10px; background:#e8f5e9; color:#555;">
+                🎾 S &nbsp; 🎾🎾 D &nbsp; 🔄 R
+            </th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for player in team.players %}
+        <tr>
+            <td class="player-name">
+                {% set icon_brule = "🔥 " if loop.index <= singles_count else '' %}
+                {{ icon_brule }}<a href="{{ url_for('club.show_player', id=player.id) }}">{{ player.name }}</a>
+            </td>
+            <td class="ranking-cell">{{ player.ranking }}</td>
+            {% for matchday in team.match_days %}
+            {% set a = avail_map.get(player.id, {}).get(matchday.id) %}
+            <td>
+                <div class="role-group">
+                    <label class="role-item single">
+                        <input type="checkbox"
+                               class="cb-single"
+                               data-player-id="{{ player.id }}"
+                               data-date="{{ matchday.date.strftime('%Y-%m-%d') }}"
+                               {% if a and a.plays_single %}checked{% endif %}>
+                        Simple
+                    </label>
+                    <label class="role-item double">
+                        <input type="checkbox"
+                               class="cb-double"
+                               data-player-id="{{ player.id }}"
+                               data-date="{{ matchday.date.strftime('%Y-%m-%d') }}"
+                               {% if a and a.plays_double %}checked{% endif %}>
+                        Double
+                    </label>
+                    <label class="role-item sub">
+                        <input type="checkbox"
+                               class="cb-sub"
+                               data-player-id="{{ player.id }}"
+                               data-date="{{ matchday.date.strftime('%Y-%m-%d') }}"
+                               {% if a and a.is_substitute %}checked{% endif %}>
+                        Remplaçant
+                    </label>
+                </div>
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+
+        <!-- Ligne joker -->
+        <tr class="joker-row">
+            <td>
+                <span class="joker-label">🃏 Joker</span>
+                <span class="joker-hint">(1 joueur hors liste / journée)</span>
+                {% if last_burned %}
+                <span class="joker-limit">
+                    Classement ≥ {{ last_burned.ranking }}
+                    <br>({{ singles_count }}e brûlé)
+                </span>
+                {% endif %}
+            </td>
+            <td></td>
+            {% for matchday in team.match_days %}
+            {% set jk = current_jokers.get(matchday.id) %}
+            <td>
+                <!-- Sélection du joueur joker -->
+                <select data-matchday-id="{{ matchday.id }}" class="joker-select">
+                    <option value="">— aucun —</option>
+                    {% for candidate in joker_candidates %}
+                    <option value="{{ candidate.id }}"
+                        {% if jk and jk.player.id == candidate.id %}selected{% endif %}>
+                        {{ candidate.name }} ({{ candidate.ranking }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <!-- Rôles du joker : Simple et/ou Double (pas Remplaçant) -->
+                <div class="role-group" style="margin-top:5px;">
+                    <label class="role-item single">
+                        <input type="checkbox"
+                               class="cb-joker-single"
+                               data-matchday-id="{{ matchday.id }}"
+                               {% if jk and jk.plays_single %}checked{% endif %}>
+                        Simple
+                    </label>
+                    <label class="role-item double">
+                        <input type="checkbox"
+                               class="cb-joker-double"
+                               data-matchday-id="{{ matchday.id }}"
+                               {% if jk and jk.plays_double %}checked{% endif %}>
+                        Double
+                    </label>
+                </div>
+            </td>
+            {% endfor %}
+        </tr>
+    </tbody>
+</table>
+
+<div style="text-align:center; margin-top:12px; display:flex; gap:10px; justify-content:center;">
+    <button onclick="saveAvailability()" class="btn btn-success">💾 Enregistrer la sélection</button>
+    <button onclick="saveJokers()"       class="btn btn-warning">🃏 Enregistrer jokers</button>
+</div>
 </div>
 
 
@@ -114,36 +294,89 @@
     }
 
     function saveAvailability() {
-        const checkboxes = document.querySelectorAll('input[name="availability"]');
-        const availability = [];
+        // Construire un map { "playerId_date": { player_id, date, single, double, sub } }
+        const map = {};
 
-        checkboxes.forEach(checkbox => {
-            availability.push({
-                player_id: checkbox.dataset.playerId,
-                date: checkbox.dataset.date,
-                available: checkbox.checked
-            });
+        document.querySelectorAll('.cb-single,.cb-double,.cb-sub').forEach(cb => {
+            const key = cb.dataset.playerId + '_' + cb.dataset.date;
+            if (!map[key]) {
+                map[key] = {
+                    player_id:    cb.dataset.playerId,
+                    date:         cb.dataset.date,
+                    available:    false,
+                    plays_single:  false,
+                    plays_double:  false,
+                    is_substitute: false
+                };
+            }
+            if (cb.classList.contains('cb-single'))  map[key].plays_single  = cb.checked;
+            if (cb.classList.contains('cb-double'))  map[key].plays_double  = cb.checked;
+            if (cb.classList.contains('cb-sub'))     map[key].is_substitute = cb.checked;
+        });
+
+        // is_available = true si au moins un rôle coché
+        const availability = Object.values(map).map(item => {
+            item.available = item.plays_single || item.plays_double || item.is_substitute;
+            return item;
         });
 
         fetch("{{ url_for('club.save_availability', team_id=team.id) }}", {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ availability: availability })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ availability })
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('Disponibilités enregistrées avec succès');
+                if (data.warnings && data.warnings.length > 0) {
+                    alert('✅ Sélection enregistrée avec succès.\n\n⚠️ Avertissements :\n' + data.warnings.join('\n'));
+                } else {
+                    alert('✅ Sélection enregistrée avec succès.');
+                }
             } else {
-                alert('Erreur lors de l\'enregistrement des disponibilités\n'
-                + data.error + '\n' + data.details);
+                alert('❌ Erreur : ' + data.error);
             }
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Erreur lors de l\'enregistrement des disponibilités\n' + data.error + '\n' + data.details);
+        .catch(e => { console.error(e); alert('Erreur réseau lors de l\'enregistrement.'); });
+    }
+
+    function saveJokers() {
+        const selects = document.querySelectorAll('select.joker-select');
+        let saved = 0, errors = 0;
+        const total = selects.length;
+        if (total === 0) { alert('Aucune journée trouvée.'); return; }
+
+        selects.forEach(select => {
+            const matchdayId = select.dataset.matchdayId;
+            const playerId   = select.value || null;
+            // Lire les checkboxes simple/double du joker pour cette journée
+            const cbSingle = document.querySelector(`.cb-joker-single[data-matchday-id="${matchdayId}"]`);
+            const cbDouble = document.querySelector(`.cb-joker-double[data-matchday-id="${matchdayId}"]`);
+            const plays_single = cbSingle ? cbSingle.checked : false;
+            const plays_double = cbDouble ? cbDouble.checked : false;
+
+            fetch("{{ url_for('club.save_joker', team_id=team.id) }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matchday_id: parseInt(matchdayId),
+                    player_id:   playerId,
+                    plays_single,
+                    plays_double
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) saved++;
+                else { errors++; console.error('Joker error:', data.error); }
+                if (saved + errors === total) {
+                    if (errors === 0)
+                        alert('Jokers enregistrés avec succès (' + saved + ' journée(s)) ✅');
+                    else
+                        alert(saved + ' joker(s) enregistré(s), ' + errors + ' erreur(s). Voir console.');
+                }
+            })
+            .catch(e => { errors++; console.error(e); });
         });
     }
 </script>

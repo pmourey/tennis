@@ -143,17 +143,15 @@ class License(db.Model):
 player_team_association = Table(
     'player_team_association',
     db.Model.metadata,
-    db.Column('player_id', db.Integer, db.ForeignKey('player.id')),
-    db.Column('team_id', db.Integer, db.ForeignKey('team.id'))
+    db.Column('player_id', db.Integer, db.ForeignKey('player.id', ondelete='CASCADE')),
+    db.Column('team_id', db.Integer, db.ForeignKey('team.id', ondelete='CASCADE'))
 )
-
-
 
 player_injury_association = Table(
     'player_injury_association',
     db.Model.metadata,
-    db.Column('player_id', db.Integer, db.ForeignKey('player.id')),
-    db.Column('injury_id', db.Integer, db.ForeignKey('injury.id'))
+    db.Column('player_id', db.Integer, db.ForeignKey('player.id', ondelete='CASCADE')),
+    db.Column('injury_id', db.Integer, db.ForeignKey('injury.id', ondelete='CASCADE'))
 )
 
 
@@ -214,10 +212,37 @@ class PlayerMatchdayAvailability(db.Model):
     player_id = db.Column(db.Integer, db.ForeignKey('player.id', ondelete='CASCADE'), primary_key=True)
     matchday_id = db.Column(db.Integer, db.ForeignKey('matchday.id', ondelete='CASCADE'), primary_key=True)
     is_available = db.Column(db.Boolean, default=True)
+    plays_single = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+    plays_double = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+    is_substitute = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     player = relationship('Player', back_populates='matchday_availabilities')
     matchday = relationship('Matchday', back_populates='player_availabilities')
+
+
+class TeamMatchdayJoker(db.Model):
+    """Joueur joker : 1 seul par équipe par journée, hors liste nominative des 15."""
+    __tablename__ = 'team_matchday_joker'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='CASCADE'), nullable=False)
+    matchday_id = db.Column(db.Integer, db.ForeignKey('matchday.id', ondelete='CASCADE'), nullable=False)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
+    plays_single = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+    plays_double = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+
+    # Contrainte : 1 seul joker par équipe/journée
+    __table_args__ = (
+        db.UniqueConstraint('team_id', 'matchday_id', name='uq_team_matchday_joker'),
+    )
+
+    team = relationship('Team', back_populates='jokers')
+    matchday = relationship('Matchday', back_populates='jokers')
+    player = relationship('Player')
+
+    def __repr__(self):
+        return f'Joker {self.player} ({self.team} - J{self.matchday_id})'
 
 class Player(db.Model):
     __tablename__ = 'player'
@@ -443,7 +468,7 @@ class Team(db.Model):
     __tablename__ = 'team'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(20), unique=False, nullable=False)
-    captainId = db.Column(db.Integer, db.ForeignKey('player.id'))
+    captainId = db.Column(db.Integer, db.ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
     poolId = db.Column(db.Integer, db.ForeignKey('pool.id'), nullable=True)
     ranking = db.Column(db.Integer, nullable=True)
     clubId = db.Column(db.String(8), db.ForeignKey('club.id', ondelete='CASCADE'), nullable=False)
@@ -457,19 +482,136 @@ class Team(db.Model):
     # Define the relationship with Player using many-to-many association
     players = relationship('Player', secondary=player_team_association, back_populates='teams')  # Correction ici
 
+    # Joueurs jokers par journée
+    jokers = relationship('TeamMatchdayJoker', back_populates='team', cascade='all, delete-orphan')
+
     @property
     def avg_age(self) -> int:
         return round(sum([p.age for p in self.players]) / len(self.players))
 
     def get_available_players(self, matchday):
-        """Get list of available players for a specific matchday"""
-        return Player.query.join(
-            PlayerMatchdayAvailability
-        ).filter(
+        """Retourne les joueurs disponibles pour une journée donnée.
+        Si aucune sélection de rôle n'a été faite → retourne tous les joueurs actifs.
+        Sinon → retourne les joueurs avec is_available=True.
+        """
+        player_ids = [p.id for p in self.players]
+
+        # Sélection = au moins un joueur avec un rôle coché (single/double/substitute)
+        role_selection_count = PlayerMatchdayAvailability.query.filter(
             PlayerMatchdayAvailability.matchday_id == matchday.id,
-            PlayerMatchdayAvailability.is_available == True,
-            Player.id.in_([p.id for p in self.players])
-        ).all()
+            PlayerMatchdayAvailability.player_id.in_(player_ids),
+            db.or_(
+                PlayerMatchdayAvailability.plays_single == True,
+                PlayerMatchdayAvailability.plays_double == True,
+                PlayerMatchdayAvailability.is_substitute == True,
+            )
+        ).count()
+
+        if role_selection_count == 0:
+            # Aucune sélection de rôle → tous les joueurs actifs
+            available = Player.query.filter(
+                Player.id.in_(player_ids),
+                Player.isActive.is_(True)
+            ).all()
+        else:
+            # Sélection effectuée → uniquement les joueurs avec is_available=True
+            available = Player.query.join(
+                PlayerMatchdayAvailability
+            ).filter(
+                PlayerMatchdayAvailability.matchday_id == matchday.id,
+                PlayerMatchdayAvailability.is_available == True,
+                Player.id.in_(player_ids)
+            ).all()
+
+        joker = self.get_joker(matchday)
+        if joker and joker not in available:
+            available.append(joker)
+        return available
+
+    def get_players_for_simulation(self, matchday, singles_count: int, doubles_count: int):
+        """Retourne (singles_players, doubles_players) pour la simulation.
+        Détecte si une sélection capitaine existe via la présence de rôles cochés.
+        """
+        player_ids = [p.id for p in self.players]
+
+        # Sélection = au moins un joueur avec un rôle coché
+        role_selection_count = PlayerMatchdayAvailability.query.filter(
+            PlayerMatchdayAvailability.matchday_id == matchday.id,
+            PlayerMatchdayAvailability.player_id.in_(player_ids),
+            db.or_(
+                PlayerMatchdayAvailability.plays_single == True,
+                PlayerMatchdayAvailability.plays_double == True,
+                PlayerMatchdayAvailability.is_substitute == True,
+            )
+        ).count()
+
+        if role_selection_count == 0:
+            # Pas de sélection → algo existant : tous joueurs actifs
+            all_active = Player.query.filter(
+                Player.id.in_(player_ids),
+                Player.isActive.is_(True)
+            ).all()
+            sorted_all = sorted(all_active, key=lambda p: p.refined_elo, reverse=True)
+            joker = self.get_joker(matchday)
+            if joker and joker not in sorted_all:
+                sorted_all.append(joker)
+            return list(sorted_all), list(sorted_all)
+
+        # Sélection effectuée → respecter les rôles
+        availabilities = {
+            a.player_id: a
+            for a in PlayerMatchdayAvailability.query.filter(
+                PlayerMatchdayAvailability.matchday_id == matchday.id,
+                PlayerMatchdayAvailability.player_id.in_(player_ids)
+            ).all()
+        }
+
+        singles_players = []
+        doubles_players = []
+        substitutes     = []
+
+        for player in Player.query.filter(
+            Player.id.in_(player_ids), Player.isActive.is_(True)
+        ).all():
+            a = availabilities.get(player.id)
+            if a is None:
+                continue
+            if a.plays_single:
+                singles_players.append(player)
+            if a.plays_double:
+                doubles_players.append(player)
+            if a.is_substitute and not a.plays_single and not a.plays_double:
+                substitutes.append(player)
+
+        # Joker
+        joker = self.get_joker(matchday)
+        joker_entry = TeamMatchdayJoker.query.filter_by(
+            team_id=self.id, matchday_id=matchday.id
+        ).first()
+        if joker:
+            if joker_entry and joker_entry.plays_single and joker not in singles_players:
+                singles_players.append(joker)
+            if joker_entry and joker_entry.plays_double and joker not in doubles_players:
+                doubles_players.append(joker)
+
+        # Compléter avec les remplaçants si insuffisance
+        sub_pool = sorted(substitutes, key=lambda p: p.refined_elo, reverse=True)
+        while len(singles_players) < singles_count and sub_pool:
+            singles_players.append(sub_pool.pop(0))
+        while len(doubles_players) < doubles_count * 2 and sub_pool:
+            doubles_players.append(sub_pool.pop(0))
+
+        singles_players = sorted(singles_players, key=lambda p: p.refined_elo, reverse=True)
+        doubles_players = sorted(doubles_players, key=lambda p: p.refined_elo, reverse=True)
+
+        return singles_players, doubles_players
+
+    def get_joker(self, matchday) -> 'Player | None':
+        """Retourne le joueur joker de l'équipe pour une journée donnée."""
+        j = TeamMatchdayJoker.query.filter_by(
+            team_id=self.id, matchday_id=matchday.id
+        ).first()
+        return j.player if j and j.player else None
 
     def initialize_player_availability(self):
         """Initialize availability for all players in the team"""
@@ -512,8 +654,10 @@ class Team(db.Model):
         return sum(1 for m in matches if m.homeScore < m.visitorScore)
 
     def is_visitor(self, match: Match) -> bool:
+        if not match.visitorTeamId:
+            return False
         visitor_team = Team.query.get(match.visitorTeamId)
-        return visitor_team.id == self.id
+        return visitor_team is not None and visitor_team.id == self.id
 
     def weight(self, championship) -> int:
         return (Ranking.query.count() * championship.singlesCount) - sum([p.license.rankingId for i, p in enumerate(self.players) if i < championship.singlesCount])
@@ -786,6 +930,8 @@ class Matchday(db.Model):
         cascade="all, delete-orphan"
     )
 
+    jokers = relationship('TeamMatchdayJoker', back_populates='matchday', cascade='all, delete-orphan')
+
     # Define the many-to-one relationship with Pool
     championshipId = db.Column(db.Integer, db.ForeignKey('championship.id'), nullable=True)
     championship = relationship('Championship', back_populates='matchdays')
@@ -849,11 +995,10 @@ class Match(db.Model):
     pool = relationship('Pool', back_populates='matches')
 
     # # Clé étrangère vers l'équipe à domicile
-    homeTeamId = db.Column(db.Integer, ForeignKey('team.id'))
+    homeTeamId = db.Column(db.Integer, ForeignKey('team.id', ondelete='SET NULL'), nullable=True)
     homeTeam = relationship('Team', foreign_keys=[homeTeamId])
 
-    # # Clé étrangère vers l'équipe adverse
-    visitorTeamId = db.Column(db.Integer, ForeignKey('team.id'))
+    visitorTeamId = db.Column(db.Integer, ForeignKey('team.id', ondelete='SET NULL'), nullable=True)
     visitorTeam = relationship('Team', foreign_keys=[visitorTeamId])
 
     singles = relationship('Single', back_populates='match', cascade="all, delete-orphan")
@@ -904,8 +1049,8 @@ class Single(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     scoreId = db.Column(db.Integer, ForeignKey('score.id'))
     matchId = db.Column(db.Integer, ForeignKey('match.id'))
-    player1Id = db.Column(db.Integer, ForeignKey('player.id'))
-    player2Id = db.Column(db.Integer, ForeignKey('player.id'))
+    player1Id = db.Column(db.Integer, ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
+    player2Id = db.Column(db.Integer, ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
 
     match = relationship('Match', back_populates='singles')
     score = relationship('Score', back_populates='singles')
@@ -920,10 +1065,10 @@ class Double(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     scoreId = db.Column(db.Integer, ForeignKey('score.id'))
     matchId = db.Column(db.Integer, ForeignKey('match.id'))
-    player1Id = db.Column(db.Integer, ForeignKey('player.id'))
-    player2Id = db.Column(db.Integer, ForeignKey('player.id'))
-    player3Id = db.Column(db.Integer, ForeignKey('player.id'))
-    player4Id = db.Column(db.Integer, ForeignKey('player.id'))
+    player1Id = db.Column(db.Integer, ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
+    player2Id = db.Column(db.Integer, ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
+    player3Id = db.Column(db.Integer, ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
+    player4Id = db.Column(db.Integer, ForeignKey('player.id', ondelete='SET NULL'), nullable=True)
 
     match = relationship('Match', back_populates='doubles')
     score = relationship('Score', back_populates='doubles')

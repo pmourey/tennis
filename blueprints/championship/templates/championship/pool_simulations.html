@@ -1,31 +1,126 @@
-<!-- templates/simulate_result.html -->
+<!-- templates/pool_simulations.html -->
 {% extends 'base.html' %}
 {% include './partials/_menu.html' %}
 
 {% block main %}
 <main>
-    {% if simulations %}
-    <table class="simulations">
-        <caption class="table-caption">Poule {{pool}} - Historique des simulations</caption> <!-- Titre ajouté ici -->
+<h2 style="text-align:center; margin-bottom:14px;">
+    Poule {{ pool }} – Historique des simulations batch
+</h2>
+
+{% if simulations %}
+
+<!-- Barre d'actions globales -->
+<form id="bulkForm"
+      method="POST"
+      action="{{ url_for('championship.delete_simulations_bulk', pool_id=pool.id) }}"
+      onsubmit="return confirm('Supprimer les simulations sélectionnées ?')">
+
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;
+                padding:8px 14px; background:#f5f5f5; border:1px solid #ddd; border-radius:6px;">
+
+        <label style="font-size:13px; font-weight:bold; cursor:pointer;">
+            <input type="checkbox" id="selectAll" onchange="toggleAll(this)"
+                   style="margin-right:5px; cursor:pointer;">
+            Tout sélectionner
+        </label>
+
+        <button type="submit"
+                style="background:#e65100; color:#fff; font-weight:bold; font-size:13px;
+                       padding:5px 16px; border:none; border-radius:5px; cursor:pointer;">
+            🗑 Supprimer la sélection
+        </button>
+
+        <span style="flex:1;"></span>
+
+        <!-- Bouton "Tout supprimer" lié au form externe -->
+        <button type="button"
+                onclick="deleteAll()"
+                style="background:#b71c1c; color:#fff; font-weight:bold; font-size:13px;
+                       padding:5px 16px; border:none; border-radius:5px; cursor:pointer;">
+            🗑 Tout supprimer ({{ simulations|length }})
+        </button>
+    </div>
+
+    <table class="simulations" style="width:100%; border-collapse:collapse;">
+        <caption class="table-caption">{{ simulations|length }} simulation(s) enregistrée(s)</caption>
         <thead>
         <tr>
-            <th>Index</th>
-            <th>Nombre</th>
+            <th style="width:40px;">✔</th>
+            <th>#</th>
+            <th>Nb simulations</th>
             <th>Date création</th>
+            <th>Voir</th>
+            <th>Supprimer</th>
         </tr>
         </thead>
+        <tbody>
         {% for simulation in simulations %}
-        <div id="pool">
-            <tr>
-                <td><a href="{{ url_for('championship.show_simulation', sim_id=simulation.id) }}">{{ loop.index }}</a></td>
-                <td>{{ simulation.num_simulations }}</td>
-                <td>{{ simulation.created_at.strftime('%d %b %Y à %H:%M:%S') }}</td>
-            </tr>
-        </div>
-        {%endfor %}
+        <tr>
+            <td style="text-align:center;">
+                <input type="checkbox" name="sim_ids" value="{{ simulation.id }}"
+                       class="sim-checkbox" style="cursor:pointer;">
+            </td>
+            <td style="text-align:center;">{{ loop.index }}</td>
+            <td style="text-align:center;">{{ simulation.num_simulations }}</td>
+            <td style="text-align:center;">
+                {{ simulation.created_at.strftime('%d/%m/%Y %H:%M') }}
+            </td>
+            <td style="text-align:center;">
+                <a href="{{ url_for('championship.show_simulation', sim_id=simulation.id) }}"
+                   style="color:#1565c0; font-weight:bold; text-decoration:none;">
+                    📊 Résultats
+                </a>
+            </td>
+            <td style="text-align:center;">
+                <button type="button"
+                        onclick="deleteSingle({{ simulation.id }})"
+                        style="background:#e65100; color:#fff; font-size:12px;
+                               padding:3px 10px; border:none; border-radius:4px; cursor:pointer;">
+                    🗑
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
     </table>
-    {% else %}
-    <p style="font-size: 16px; text-align: center;">>Pas de simulation! ✌️</p>
-    {% endif %}</main>
 
+</form><!-- fin bulkForm -->
+
+<!-- Forms cachés pour suppression unitaire et globale -->
+<form id="deleteOneForm" method="POST" style="display:none;">
+    <input type="hidden" name="_method" value="POST">
+</form>
+<form id="deleteAllForm" method="POST"
+      action="{{ url_for('championship.delete_all_simulations', pool_id=pool.id) }}"
+      style="display:none;">
+</form>
+
+{% else %}
+<p style="font-size:16px; text-align:center;">Pas de simulation batch enregistrée ✌️</p>
+{% endif %}
+
+<div style="margin-top:16px; text-align:center;">
+    <a href="{{ url_for('championship.show_pool', id=pool.id) }}"
+       style="color:#1565c0; font-size:13px;">← Retour à la poule</a>
+</div>
+</main>
+
+<script>
+function toggleAll(master) {
+    document.querySelectorAll('.sim-checkbox').forEach(cb => cb.checked = master.checked);
+}
+
+function deleteSingle(simId) {
+    if (!confirm('Supprimer cette simulation ?')) return;
+    const form = document.getElementById('deleteOneForm');
+    form.action = '/championship/delete_simulation/' + simId;
+    form.submit();
+}
+
+function deleteAll() {
+    if (!confirm('Supprimer TOUTES les simulations de cette poule ?')) return;
+    document.getElementById('deleteAllForm').submit();
+}
+</script>
 {% endblock %}
