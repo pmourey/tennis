@@ -16,7 +16,7 @@ from models import *
 from blueprints.club import club_management_bp
 
 from common import get_players_order_by_ranking, get_championships, Gender, check_license, keys_with_same_value, calculate_distance_and_duration, \
-    CatType
+    CatType, update_players
 
 
 def check_club_cookie(func):
@@ -68,7 +68,7 @@ def select_gender():
         players = get_players_order_by_ranking(gender=gender, club_id=club_id)
         club = Club.query.get(club_id)
         caption = f"Liste des { len(players) } {'joueuses' if gender == 1 else 'joueurs'} disponibles de {club.name}"
-        return render_template('players.html', gender=gender, players=players, club=club, active_players=True, caption=caption)
+        return render_template('players.html', gender=gender, players=players, club=club, active_players=True, caption=caption, sort_criteria='ranking_id')
     return render_template('select_gender.html')
 
 
@@ -105,7 +105,7 @@ def show_invalid_players():
     club = Club.query.get(club_id)
     current_app.logger.debug(f'invalid players: {inactive_club_players} in club {club.name}')
     caption = f"Liste des {len(inactive_club_players)} joueurs et joueuses indisponibles de {club.name}"
-    return render_template('players.html', players=inactive_club_players, club=club, active_players=False, caption=caption)
+    return render_template('players.html', players=inactive_club_players, club=club, active_players=False, caption=caption, sort_criteria='ranking_id')
 
 
 @club_management_bp.route('/teams')
@@ -384,6 +384,126 @@ def save_availability(team_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
+
+
+@club_management_bp.route('/update_players', methods=['GET', 'POST'])
+@check_club_cookie
+def update_players_route():
+    signed_club_id = request.cookies.get('club_id')
+    try:
+        club_id = current_app.serializer.loads(signed_club_id)
+    except itsdangerous.exc.BadSignature:
+        return redirect(url_for('admin.select_club'))
+    club = Club.query.get(club_id)
+
+    if request.method == 'POST':
+        import tempfile, os
+
+        # Sauvegarder les fichiers uploadés dans des fichiers temporaires
+        tmp_paths = {}
+        for gender, gender_label in enumerate(['men', 'women']):
+            file_key = f'csv_{gender_label}'
+            uploaded_file = request.files.get(file_key)
+            if uploaded_file and uploaded_file.filename != '':
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
+                    uploaded_file.save(tmp.name)
+                    tmp_paths[gender] = tmp.name
+
+        if not tmp_paths:
+            flash("Aucun fichier CSV fourni.", 'error')
+            return render_template('update_players.html', club=club)
+
+        all_conflicts = []
+        all_deleted = []
+        total_updated = 0
+        messages = []
+
+        try:
+            for gender, tmp_path in tmp_paths.items():
+                success, conflicts, deleted_players, updated_count = update_players(
+                    app=current_app, gender=gender, csvfile=tmp_path, club=club, db=db
+                )
+                all_conflicts.extend(conflicts)
+                all_deleted.extend(deleted_players)
+                total_updated += updated_count
+                label = 'joueuses' if gender else 'joueurs'
+                messages.append(f"{updated_count} {label} mis à jour.")
+        finally:
+            for tmp_path in tmp_paths.values():
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+
+        msg = ' '.join(messages)
+        if all_conflicts:
+            msg += f" {len(all_conflicts)} conflit(s) détecté(s)."
+        if all_deleted:
+            msg += f" {len(all_deleted)} joueur(s) supprimé(s) (absents du CSV)."
+        flash(msg, 'success' if not all_conflicts else 'warning')
+        return render_template(
+            'update_players_result.html',
+            club=club,
+            conflicts=all_conflicts,
+            deleted_players=all_deleted,
+            total_updated=total_updated
+        )
+
+    return render_template('update_players.html', club=club)
+
+
+@club_management_bp.route('/transfer_player', methods=['POST'])
+@check_club_cookie
+def transfer_player():
+    """Transfère un ou plusieurs joueurs en conflit vers leur nouveau club."""
+    import json
+    # Les données sont envoyées sous forme de liste JSON via le champ 'transfers'
+    transfers_json = request.form.get('transfers', '[]')
+    try:
+        transfers = json.loads(transfers_json)
+    except ValueError:
+        flash("Données invalides.", 'error')
+        return redirect(url_for('club.index'))
+
+    if not transfers:
+        flash("Aucun joueur sélectionné.", 'warning')
+        return redirect(request.referrer or url_for('club.index'))
+
+    done = []
+    errors = []
+    for t in transfers:
+        license_id   = t.get('license_id')
+        new_club_id  = t.get('new_club_id')
+        ranking_id   = t.get('ranking_id')
+        best_ranking_id = t.get('best_ranking_id')
+
+        lic = License.query.get(license_id)
+        player = Player.query.filter_by(licenseId=license_id).first() if lic else None
+        new_club = Club.query.get(new_club_id)
+
+        if not lic or not player or not new_club:
+            errors.append(f"Licence {license_id} introuvable.")
+            continue
+
+        old_club = Club.query.get(player.clubId)
+        old_club_name = old_club.name if old_club else 'inconnu'
+        player.clubId = new_club.id
+        if ranking_id:
+            lic.rankingId = ranking_id
+        if best_ranking_id:
+            lic.bestRankingId = best_ranking_id
+        db.session.add(player)
+        db.session.add(lic)
+        done.append(f"{lic.firstName} {lic.lastName} ({old_club_name} → {new_club.name})")
+
+    db.session.commit()
+
+    if done:
+        flash(f"✅ {len(done)} transfert(s) effectué(s) : {', '.join(done)}.", 'success')
+    for err in errors:
+        flash(err, 'error')
+
+    return redirect(request.referrer or url_for('club.index'))
 
 
 @club_management_bp.route('/new_player/', methods=['GET', 'POST'])

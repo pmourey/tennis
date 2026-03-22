@@ -226,6 +226,7 @@ class Player(db.Model):
     weight = db.Column(db.Integer, nullable=True, default=0)
     height = db.Column(db.Integer, nullable=True, default=0)
     isActive = db.Column(db.Boolean, default=True)
+    hiddenInTenup = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
 
     # Replace the secondary relationship with direct relationship to the association model
     matchday_availabilities = relationship(
@@ -416,6 +417,23 @@ class Player(db.Model):
 
     def has_injury(self, injury: Injury) -> bool:
         return any(i.id == injury.id for i in self.injuries)
+
+    @property
+    def age_category(self):
+        """Retourne la catégorie d'âge principale du joueur selon les règles FFT."""
+        from models import AgeCategory as AC
+        age = self.age
+        # 1. Chercher catégorie jeunes (type=0) : minAge <= age <= maxAge (bornes incluses)
+        youth = AC.query.filter(AC.type == 0, AC.minAge <= age, AC.maxAge >= age).order_by(AC.maxAge).first()
+        if youth:
+            return youth
+        # 2. Chercher catégorie vétérans (type=2) : minAge <= age <= maxAge
+        veteran = AC.query.filter(AC.type == 2, AC.minAge <= age, AC.maxAge >= age).order_by(AC.minAge).first()
+        if veteran:
+            return veteran
+        # 3. Seniors (type=1)
+        senior = AC.query.filter(AC.type == 1).first()
+        return senior
 
     def __repr__(self):
         return f'{self.name}'

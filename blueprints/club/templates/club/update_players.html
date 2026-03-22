@@ -1,0 +1,39 @@
+<!-- templates/club/update_players.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <form action="{{ url_for('club.update_players_route') }}" method="POST" enctype="multipart/form-data">
+        <table class="update-form">
+            <caption class="table-caption">Mise à jour des licenciés – {{ club.name }}</caption>
+            <tr>
+                <td colspan="2" style="padding: 10px; background-color: #e8f4fd; border-radius: 4px; font-size: 13px; color: #1a5276;">
+                    ℹ️ Importez les fichiers CSV extraits de <strong>Tenup</strong> pour réactualiser les classements.<br>
+                    Les joueurs absents du fichier seront <strong>supprimés de la base de données</strong>
+                    (départ vers un autre club, arrêt ou non-renouvellement de licence).
+                    Ils pourront être réinscrits manuellement si nécessaire.
+                </td>
+            </tr>
+            <tr>
+                <td><label for="csv_men">Fichier CSV Hommes</label></td>
+                <td><input type="file" name="csv_men" accept=".csv,.txt"></td>
+            </tr>
+            <tr>
+                <td><label for="csv_women">Fichier CSV Femmes</label></td>
+                <td><input type="file" name="csv_women" accept=".csv,.txt"></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center; padding-top: 12px;">
+                    <button type="submit" class="button">Mettre à jour les classements</button>
+                    &nbsp;
+                    <a href="{{ url_for('club.index') }}" class="button" style="background-color: #6c757d;">Annuler</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</main>
+{% endblock main %}
+
+
+

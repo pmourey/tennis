@@ -6,37 +6,208 @@
 {% block main %}
 <script src="{{ url_for('club.static', filename='manage_player.js') }}"></script>
 <main>
-    {% if players %}
-    <table class="players">
-        <caption class="table-caption">{{ caption }}</caption> <!-- Titre ajouté ici -->
-        <thead>
-        <tr>
-            <th>Update</th>
-            <th>Delete</th>
-            <th>Nom</th>
-            <th>Age</th>
-            <th>Classement</th>
-            <th>Genre</th>
-            <th>Equipes</th>
-        </tr>
-        </thead>
-        {% for player in players | sort_players_by(sort_criteria) %}
-        {% set best_ranking = ' (ex ' + player.license.bestRanking.value + ')' if player.license.bestRanking and player.license.bestRanking.id < player.license.ranking.id %}
-        <div id="player">
-            <tr>
-                <td><a href="{{ url_for('club.update_player', id=player.id) }}">{{player.id}}</a></td>
-                <td><button onclick="confirmDelete('{{ url_for('club.delete_player', id=player.id) }}')">{{player.id}}</button></td>
-                <td><a href="{{ url_for('club.show_player', id=player.id) }}">{{ player.name }}</a></td>
-                <td>{{ player.age }}</td>
-                <td>{{ player.ranking }}{{ best_ranking}}</td>
-                <td>{{ 'F' if player.gender else 'H' }}</td>
-                <td>{{ player.teams }}</td>
-            </tr>
-        </div>
-        {%endfor %}
-    </table>
-    {% else %}
-    <p style="font-size: 16px; text-align: center;">Pas de joueurs {{status}} ✌️</p>
-    {% endif %}
+{% if players %}
+
+<!-- Barre de filtres -->
+<div style="
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    margin-bottom: 12px; padding: 10px 14px;
+    background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 6px;
+">
+    <label style="font-size:13px; font-weight:bold; color:#333;">
+        🔍 Nom :
+        <input type="text" id="filterName" placeholder="Rechercher…"
+               style="margin-left:6px; padding:4px 8px; font-size:13px; border:1px solid #bbb; border-radius:4px; width:160px;"
+               oninput="applyFilters()">
+    </label>
+
+    <label style="font-size:13px; font-weight:bold; color:#333;">
+        📊 Classement :
+        <select id="filterRanking" onchange="applyFilters()"
+                style="margin-left:6px; padding:4px 8px; font-size:13px; border:1px solid #bbb; border-radius:4px;">
+            <option value="">Tous</option>
+        </select>
+    </label>
+
+    <label style="font-size:13px; font-weight:bold; color:#333;">
+        🎂 Catégorie d'âge :
+        <select id="filterCat" onchange="applyFilters()"
+                style="margin-left:6px; padding:4px 8px; font-size:13px; border:1px solid #bbb; border-radius:4px;">
+            <option value="">Toutes</option>
+        </select>
+    </label>
+
+    <button onclick="resetFilters()"
+            style="background-color:#e65100; color:#fff; font-weight:bold; font-size:13px;
+                   padding:5px 14px; border:none; border-radius:5px; cursor:pointer;">
+        ✖ Réinitialiser
+    </button>
+</div>
+
+<table class="players" id="playersTable">
+    <caption class="table-caption">{{ caption }}</caption>
+    <thead>
+    <tr>
+        <th>Modif.</th>
+        <th>Suppr.</th>
+        <th class="sortable" data-col="name" style="cursor:pointer;" title="Trier par nom">
+            Nom <span class="sort-icon">⇅</span>
+        </th>
+        <th class="sortable" data-col="age" style="cursor:pointer;" title="Trier par âge">
+            Âge <span class="sort-icon">⇅</span>
+        </th>
+        <th>Catégorie</th>
+        <th class="sortable" data-col="ranking" style="cursor:pointer;" title="Trier par classement">
+            Classement <span class="sort-icon">⇅</span>
+        </th>
+        <th>Genre</th>
+        <th>Équipes</th>
+    </tr>
+    </thead>
+    <tbody id="playersBody">
+    {% for player in players %}
+    {% set best_ranking = ' (ex ' + player.license.bestRanking.value + ')' if player.license.bestRanking and player.license.bestRanking.id < player.license.ranking.id else '' %}
+    <tr
+        data-name="{{ player.name | lower }}"
+        data-age="{{ player.age }}"
+        data-ranking-id="{{ player.ranking.id }}"
+        data-ranking="{{ player.ranking.value }}"
+        data-cat="{{ player.age_category.name if player.age_category else '' }}"
+    >
+        <td><a href="{{ url_for('club.update_player', id=player.id) }}">{{ player.id }}</a></td>
+        <td><button onclick="confirmDelete('{{ url_for('club.delete_player', id=player.id) }}')">{{ player.id }}</button></td>
+        <td><a href="{{ url_for('club.show_player', id=player.id) }}">{{ player.name }}</a></td>
+        <td style="text-align:center;">{{ player.age }}</td>
+        <td style="text-align:center; font-size:12px; color:#555;">
+            {{ player.age_category.name if player.age_category else '—' }}
+        </td>
+        <td>{{ player.ranking }}{{ best_ranking }}</td>
+        <td style="text-align:center;">{{ 'F' if player.gender else 'H' }}</td>
+        <td style="font-size:12px;">{{ player.teams | join(', ') if player.teams else '—' }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% else %}
+<p style="font-size: 16px; text-align: center;">Pas de joueurs ✌️</p>
+{% endif %}
 </main>
+
+<script>
+(function () {
+    /* ── Alimentation des selects ── */
+    const rows = Array.from(document.querySelectorAll('#playersBody tr'));
+
+    function populateSelect(selectId, dataAttr) {
+        const sel = document.getElementById(selectId);
+        const vals = [...new Set(rows.map(r => r.dataset[dataAttr]).filter(Boolean))].sort();
+        vals.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            sel.appendChild(opt);
+        });
+    }
+    populateSelect('filterRanking', 'ranking');
+    populateSelect('filterCat', 'cat');
+
+    /* ── Filtrage ── */
+    const caption = document.querySelector('#playersTable caption');
+    const baseCaption = caption.textContent.trim();
+
+    function updateCaption() {
+        const visible = rows.filter(r => r.style.display !== 'none').length;
+        const cat   = document.getElementById('filterCat').value;
+        const rank  = document.getElementById('filterRanking').value;
+        const name  = document.getElementById('filterName').value.trim();
+
+        let suffix = '';
+        if (cat)   suffix += ` – ${cat}`;
+        if (rank)  suffix += ` – classement ${rank}`;
+        if (name)  suffix += ` – "${name}"`;
+
+        if (visible < rows.length) {
+            caption.textContent = `${visible} / ${rows.length} joueur(s)${suffix}`;
+        } else {
+            caption.textContent = baseCaption + suffix;
+        }
+    }
+
+    window.applyFilters = function () {
+        const name    = document.getElementById('filterName').value.toLowerCase().trim();
+        const ranking = document.getElementById('filterRanking').value;
+        const cat     = document.getElementById('filterCat').value;
+        rows.forEach(r => {
+            const ok =
+                (!name    || r.dataset.name.includes(name)) &&
+                (!ranking || r.dataset.ranking === ranking) &&
+                (!cat     || r.dataset.cat === cat);
+            r.style.display = ok ? '' : 'none';
+        });
+        const visible = rows.filter(r => r.style.display !== 'none').length;
+        updateCaption();
+    };
+
+    window.resetFilters = function () {
+        document.getElementById('filterName').value = '';
+        document.getElementById('filterRanking').value = '';
+        document.getElementById('filterCat').value = '';
+        rows.forEach(r => r.style.display = '');
+        caption.textContent = baseCaption;
+        resetSortIcons();
+        sortState = { col: 'ranking', asc: true };
+        document.querySelector('th[data-col="ranking"] .sort-icon').textContent = '▲';
+        sortRows('ranking', true);
+    };
+
+    /* ── Tri ── */
+    let sortState = { col: null, asc: true };
+
+    function resetSortIcons() {
+        document.querySelectorAll('.sort-icon').forEach(el => el.textContent = '⇅');
+    }
+
+    document.querySelectorAll('th.sortable').forEach(th => {
+        th.addEventListener('click', function () {
+            const col = this.dataset.col;
+            if (sortState.col === col) {
+                sortState.asc = !sortState.asc;
+            } else {
+                sortState.col = col;
+                sortState.asc = true;
+            }
+            resetSortIcons();
+            this.querySelector('.sort-icon').textContent = sortState.asc ? '▲' : '▼';
+            sortRows(col, sortState.asc);
+        });
+    });
+
+    function sortRows(col, asc) {
+        const tbody = document.getElementById('playersBody');
+        const sorted = rows.slice().sort((a, b) => {
+            let va, vb;
+            if (col === 'age') {
+                va = parseInt(a.dataset.age);
+                vb = parseInt(b.dataset.age);
+            } else if (col === 'ranking') {
+                va = parseInt(a.dataset.rankingId);
+                vb = parseInt(b.dataset.rankingId);
+            } else {
+                va = a.dataset.name;
+                vb = b.dataset.name;
+            }
+            if (va < vb) return asc ? -1 : 1;
+            if (va > vb) return asc ?  1 : -1;
+            return 0;
+        });
+        sorted.forEach(r => tbody.appendChild(r));
+    }
+
+    /* ── Tri initial par classement ── */
+    sortState = { col: 'ranking', asc: true };
+    document.querySelector('th[data-col="ranking"] .sort-icon').textContent = '▲';
+    sortRows('ranking', true);
+})();
+</script>
 {% endblock main %}
