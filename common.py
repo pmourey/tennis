@@ -295,6 +295,54 @@ def parse_ranking_field(raw: str) -> tuple:
     return current_part if current_part else 'NC', best_value
 
 
+def _open_tenup_csv(csvfile):
+    """
+    Ouvre un fichier CSV Tenup en gérant les variantes d'encodage du header.
+    Retourne une liste de dicts avec des clés normalisées :
+      'prenom', 'nom', 'naissance', 'licence', 'club', 'classement'
+    """
+    import unicodedata
+
+    def normalize(s):
+        """Supprime les accents et met en minuscules pour comparaison."""
+        return unicodedata.normalize('NFD', s).encode('ascii', 'ignore').decode().lower().strip()
+
+    COL_MAP = {
+        'prenom': 'prenom',
+        'nom':    'nom',
+        'ne en':  'naissance',
+        'licence':'licence',
+        'club':   'club',
+        'c. tennis': 'classement',
+    }
+
+    for encoding in ('utf-8', 'utf-8-sig', 'latin-1', 'cp1252'):
+        try:
+            with open(csvfile, 'r', newline='', encoding=encoding) as f:
+                reader = csv.DictReader(f, delimiter='\t')
+                raw_rows = list(reader)
+                if not raw_rows:
+                    return []
+                # Construire le mapping clé brute → clé normalisée
+                key_map = {}
+                for raw_key in raw_rows[0].keys():
+                    norm = normalize(raw_key)
+                    for pattern, canonical in COL_MAP.items():
+                        if pattern in norm:
+                            key_map[raw_key] = canonical
+                            break
+                # Convertir les lignes
+                result = []
+                for row in raw_rows:
+                    mapped = {canonical: row.get(raw_key, '')
+                              for raw_key, canonical in key_map.items()}
+                    result.append(mapped)
+                return result
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return []
+
+
 def parse_csv_license_ids(csvfile) -> set:
     """
     Lit un fichier CSV Tenup et retourne l'ensemble des numéros de licence présents.
@@ -302,13 +350,11 @@ def parse_csv_license_ids(csvfile) -> set:
     """
     ids = set()
     try:
-        with open(csvfile, 'r', newline='') as file:
-            reader = csv.DictReader(file, delimiter='\t')
-            for row in reader:
-                license_info = row.get('Licence', '')
-                match = re.match(r'(\d+)\s*(\w)', license_info)
-                if match:
-                    ids.add(int(match.group(1)))
+        for row in _open_tenup_csv(csvfile):
+            license_info = row.get('licence', '')
+            match = re.match(r'(\d+)\s*(\w)', license_info)
+            if match:
+                ids.add(int(match.group(1)))
     except FileNotFoundError:
         pass
     return ids
@@ -331,37 +377,35 @@ def update_players(app, gender, csvfile, club, db, all_csv_license_ids: set = No
         csv_license_ids = set()
         rows_to_process = []
 
-        with open(csvfile, 'r', newline='') as file:
-            reader = csv.DictReader(file, delimiter='\t')
-            for row in reader:
-                first_name = row['Prénom']
-                last_name = row['Nom']
-                birth_year = row['Né en']
-                license_info = row['Licence']
-                ranking_value = row.get('C. Tennis') or ''
+        for row in _open_tenup_csv(csvfile):
+            first_name    = row.get('prenom', '')
+            last_name     = row.get('nom', '')
+            birth_year    = row.get('naissance', '')
+            license_info  = row.get('licence', '')
+            ranking_value = row.get('classement', '')
 
-                match = re.match(r'(\d+)\s*(\w)', license_info)
-                if not match:
-                    continue
+            match = re.match(r'(\d+)\s*(\w)', license_info)
+            if not match:
+                continue
 
-                current_ranking_value, best_ranking_value = parse_ranking_field(ranking_value)
-                current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
-                best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
-                if not current_ranking:
-                    app.logger.warning(f'Classement inconnu "{current_ranking_value}" pour {first_name} {last_name} – ligne ignorée.')
-                    continue
-                lic_number = int(match.group(1))
-                lic_letter = match.group(2)
-                csv_license_ids.add(lic_number)
-                rows_to_process.append({
-                    'lic_number': lic_number,
-                    'lic_letter': lic_letter,
-                    'first_name': first_name,
-                    'last_name': last_name,
-                    'birth_year': birth_year,
-                    'current_ranking': current_ranking,
-                    'best_ranking': best_ranking,
-                })
+            current_ranking_value, best_ranking_value = parse_ranking_field(ranking_value)
+            current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
+            best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
+            if not current_ranking:
+                app.logger.warning(f'Classement inconnu "{current_ranking_value}" pour {first_name} {last_name} – ligne ignorée.')
+                continue
+            lic_number = int(match.group(1))
+            lic_letter = match.group(2)
+            csv_license_ids.add(lic_number)
+            rows_to_process.append({
+                'lic_number': lic_number,
+                'lic_letter': lic_letter,
+                'first_name': first_name,
+                'last_name': last_name,
+                'birth_year': birth_year,
+                'current_ranking': current_ranking,
+                'best_ranking': best_ranking,
+            })
 
         # Traitement ligne par ligne : mise à jour ou création
         for data in rows_to_process:
@@ -388,9 +432,20 @@ def update_players(app, gender, csvfile, club, db, all_csv_license_ids: set = No
                     existing_license.rankingId = data['current_ranking'].id
                 if data['best_ranking']:
                     existing_license.bestRankingId = data['best_ranking'].id
+                db.session.add(existing_license)
                 if existing_player:
                     db.session.add(existing_player)
-                db.session.add(existing_license)
+                else:
+                    # Licence connue mais player absent → créer le player
+                    try:
+                        birth_year = datetime.strptime(data['birth_year'], '%Y').replace(month=1, day=1)
+                    except (ValueError, TypeError):
+                        birth_year = None
+                    new_player = Player(birthDate=birth_year, isActive=True, hiddenInTenup=False)
+                    new_player.clubId = club.id
+                    new_player.licenseId = existing_license.id
+                    db.session.add(new_player)
+                    app.logger.debug(f"Joueur créé (licence existante) : {data['first_name']} {data['last_name']}")
                 updated_count += 1
             else:
                 # Joueur inconnu en base → créer licence + joueur
@@ -410,9 +465,10 @@ def update_players(app, gender, csvfile, club, db, all_csv_license_ids: set = No
                     bestRankingId=data['best_ranking'].id if data['best_ranking'] else data['current_ranking'].id,
                 )
                 db.session.add(license)
+                db.session.flush()  # rendre l'id de la licence disponible pour le joueur
                 player = Player(birthDate=birth_year, isActive=True, hiddenInTenup=False)
                 player.clubId = club.id
-                player.licenseId = lic_number
+                player.licenseId = license.id
                 db.session.add(player)
                 updated_count += 1
 
@@ -439,8 +495,9 @@ def update_players(app, gender, csvfile, club, db, all_csv_license_ids: set = No
         )
         return True, conflicts, deleted_players, updated_count
 
-    except FileNotFoundError:
-        app.logger.warning("Aucun joueur mis à jour : fichier CSV introuvable.")
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'update_players ERREUR: {e}', exc_info=True)
         return False, [], [], 0
 
 
@@ -451,91 +508,79 @@ def import_players(app, gender, csvfile, club, db):
     """
     conflicts = []
     try:
-        with open(csvfile, 'r', newline='') as file:
-            reader = csv.DictReader(file, delimiter='\t')
-            for row in reader:
-                # Formatting player data
-                first_name = row['Prénom']
-                last_name = row['Nom']
-                birth_year = row['Né en']
-                license_info = row['Licence']
-                ranking_value = row.get('C. Tennis') or ''
-                match = re.match(r'(\d+)\s*(\w)', license_info)
-                if not match:
+        for row in _open_tenup_csv(csvfile):
+            # Formatting player data
+            first_name    = row.get('prenom', '')
+            last_name     = row.get('nom', '')
+            birth_year    = row.get('naissance', '')
+            license_info  = row.get('licence', '')
+            ranking_value = row.get('classement', '')
+            match = re.match(r'(\d+)\s*(\w)', license_info)
+            if not match:
+                continue
+            # Parsing du classement via la fonction dédiée
+            current_ranking_value, best_ranking_value = parse_ranking_field(ranking_value)
+            current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
+            best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
+            if not current_ranking:
+                app.logger.warning(f'Classement inconnu "{current_ranking_value}" pour {first_name} {last_name} – ligne ignorée.')
+                continue
+            lic_number = int(match.group(1))
+            lic_letter = match.group(2)
+
+            # Vérifier si la licence existe déjà
+            existing_license = License.query.filter_by(id=lic_number).first()
+            if existing_license:
+                existing_player = Player.query.filter_by(licenseId=existing_license.id).first()
+                if existing_player and str(existing_player.clubId) != str(club.id):
+                    existing_club = Club.query.get(existing_player.clubId)
+                    conflicts.append({
+                        'license_number': f'{lic_number} {lic_letter}',
+                        'name': f'{first_name} {last_name}',
+                        'ranking': current_ranking.value if current_ranking else 'N/A',
+                        'current_club': existing_club.name if existing_club else 'Inconnu',
+                        'new_club': club.name
+                    })
                     continue
-                # Parsing du classement via la fonction dédiée
-                current_ranking_value, best_ranking_value = parse_ranking_field(ranking_value)
-                current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
-                best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
-                # app.logger.debug(f'current_ranking: {current_ranking} - best_ranking: {best_ranking}')
-                if not current_ranking:
-                    app.logger.warning(f'Classement inconnu "{current_ranking_value}" pour {first_name} {last_name} – ligne ignorée.')
-                    continue
-                lic_number = int(match.group(1))  # Récupère le nombre comme entier
-                lic_letter = match.group(2)  # Récupère la lettre
 
-                # Vérifier si la licence existe déjà
-                existing_license = License.query.filter_by(id=lic_number).first()
-                if existing_license:
-                    # Vérifier si un joueur avec cette licence existe déjà
-                    existing_player = Player.query.filter_by(licenseId=existing_license.id).first()
-                    if existing_player and str(existing_player.clubId) != str(club.id):
-                        # Conflit : le joueur existe dans un autre club
-                        existing_club = Club.query.get(existing_player.clubId)
-                        conflicts.append({
-                            'license_number': f'{lic_number} {lic_letter}',
-                            'name': f'{first_name} {last_name}',
-                            'ranking': current_ranking.value if current_ranking else 'N/A',
-                            'current_club': existing_club.name if existing_club else 'Inconnu',
-                            'new_club': club.name
-                        })
-                        continue
+            # Convertir l'année en datetime
+            year_date = datetime.strptime(birth_year, '%Y')
+            year_start_date = year_date.replace(month=1, day=1)
 
-                # Convertir la chaîne en objet datetime
-                year_date = datetime.strptime(birth_year, '%Y')
-                # Ajuster le mois et le jour pour démarrer au 1er janvier
-                year_start_date = year_date.replace(month=1, day=1)
-                # app.logger.info(f'player: {(first_name, last_name)} - ranking: {current_ranking}')
+            if existing_license:
+                license = existing_license
+            else:
+                license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name,
+                                  letter=lic_letter, year=year_start_date.year,
+                                  rankingId=current_ranking.id,
+                                  bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
+                db.session.add(license)
+                db.session.flush()
 
-                if existing_license:
-                    # Utiliser la licence existante
-                    license = existing_license
-                else:
-                    # Créer une nouvelle licence
-                    license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name, letter=lic_letter, year=year_start_date.year,
-                                      rankingId=current_ranking.id, bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
-                    db.session.add(license)
-
-                player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
-                player.clubId, player.licenseId = club.id, license.id
-                db.session.add(player)
-                db.session.commit()
-                player = Player.query.get(player.id)
-                injuries = Injury.query.all()
-                injuries_id = [i.id for i in injuries]
-                # app.logger.debug(f'injuries: {len(injuries)}')
-                # for injury_id in selected_injuries:
-                #     injury = Injury.query.get(injury_id)
-                #     if injury:  # Vérifiez si l'ID de la blessure est valide
-                #         player.injuries.append(injury)
-                if (player.age > 45 and randint(1, 10) == 1) or (player.age > 35 and randint(1, 20) == 1):
-                    # app.logger.debug(f'player: {player.id} - age: {player.age}')
-                    max_injuries_count = (player.age // 20)
-                    selected_injuries = sample(injuries_id, randint(1, max_injuries_count))
-                    for injury_id in selected_injuries:
-                        player.injuries.append(Injury.query.get(injury_id))
-                db.session.add(player)
-
-            # Si des conflits ont été détectés, faire un rollback
-            if conflicts:
-                db.session.rollback()
-                app.logger.warning(f'{len(conflicts)} conflit(s) détecté(s) lors de l\'importation des joueurs.')
-                return False, conflicts, 0
-
+            player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
+            player.clubId, player.licenseId = club.id, license.id
+            db.session.add(player)
             db.session.commit()
-            players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
-            app.logger.debug(f'COMMIT PLAYERS DONE = {players_count}')
-            return True, [], players_count
+            player = Player.query.get(player.id)
+            injuries = Injury.query.all()
+            injuries_id = [i.id for i in injuries]
+            if (player.age > 45 and randint(1, 10) == 1) or (player.age > 35 and randint(1, 20) == 1):
+                max_injuries_count = (player.age // 20)
+                selected_injuries = sample(injuries_id, randint(1, max_injuries_count))
+                for injury_id in selected_injuries:
+                    player.injuries.append(Injury.query.get(injury_id))
+            db.session.add(player)
+
+        # Si des conflits ont été détectés, faire un rollback
+        if conflicts:
+            db.session.rollback()
+            app.logger.warning(f'{len(conflicts)} conflit(s) détecté(s) lors de l\'importation des joueurs.')
+            return False, conflicts, 0
+
+        db.session.commit()
+        players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
+        app.logger.debug(f'COMMIT PLAYERS DONE = {players_count}')
+        return True, [], players_count
     except FileNotFoundError:
         if hasattr(app, 'logger'):
             app.logger.warning("Aucun joueur importé : aucun fichier CSV défini.")
