@@ -364,13 +364,19 @@ def simulate_pool_batch(pool_id):
         # time to run 10 simulations in development environment: 1 minute
         # time to run 10 simulations in production environment: 10 minutes
         simulation_results = {team.id: [] for team in pool.teams}
+        simulation_match_scores = {match.id: [] for match in pool.matches}
+        
         for i in range(num_simulations):
             if not i % 5:
                 current_app.logger.debug(f'simulations to run: {num_simulations - i}')
             purge_pool(pool_id)
-            # Simulate matches
             simulate_match_scores(current_app, db, pool)
-            # Calcul du classement de la poule
+            
+            # Store match scores for this simulation run
+            for match in pool.matches:
+                if match.homeScore is not None:
+                    simulation_match_scores[match.id].append((match.homeScore, match.visitorScore))
+            
             for ranking, data in enumerate(calculer_classement(pool)):
                 team_id, result = data
                 points = result['points']
@@ -398,6 +404,7 @@ def simulate_pool_batch(pool_id):
         sorted_results = dict(sorted(average_results.items(), key=lambda x: x[1]['avg_ranking']))
 
         # Create results in PoolSimulation, TeamSimulationResult models
+        from models import PoolSimulation, TeamSimulationResult, MatchSimulationResult
         simulation = PoolSimulation(pool_id=pool_id, num_simulations=num_simulations)
         db.session.add(simulation)
         db.session.commit()
@@ -411,7 +418,19 @@ def simulate_pool_batch(pool_id):
                 worst_ranking=result['worst_ranking']
             )
             db.session.add(team_result)
-            db.session.commit()
+        
+        # Store match scores for each simulation run
+        for match in pool.matches:
+            for home_score, visitor_score in simulation_match_scores[match.id]:
+                match_result = MatchSimulationResult(
+                    simulation_id=simulation.id,
+                    match_id=match.id,
+                    home_score=home_score,
+                    visitor_score=visitor_score
+                )
+                db.session.add(match_result)
+        
+        db.session.commit()
 
         return redirect(url_for('championship.show_simulation', sim_id=simulation.id))
 
@@ -465,7 +484,101 @@ def show_simulation(sim_id: int):
     simulation = PoolSimulation.query.get_or_404(sim_id)
     pool = Pool.query.get_or_404(simulation.pool_id)
     simTeamResults = TeamSimulationResult.query.filter(TeamSimulationResult.simulation_id == simulation.id).all()
-    return render_template('pool_simulation_result.html', results=simTeamResults, simulation=simulation, pool=pool)
+    
+    # Build score distribution per team from stored MatchSimulationResult
+    from collections import Counter
+    from models import MatchSimulationResult
+    score_distributions = {}
+    for team in pool.teams:
+        results = MatchSimulationResult.query.join(Match).filter(
+            MatchSimulationResult.simulation_id == simulation.id,
+            db.or_(
+                Match.homeTeamId == team.id,
+                Match.visitorTeamId == team.id
+            )
+        ).all()
+        
+        scores = []
+        for r in results:
+            if r.match.homeTeamId == team.id:
+                scores.append(f"{r.home_score}/{r.visitor_score}")
+            else:
+                scores.append(f"{r.visitor_score}/{r.home_score}")
+        
+        counter = Counter(scores)
+        total = sum(counter.values())
+        distribution = [
+            (score, count, round(count / total * 100))
+            for score, count in sorted(counter.items(), reverse=True)
+            if count > 0
+        ]
+        
+        # Count wins/draws/losses per rencontre
+        wins   = sum(count for score, count, _ in distribution if int(score.split('/')[0]) > int(score.split('/')[1]))
+        draws  = sum(count for score, count, _ in distribution if int(score.split('/')[0]) == int(score.split('/')[1]))
+        losses = sum(count for score, count, _ in distribution if int(score.split('/')[0]) < int(score.split('/')[1]))
+        total_rencontres = wins + draws + losses
+        
+        # Normalize to number of simulations (each team plays N matches per simulation)
+        num_matches_per_sim = len(pool.teams) - 1
+        wins_norm   = round(wins   / num_matches_per_sim) if num_matches_per_sim > 0 else wins
+        draws_norm  = round(draws  / num_matches_per_sim) if num_matches_per_sim > 0 else draws
+        losses_norm = round(losses / num_matches_per_sim) if num_matches_per_sim > 0 else losses
+        total_norm  = wins_norm + draws_norm + losses_norm
+        
+        score_distributions[team.id] = {
+            'distribution': distribution,
+            'wins': wins_norm,
+            'draws': draws_norm,
+            'losses': losses_norm,
+            'total': total_norm,
+            'win_pct':  round(wins_norm   / total_norm * 100) if total_norm > 0 else 0,
+            'draw_pct': round(draws_norm  / total_norm * 100) if total_norm > 0 else 0,
+            'loss_pct': round(losses_norm / total_norm * 100) if total_norm > 0 else 0,
+        }
+    
+    # Build score distribution per match from stored simulation results
+    from collections import Counter
+    from models import MatchSimulationResult
+    match_score_distributions = {}
+    for matchday in pool.championship.matchdays:
+        matchday_matches = [m for m in pool.matches if m.matchdayId == matchday.id]
+        match_score_distributions[matchday.id] = {}
+        for match in matchday_matches:
+            results = MatchSimulationResult.query.filter_by(
+                simulation_id=simulation.id,
+                match_id=match.id
+            ).all()
+            counter = Counter(f"{r.home_score}/{r.visitor_score}" for r in results)
+            total = sum(counter.values())
+            wins   = sum(count for score, count in counter.items() if int(score.split('/')[0]) > int(score.split('/')[1]))
+            draws  = sum(count for score, count in counter.items() if int(score.split('/')[0]) == int(score.split('/')[1]))
+            losses = sum(count for score, count in counter.items() if int(score.split('/')[0]) < int(score.split('/')[1]))
+            total_rencontres = wins + draws + losses
+            match_score_distributions[matchday.id][match.id] = {
+                'home': match.homeTeam.name,
+                'visitor': match.visitorTeam.name,
+                'scores': [
+                    (score, round(count / total * 100))
+                    for score, count in sorted(counter.items(), key=lambda x: x[1], reverse=True)
+                    if count > 0
+                ],
+                'wins': wins,
+                'draws': draws,
+                'losses': losses,
+                'total': total_rencontres,
+                'win_pct':  round(wins   / total_rencontres * 100) if total_rencontres > 0 else 0,
+                'draw_pct': round(draws  / total_rencontres * 100) if total_rencontres > 0 else 0,
+                'loss_pct': round(losses / total_rencontres * 100) if total_rencontres > 0 else 0,
+            }
+    
+    # Sort teams by win percentage descending
+    sorted_teams = sorted(pool.teams, key=lambda t: score_distributions[t.id]['win_pct'], reverse=True)
+    
+    return render_template('pool_simulation_result.html', results=simTeamResults, simulation=simulation, pool=pool,
+                           score_distributions=score_distributions,
+                           match_score_distributions=match_score_distributions,
+                           sorted_teams=sorted_teams)
 
 @championship_management_bp.route('/simulate_pool/<int:pool_id>', methods=['POST'])
 def simulate_pool(pool_id):

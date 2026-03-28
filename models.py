@@ -820,6 +820,19 @@ class Championship(db.Model):
         return f'{self.name}'
 
 
+class MatchSimulationResult(db.Model):
+    __tablename__ = 'match_simulation_result'
+
+    id = db.Column(db.Integer, primary_key=True)
+    simulation_id = db.Column(db.Integer, ForeignKey('pool_simulation.id'), nullable=False)
+    match_id = db.Column(db.Integer, ForeignKey('match.id'), nullable=False)
+    home_score = db.Column(db.Integer, nullable=False)
+    visitor_score = db.Column(db.Integer, nullable=False)
+
+    simulation = relationship('PoolSimulation', back_populates='match_results')
+    match = relationship('Match')
+
+
 class PoolSimulation(db.Model):
     __tablename__ = 'pool_simulation'
 
@@ -831,6 +844,7 @@ class PoolSimulation(db.Model):
     # Relationships
     pool = relationship('Pool', back_populates='simulations')
     team_results = relationship('TeamSimulationResult', back_populates='simulation', cascade="all, delete-orphan")
+    match_results = relationship('MatchSimulationResult', back_populates='simulation', cascade="all, delete-orphan")
 
 
 class TeamSimulationResult(db.Model):

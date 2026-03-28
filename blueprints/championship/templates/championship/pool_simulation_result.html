@@ -4,34 +4,146 @@
 
 {% block main %}
 <main>
-    <table class="pool">
-        <caption class="table-caption">
-            {{ pool.championship.name }} (Poule {{ pool.letter }}) - Résultats sur {{ simulation.num_simulations }} simulations
-        </caption>
-        <thead>
-        <tr>
-            <th>Classement final</th>
-            <th>Équipe</th>
-            <th>Moyenne points</th>
-            <th>Meilleur Classement</th>
-            <th>Pire Classement</th>
-        </tr>
-        </thead>
-        {% for data in results %}
-            {% set team = pool.get_team_by_id(data.team_id) %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>
-                    <a href="{{ url_for('club.show_team', id=team.id) }}">
-                        {{ team.name }} ({{ team.avg_age }} ans - poids: {{ team.weight(pool.championship) }})
-                    </a>
-                </td>
-                <td>{{ "%.1f"|format(data.avg_points) }}</td>
-                <td>{{ data.best_ranking }}</td>
-                <td>{{ data.worst_ranking }}</td>
-            </tr>
-        {% endfor %}
-    </table>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{ pool.championship.name }} (Poule {{ pool.letter }}) - Résultats sur {{ simulation.num_simulations }} simulations</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                <tr>
+                    <th>Classement</th>
+                    <th>Équipe</th>
+                    <th>Moy. points</th>
+                    <th>Meilleur</th>
+                    <th>Pire</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for data in results %}
+                    {% set team = pool.get_team_by_id(data.team_id) %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <a href="{{ url_for('club.show_team', id=team.id) }}">
+                                {{ team.name }} ({{ team.avg_age }} ans - poids: {{ team.weight(pool.championship) }})
+                            </a>
+                        </td>
+                        <td>{{ "%.1f"|format(data.avg_points) }}</td>
+                        <td>{{ data.best_ranking }}</td>
+                        <td>{{ data.worst_ranking }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Score distributions per team -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0">Distribution des scores par équipe</h6>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Équipe</th>
+                        <th>Scores obtenus</th>
+                        <th class="text-center">Ratio V/N/D</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for team in sorted_teams %}
+                    {% set data = score_distributions[team.id] %}
+                    <tr>
+                        <td>{{ team.name }}</td>
+                        <td>
+                            {% for score, count, pct in data.distribution %}
+                                {% set parts = score.split('/') %}
+                                {% set won = parts[0]|int %}
+                                {% set lost = parts[1]|int %}
+                                {% if won > lost %}
+                                    {% set color = '#198754' %}
+                                {% elif won < lost %}
+                                    {% set color = '#dc3545' %}
+                                {% else %}
+                                    {% set color = '#ffc107' %}
+                                {% endif %}
+                                <span class="me-1" style="color: {{ color }}; font-weight: bold;">
+                                    {{ score }} ({{ pct }}%)
+                                </span>
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            <small>
+                                <span style="color: #198754;">{{ data.win_pct }}%</span> /
+                                <span style="color: #ffc107;">{{ data.draw_pct }}%</span> /
+                                <span style="color: #dc3545;">{{ data.loss_pct }}%</span>
+                            </small>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Matches by matchday -->
+    {% for matchday in pool.championship.matchdays %}
+        {% set matchday_data = match_score_distributions[matchday.id] %}
+        {% if matchday_data %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0">Journée du {{ matchday.date.strftime('%d/%m/%Y') }}</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Domicile</th>
+                            <th class="text-center">Score</th>
+                            <th>Visiteur</th>
+                            <th class="text-center">Ratio V/N/D</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for match_id, data in matchday_data.items() %}
+                        <tr>
+                            <td>{{ data.home }}</td>
+                            <td class="text-center">
+                                {% for score, pct in data.scores %}
+                                    {% set parts = score.split('/') %}
+                                    {% set home = parts[0]|int %}
+                                    {% set visitor = parts[1]|int %}
+                                    {% if home > visitor %}
+                                        {% set color = '#198754' %}
+                                    {% elif home < visitor %}
+                                        {% set color = '#dc3545' %}
+                                    {% else %}
+                                        {% set color = '#ffc107' %}
+                                    {% endif %}
+                                    <span class="me-1" style="color: {{ color }}; font-weight: bold;">
+                                        {{ score }} ({{ pct }}%)
+                                    </span>
+                                {% endfor %}
+                            </td>
+                            <td>{{ data.visitor }}</td>
+                            <td class="text-center">
+                                <small>
+                                    <span style="color: #198754;">{{ data.win_pct }}%</span> /
+                                    <span style="color: #ffc107;">{{ data.draw_pct }}%</span> /
+                                    <span style="color: #dc3545;">{{ data.loss_pct }}%</span>
+                                </small>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
 </main>
 
 {% endblock %}
