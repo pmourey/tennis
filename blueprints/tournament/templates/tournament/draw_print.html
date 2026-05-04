@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ draw.category.name }} – {{ tournament.name }}</title>
+  <style>
+    /* ── Dimensionnement dynamique (calculé avant le CSS) ─────────────── */
+    /* base_h et gap sont injectés inline via --base-h et --gap */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 12px;
+           background: #f0f2f5; color: #111; }
+
+    /* ── Barre d'impression (masquée à l'impression) ─────────────────── */
+    .print-bar {
+      background: #1a3060; color: white;
+      padding: 9px 16px; display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .print-bar-title { flex: 1; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .print-bar-sub   { font-size: 11px; opacity: .75; margin-left: 6px; }
+    .btn-print { background: #f59e0b; color: #000; border: none;
+                 padding: 6px 16px; border-radius: 4px; font-weight: 700;
+                 font-size: 12px; cursor: pointer; white-space: nowrap; }
+    .btn-print:hover { background: #d97706; }
+    .btn-back  { background: transparent; color: white;
+                 border: 1px solid rgba(255,255,255,.4);
+                 padding: 5px 11px; border-radius: 4px; cursor: pointer;
+                 font-size: 11px; text-decoration: none; white-space: nowrap; }
+    .btn-back:hover { background: rgba(255,255,255,.1); }
+
+    /* ── Zone bracket ─────────────────────────────────────────────────── */
+    .bracket-outer { overflow-x: auto; padding: 12px 8px 20px; background: white;
+                     margin: 8px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .doc-header { padding: 6px 8px 10px; border-bottom: 1px solid #e5e7eb; margin-bottom: 8px; }
+    .doc-title   { font-size: 15px; font-weight: 700; }
+    .doc-sub     { font-size: 12px; color: #555; margin-top: 2px; }
+    .doc-meta    { font-size: 10px; color: #888; margin-top: 2px; }
+    .bracket-container {
+      display: flex; gap: var(--gap, 24px); align-items: flex-start;
+      min-width: max-content; padding: 4px 8px;
+    }
+    .bracket-col { display: flex; flex-direction: column; min-width: 185px; flex-shrink: 0; }
+    .round-header {
+      text-align: center; font-size: 10px; font-weight: 700;
+      padding: 4px 8px; margin-bottom: 6px;
+      background: #3b5998; color: #fff; border-radius: 3px; letter-spacing: .4px;
+    }
+    .match-wrapper {
+      position: relative; display: flex; align-items: center;
+      justify-content: stretch; box-sizing: border-box; padding: 3px 0;
+    }
+    .conn-v { position:absolute; left:calc(-1*var(--gap,24px)/2); top:25%; height:50%; width:2px; background:#b0b8c4; }
+    .conn-h { position:absolute; left:calc(-1*var(--gap,24px)/2); top:50%; width:calc(var(--gap,24px)/2); height:2px; background:#b0b8c4; margin-top:-1px; }
+    .conn-r { position:absolute; right:calc(-1*var(--gap,24px)/2); top:50%; width:calc(var(--gap,24px)/2); height:2px; background:#b0b8c4; margin-top:-1px; }
+
+    /* ── Carte match ──────────────────────────────────────────────────── */
+    .draw-match { width:100%; border:1.5px solid #d1d5db; border-radius:5px; background:#fff; }
+    .mc-done  { border-color:#16a34a; background:#f0fdf4; }
+    .mc-wo    { border-color:#dc2626; background:#fef2f2; }
+    .mc-sched { border-color:#2563eb; background:#eff6ff; }
+    .mc-bye   { border-color:#e5e7eb; opacity:.5; }
+    .mp { display:flex; align-items:center; gap:3px; padding:3px 6px; min-height:22px; }
+    .mp-win { background:#dcfce7; font-weight:700; color:#15803d; }
+    .msep { height:1px; background:#e5e7eb; }
+    .pname { flex:1; font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .pranking { font-size:8px; color:#6b7280; background:#f3f4f6; padding:1px 3px; border-radius:3px; white-space:nowrap; }
+    .seed-badge { font-size:7px; font-weight:bold; background:#f59e0b; color:#fff; padding:1px 4px; border-radius:8px; flex-shrink:0; }
+    .bye-label  { color:#9ca3af; font-style:italic; font-size:9px; }
+    .qualif-label { font-size:8px; font-weight:bold; color:#7c3aed; background:#ede9fe; padding:1px 4px; border-radius:3px; }
+    .tbd { color:#d1d5db; font-style:italic; font-size:9px; }
+    .mscore { text-align:center; font-size:9px; color:#dc2626; font-weight:bold;
+              padding:2px 4px; background:#fef2f2;
+              display:flex; align-items:center; justify-content:center; gap:4px; }
+    .wo-badge { font-size:7px; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px; }
+    .msched { text-align:center; font-size:8px; color:#9ca3af; padding:1px 4px; }
+
+    /* ── Colonne qualifié (dernier round qualif) ─────────────────────── */
+    .qualif-results-col { min-width:150px; }
+    .round-header-qualif { background: linear-gradient(135deg,#6d28d9,#7c3aed) !important; }
+    .qualif-result-box {
+      background:#fff; border:1.5px solid #ddd6fe; border-radius:5px;
+      padding:5px 7px; width:100%; display:flex; flex-direction:column;
+      align-items:center; gap:2px; box-sizing:border-box;
+    }
+    .qualif-result-box.qr-done { border-color:#7c3aed; background:#f5f3ff; }
+    .qr-number { font-size:9px; font-weight:bold; color:#7c3aed;
+                 background:#ede9fe; padding:1px 7px; border-radius:10px; }
+    .qr-player { font-size:10px; font-weight:600; text-align:center; }
+    .qr-score  { font-size:8px; color:#dc2626; font-weight:bold; }
+    .qr-pending { color:#d1d5db; font-style:italic; font-size:9px; }
+
+    /* ── Colonne vainqueur ───────────────────────────────────────────── */
+    .winner-col { min-width:145px; }
+    .round-header-winner { background:linear-gradient(135deg,#92400e,#f59e0b) !important; }
+    .winner-card {
+      background:linear-gradient(135deg,#fffbeb,#fff);
+      border:2px solid #f59e0b; border-radius:7px;
+      padding:8px 10px; width:100%; display:flex; flex-direction:column;
+      align-items:center; gap:4px; box-sizing:border-box; text-align:center;
+    }
+    .winner-card-empty { background:#f9fafb; border:1.5px dashed #d1d5db; }
+    .winner-trophy { font-size:18px; }
+    .winner-trophy-pending { opacity:.3; }
+    .winner-name    { font-size:11px; font-weight:700; color:#92400e; }
+    .winner-ranking { font-size:8px; color:#6b7280; background:#f3f4f6; padding:1px 4px; border-radius:3px; }
+    .winner-score   { font-size:8px; color:#dc2626; font-weight:bold; }
+
+    /* ── Légende ─────────────────────────────────────────────────────── */
+    .draw-legend {
+      display:flex; flex-wrap:wrap; gap:8px 16px;
+      padding:6px 16px; font-size:10px; color:#555;
+      border-top:1px solid #e5e7eb; margin-top:8px;
+    }
+    .legend-item { display:flex; align-items:center; gap:4px; }
+
+    /* ═══ IMPRESSION ════════════════════════════════════════════════════ */
+    @media print {
+      @page { size: A4 landscape; margin: 8mm 7mm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: white !important; font-size: 10px; }
+
+      .print-bar { display: none !important; }
+
+      .bracket-outer {
+        overflow: visible; padding: 0; margin: 0;
+        box-shadow: none; border-radius: 0;
+      }
+      .doc-header { padding: 3px 0 6px; }
+      .doc-title  { font-size: 13px; }
+      .doc-sub    { font-size: 10px; }
+      .doc-meta   { font-size: 8px; }
+
+      .bracket-container { padding: 2px 0; }
+      .bracket-col { min-width: 0; }
+      .round-header { font-size: 9px; padding: 3px 5px; margin-bottom: 4px; position: static; }
+      .match-wrapper { padding: 2px 0; }
+      .mp { padding: 2px 4px; min-height: 17px; }
+      .pname { font-size: 9px; }
+      .pranking { font-size: 7px; }
+      .mscore { font-size: 8px; }
+      .msched { font-size: 7px; }
+    }
+  </style>
+</head>
+<body>
+
+{# ── Variables de dimensionnement ─────────────────────────────────────── #}
+{% set n_r1 = matches_by_round.get(1, [])|length %}
+{% if n_r1 <= 1 %}
+  {% set base_h = 110 %}{% set gap = 28 %}
+{% elif n_r1 <= 2 %}
+  {% set base_h = 90 %}{% set gap = 24 %}
+{% elif n_r1 <= 4 %}
+  {% set base_h = 70 %}{% set gap = 20 %}
+{% elif n_r1 <= 8 %}
+  {% set base_h = 52 %}{% set gap = 18 %}
+{% elif n_r1 <= 16 %}
+  {% set base_h = 38 %}{% set gap = 14 %}
+{% else %}
+  {% set base_h = 30 %}{% set gap = 10 %}
+{% endif %}
+
+{# ── Barre d'impression ────────────────────────────────────────────────── #}
+<div class="print-bar">
+  <span class="print-bar-title">
+    {{ tournament.name }}
+    <span class="print-bar-sub">&mdash; {{ draw.category.name }}
+      ({{ 'Qualifications' if draw.draw_type == 'QUALIFYING' else 'Tableau principal' }})
+    </span>
+  </span>
+  <a href="javascript:history.back()" class="btn-back">&#8592; Retour</a>
+  <button class="btn-print" onclick="window.print()">&#128438;&nbsp;Imprimer / PDF</button>
+</div>
+
+{# ── Zone bracket ──────────────────────────────────────────────────────── #}
+<div class="bracket-outer">
+  <div class="doc-header">
+    <div class="doc-title">{{ tournament.name }}</div>
+    <div class="doc-sub">
+      {{ draw.category.name }}
+      &mdash; {{ 'Qualifications' if draw.draw_type == 'QUALIFYING' else 'Tableau principal' }}
+    </div>
+    <div class="doc-meta">
+      {{ tournament.start_date.strftime('%d/%m/%Y') }} &ndash; {{ tournament.end_date.strftime('%d/%m/%Y') }}
+      &nbsp;|&nbsp; {{ draw.category.surfaces_label }}
+      &nbsp;|&nbsp; {{ draw.category.format_label }}
+      &nbsp;|&nbsp; G&eacute;n&eacute;r&eacute; le {{ draw.generated_at.strftime('%d/%m/%Y') }}
+    </div>
+  </div>
+
+  <div class="bracket-container" style="--gap:{{ gap }}px; --base-h:{{ base_h }}px">
+
+    {% for round_num in range(1, total_rounds + 1) %}
+      {% set wrapper_h = base_h * (2 ** (round_num - 1)) %}
+      {% set is_last   = (round_num == total_rounds) %}
+
+      <div class="bracket-col {% if draw.draw_type == 'QUALIFYING' and is_last %}qualif-results-col{% endif %}">
+
+        {# Libellé du tour #}
+        <div class="round-header {% if draw.draw_type == 'QUALIFYING' and is_last %}round-header-qualif{% endif %}">
+          {% if draw.draw_type == 'QUALIFYING' %}
+            {% if is_last %}Qualifi&eacute;(s)
+            {% else %}Tour {{ round_num }}{% endif %}
+          {% else %}
+            {% if total_rounds == 1 or round_num == total_rounds %}Finale
+            {% elif round_num == total_rounds - 1 %}Demi-finales
+            {% elif round_num == total_rounds - 2 %}Quarts de finale
+            {% elif round_num == total_rounds - 3 %}8&egrave;mes
+            {% elif round_num == total_rounds - 4 %}16&egrave;mes
+            {% else %}Tour {{ round_num }}{% endif %}
+          {% endif %}
+        </div>
+
+        {% for match in matches_by_round.get(round_num, []) %}
+          {% if match.status == 'COMPLETED' %}{% set sc = 'mc-done' %}
+          {% elif match.status == 'WALKOVER' %}{% set sc = 'mc-wo' %}
+          {% elif match.status == 'BYE' %}{% set sc = 'mc-bye' %}
+          {% elif match.status == 'SCHEDULED' %}{% set sc = 'mc-sched' %}
+          {% else %}{% set sc = '' %}{% endif %}
+
+          <div class="match-wrapper" style="height:{{ wrapper_h }}px">
+            {% if round_num > 1 %}<div class="conn-v"></div><div class="conn-h"></div>{% endif %}
+            {% if not is_last %}<div class="conn-r"></div>{% endif %}
+
+            {# ── Dernier round qualif → box qualifié ─────────────────────── #}
+            {% if draw.draw_type == 'QUALIFYING' and is_last %}
+              <div class="qualif-result-box {% if match.winner %}qr-done{% endif %}">
+                {% if draw.qualif_number %}
+                  <div class="qr-number">Q{{ draw.qualif_number }}</div>
+                {% else %}
+                  <div class="qr-number" style="color:#059669;background:#d1fae5">&#10003; Qualifi&eacute;</div>
+                {% endif %}
+                {% if match.winner %}
+                  <div class="qr-player">
+                    <span class="pname">{{ match.winner.name }}</span>
+                    <span class="pranking">{{ match.winner.ranking.value }}</span>
+                  </div>
+                  {% if match.score_text %}<div class="qr-score">{{ match.display_score }}</div>{% endif %}
+                {% else %}
+                  <div class="qr-pending">&mdash; En attente</div>
+                {% endif %}
+              </div>
+
+            {# ── Match normal ────────────────────────────────────────────── #}
+            {% else %}
+              <div class="draw-match {{ sc }}">
+
+                {# Joueur 1 #}
+                <div class="mp {{ 'mp-win' if match.winner_id and match.winner_id == match.player1_id }}">
+                  {% if match.player1 %}
+                    {% set reg1 = match.draw.category.registrations | selectattr('player_id','equalto',match.player1_id) | first %}
+                    {% if reg1 and reg1.is_seeded %}<span class="seed-badge">{{ reg1.seed_number }}</span>{% endif %}
+                    <span class="pname">{{ match.player1.name }}</span>
+                    <span class="pranking">{{ match.player1.ranking.value }}</span>
+                  {% elif match.status == 'BYE' %}<span class="bye-label">BYE</span>
+                  {% elif draw.draw_type == 'MAIN' and match.round_number == 1 and not match.player1 %}
+                    <span class="qualif-label">Q?</span>
+                  {% else %}<span class="tbd">&mdash;</span>{% endif %}
+                </div>
+
+                <div class="msep"></div>
+
+                {# Joueur 2 #}
+                <div class="mp {{ 'mp-win' if match.winner_id and match.winner_id == match.player2_id }}">
+                  {% if match.player2 %}
+                    {% set reg2 = match.draw.category.registrations | selectattr('player_id','equalto',match.player2_id) | first %}
+                    {% if reg2 and reg2.is_seeded %}<span class="seed-badge">{{ reg2.seed_number }}</span>{% endif %}
+                    <span class="pname">{{ match.player2.name }}</span>
+                    <span class="pranking">{{ match.player2.ranking.value }}</span>
+                  {% elif match.status == 'BYE' %}<span class="bye-label">BYE</span>
+                  {% elif draw.draw_type == 'MAIN' and match.round_number == 1 and not match.player2 %}
+                    <span class="qualif-label">Q?</span>
+                  {% else %}<span class="tbd">&mdash;</span>{% endif %}
+                </div>
+
+                {# Score #}
+                {% if match.status == 'WALKOVER' %}
+                  <div class="mscore"><span class="wo-badge">WO</span></div>
+                {% elif match.score_text %}
+                  <div class="mscore">{{ match.display_score }}</div>
+                {% endif %}
+
+                {# Planification #}
+                {% if match.scheduled_at %}
+                  <div class="msched">{{ match.scheduled_at.strftime('%d/%m %H:%M') }}{% if match.court %} &ndash; {{ match.court.name }}{% endif %}</div>
+                {% endif %}
+
+              </div>{# /.draw-match #}
+            {% endif %}
+
+          </div>{# /.match-wrapper #}
+        {% endfor %}
+
+      </div>{# /.bracket-col #}
+    {% endfor %}
+
+    {# ── Colonne Vainqueur (tableau principal uniquement) ─────────────── #}
+    {% if draw.draw_type == 'MAIN' and total_rounds > 0 %}
+      {% set _finals     = matches_by_round.get(total_rounds, []) %}
+      {% set _final      = _finals[0] if _finals else none %}
+      {% set _winner_h   = base_h * (2 ** (total_rounds - 1)) %}
+      <div class="bracket-col winner-col">
+        <div class="round-header round-header-winner">&#127942; Vainqueur</div>
+        <div class="match-wrapper" style="height:{{ _winner_h }}px">
+          <div class="conn-v"></div>
+          <div class="conn-h"></div>
+          {% if _final and _final.winner %}
+            <div class="winner-card">
+              <div class="winner-trophy">&#127942;</div>
+              {% set _w_reg = _final.draw.category.registrations | selectattr('player_id','equalto',_final.winner_id) | first %}
+              {% if _w_reg and _w_reg.is_seeded %}<span class="seed-badge">{{ _w_reg.seed_number }}</span>{% endif %}
+              <div class="winner-name">{{ _final.winner.name }}</div>
+              <div class="winner-ranking">{{ _final.winner.ranking.value }}</div>
+              {% if _final.score_text %}<div class="winner-score">{{ _final.display_score }}</div>{% endif %}
+            </div>
+          {% else %}
+            <div class="winner-card winner-card-empty">
+              <div class="winner-trophy winner-trophy-pending">&#127942;</div>
+              <span class="tbd">&mdash;</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+  </div>{# /.bracket-container #}
+
+  {# Légende #}
+  <div class="draw-legend">
+    <span class="legend-item mc-done" style="padding:1px 6px;border-radius:3px;">&#10003; Termin&eacute;</span>
+    <span class="legend-item mc-wo"   style="padding:1px 6px;border-radius:3px;">WO Forfait</span>
+    <span class="legend-item mc-sched" style="padding:1px 6px;border-radius:3px;">&#128197; Planifi&eacute;</span>
+    <span class="legend-item" style="padding:1px 6px;border-radius:3px;background:#f9fafb;border:1px dashed #ccc;">BYE</span>
+    <span class="legend-item"><span class="seed-badge">1</span>&nbsp;T&ecirc;te de s&eacute;rie</span>
+  </div>
+
+</div>{# /.bracket-outer #}
+
+</body>
+</html>

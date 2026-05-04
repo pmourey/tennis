@@ -1,0 +1,1378 @@
+from __future__ import annotations
+
+import json
+import logging
+from multiprocessing import Pool
+import os
+import csv
+import re
+from datetime import datetime, timedelta
+from enum import Enum
+from random import shuffle, choice, random, sample, randint
+from typing import List, Optional
+
+import pandas as pd
+from sqlalchemy import desc, asc, and_
+
+from random import random
+from typing import List
+
+from models import Club, Player, AgeCategory, Division, Ranking, License, Championship, BestRanking, Team, Pool, Match, Matchday, Single, Score, Double, Injury, InjurySite
+from tools.import_csv import extract
+
+from mapbox import Directions
+from geojson import Feature, Point
+
+
+class CatType(Enum):
+    Youth = 0
+    Senior = 1
+    Veteran = 2
+
+
+class DivType(Enum):
+    National = 0
+    Prenational = 1
+    Regional = 2
+    Departmental = 3
+
+
+class Series(Enum):
+    First = 1
+    Second = 2
+    Third = 3
+    Fourth = 4
+
+
+class Gender(Enum):
+    Male = 0
+    Female = 1
+    Mixte = 2
+
+
+class BodyPart(Enum):
+    Head = 0
+    Body = 1
+    Leg = 2
+    Arm = 3
+    Hand = 4
+    Foot = 5
+    Back = 6
+    Neck = 7
+    Shoulder = 8
+    Chest = 9
+    Waist = 10
+    Hip = 11
+    Knee = 12
+    Ankle = 13
+    Elbow = 14
+    Wrist = 15
+    Finger = 16
+    Toe = 17
+    Nose = 18
+    Ear = 19
+    Eye = 20
+    Mouth = 21
+    Face = 22
+    Tongue = 23
+    Throat = 24
+    Lip = 25
+    Chin = 26
+
+
+class InjuryType(Enum):
+    Acute = 0
+    OverUse = 1
+
+
+def count_sundays_between_dates(start_date, end_date):
+    current_date = start_date
+    count = 0
+    while current_date <= end_date:
+        if current_date.weekday() == 6:  # Dimanche a l'indice 6
+            count += 1
+        current_date += timedelta(days=1)
+    return count
+
+
+def import_all_data(app, db) -> str:
+    # Si pas de club en base de données, on les créé!
+    message: List[str] = []
+    # Vérifier si les catégories d'âge existent en base de données
+    age_categories = AgeCategory.query.all()
+    if not age_categories:
+        # Si aucune catégorie d'âge n'existe, créer les catégories d'âge
+        load_age_categories(db)
+    message += [f"{AgeCategory.query.count()} catégories d'âge créées!"]
+
+    # Vérifier si les divisions existent en base de données
+    divisions = Division.query.all()
+    if not divisions:
+        # Si aucune division n'existe, créer les divisions
+        load_divisions(db)
+    message += [f"{Division.query.count()} divisions de championnat créées!"]
+
+    # Vérifier si les classements de tennis existent en base de données
+    rankings = Ranking.query.all()
+    if not rankings:
+        load_rankings(db, Ranking)
+        load_rankings(db, BestRanking)
+    message += [f"{Ranking.query.count()} classements insérés en bdd!"]
+
+    # chargement de la base des blessures sportives
+    injuries = Injury.query.all()
+    if not injuries:
+        load_injuries(app, db)
+    message += [f"{Injury.query.count()} pathologies sportives insérés en bdd!<br>"]
+
+    for club_info in app.config['CLUBS']:
+        # récupération autres infos dans fichier csv du club
+        BASE_PATH = os.path.dirname(__file__)
+        csv_file = os.path.join(BASE_PATH, f'static/data/clubs.csv')
+        df = pd.read_csv(csv_file)
+        colonnes_a_recuperer = ['name', 'city', 'tennis_courts', 'padel_courts', 'beach_courts', 'latitude', 'longitude']
+        club_tenup = extract(df=df, field_criteria='id', field_value=club_info['id'], columns=colonnes_a_recuperer)
+        app.logger.debug(f'club_tenup: {club_tenup}')
+        if not club_info['active']:
+            continue
+        if club_tenup is None:
+            club = Club(id=club_info['id'], name=club_info['name'], city=club_info['city'])
+        else:
+            club = Club(id=club_info['id'], name=club_tenup['name'], city=club_tenup['city'], tennis_courts=club_tenup['tennis_courts'],
+                        padel_courts=club_tenup['padel_courts'], beach_courts=club_tenup['beach_courts'], latitude=club_tenup['latitude'], longitude=club_tenup['longitude'])
+        db.session.add(club)
+        app.logger.debug(f'default_club: {club}')
+        db.session.commit()
+        message += [f'Club {club} créé avec succès!']
+        # Chargement des joueurs du club
+        for gender, gender_label in enumerate(['men', 'women']):
+            players_csvfile = f"static/data/players/{club_info['csvfile']}_{gender_label}.csv"
+            file_path = os.path.join(app.config['BASE_PATH'], players_csvfile)
+            success, conflicts, players_count = import_players(app=app, gender=gender, csvfile=file_path, club=club, db=db)
+            if not success and conflicts:
+                message += [f"ERREUR: {len(conflicts)} conflit(s) détecté(s) pour les {'joueuses' if gender else 'joueurs'}!"]
+            else:
+                message += [f"{players_count} {'joueuses ajoutées' if gender else 'joueurs ajoutés'}!"]
+        message += ['<br>']
+    message += ['<br>']
+    # app.logger.debug(message)
+    return '<br>'.join(message)
+
+
+def load_age_categories(db):
+    age_categories = [
+        AgeCategory(type=CatType.Youth.value, minAge=6, maxAge=10),
+        AgeCategory(type=CatType.Youth.value, minAge=11, maxAge=12),
+        AgeCategory(type=CatType.Youth.value, minAge=13, maxAge=14),
+        AgeCategory(type=CatType.Youth.value, minAge=15, maxAge=16),
+        AgeCategory(type=CatType.Youth.value, minAge=17, maxAge=18),
+        AgeCategory(type=CatType.Senior.value, minAge=18, maxAge=99),
+        AgeCategory(type=CatType.Veteran.value, minAge=35, maxAge=44),
+        AgeCategory(type=CatType.Veteran.value, minAge=45, maxAge=54),
+        AgeCategory(type=CatType.Veteran.value, minAge=55, maxAge=64),
+        AgeCategory(type=CatType.Veteran.value, minAge=65, maxAge=74),
+        AgeCategory(type=CatType.Veteran.value, minAge=75, maxAge=99),
+    ]
+    db.session.add_all(age_categories)
+    db.session.commit()
+
+
+def load_divisions(db):
+    divisions = []
+    # TODO: rajouter les compétitions mixtes
+    # Catégorie d'âge: SENIORS
+    age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Senior.value).all()
+    # app.logger.info(age_categories)
+    for age_category in age_categories:
+        for gender in range(2):
+            for i in range(4):
+                divisions += [Division(type=DivType.National.value, number=i + 1, ageCategoryId=age_category.id, gender=gender)]
+            divisions += [Division(type=DivType.Prenational.value, ageCategoryId=age_category.id, gender=gender)]
+            for i in range(3):
+                divisions += [Division(type=DivType.Regional.value, number=i + 1, ageCategoryId=age_category.id, gender=gender)]
+            for i in range(5):
+                divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, number=i + 1, gender=gender)]
+    # Catégorie d'âge: JEUNES
+    age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Youth.value).all()
+    for age_category in age_categories:
+        for gender in range(2):
+            divisions += [Division(type=DivType.National.value, ageCategoryId=age_category.id, gender=gender)]
+            divisions += [Division(type=DivType.Regional.value, ageCategoryId=age_category.id, gender=gender)]
+            divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, gender=gender)]
+    # Catégorie d'âge: VETERANS
+    age_categories = AgeCategory.query.filter(AgeCategory.type == CatType.Veteran.value).all()
+    for age_category in age_categories:
+        for gender in range(2):
+            divisions += [Division(type=DivType.National.value, ageCategoryId=age_category.id, gender=gender)]
+            divisions += [Division(type=DivType.Prenational.value, ageCategoryId=age_category.id, gender=gender)]
+            divisions += [Division(type=DivType.Regional.value, ageCategoryId=age_category.id, gender=gender)]
+            for i in range(2):
+                divisions += [Division(type=DivType.Departmental.value, ageCategoryId=age_category.id, number=i + 1, gender=gender)]
+    db.session.add_all(divisions)
+    db.session.commit()
+
+
+def load_rankings(db, Model: Ranking | BestRanking):
+    rankings = []
+    # 1ère série
+    for i in range(100):
+        rankings += [Model(value=f'N{i + 1}', series=Series.First.value)]
+        rankings += [Model(value=f'T{i + 1}', series=Series.First.value)]
+    # 2ème/3ème/4ème série
+    second_series = ['-30', '-15', '-4/6', '-2/6', '0', '1/6', '2/6', '3/6', '4/6', '5/6', '15']
+    third_series = ['15/1', '15/2', '15/3', '15/4', '15/5', '30']
+    fourth_series = ['30/1', '30/2', '30/3', '30/4', '30/5', '40', '40/1', '40/2', 'NC']
+    other = 'ND'
+    for i, series in enumerate([second_series, third_series, fourth_series]):
+        for value in series:
+            rankings += [Model(value=value, series=i + 2)]
+    rankings += [Model(value=other, series=None)]
+    db.session.add_all(rankings)
+    db.session.commit()
+
+
+def load_injuries(app, db):
+    static_folder = app.blueprints['medical'].static_folder
+    file_path = os.path.join(static_folder, 'data', 'injuries_fr.json')
+    with open(file_path, 'r') as file:
+        injuries_data = json.load(file)
+    injury_types = {'Acute': InjuryType.Acute.value, 'Overuse': InjuryType.OverUse.value}
+    for injury_data in injuries_data:
+        site = InjurySite(name=injury_data['site'])
+        db.session.add(site)
+        db.session.commit()
+        for k, v in injury_types.items():
+            for injury_name in injury_data[k]:
+                injury = Injury(
+                    siteId=site.id,
+                    type=v,
+                    name=injury_name
+                )
+                db.session.add(injury)
+    db.session.commit()
+
+
+# Valeurs Tenup qui correspondent à "Non Classé" (NC)
+_NC_ALIASES = {
+    'nd', 'niveau non déterminé', 'niveau non determine', 'niveau non dtermin',
+    'niveau blanc', 'niveau orange', 'niveau rouge', 'niveau violet', 'niveau jaune',
+    'nc', '',
+}
+
+
+def parse_ranking_field(raw: str) -> tuple:
+    """
+    Analyse la colonne 'C. Tennis' d'un export Tenup et retourne
+    (current_ranking_value: str, best_ranking_value: str | None).
+
+    Cas gérés :
+      - vide / None                        → ('NC', None)
+      - 'ND' / 'Niveau Non Déterminé' / niveaux couleur  → ('NC', None)
+      - 'NC'                               → ('NC', None)
+      - 'NC (ex 30/4)'                     → ('NC', '30/4')
+      - '15/2 (ex 3/6)'                    → ('15/2', '3/6')
+      - '15/2'                             → ('15/2', None)
+    """
+    raw = (raw or '').strip()
+    normalized = raw.lower()
+
+    # Vérifier si la partie courante est un alias NC
+    # Le format peut être "Niveau Non Déterminé (ex 30/4)" ou juste "NC"
+    # On sépare d'abord la partie "(ex ...)" si présente
+    best_value = None
+    ex_match = re.search(r'\(ex\s+([^)]+)\)', raw, re.IGNORECASE)
+    if ex_match:
+        best_value = ex_match.group(1).strip()
+        current_part = raw[:ex_match.start()].strip()
+    else:
+        current_part = raw
+
+    current_normalized = current_part.lower().strip()
+    if current_normalized in _NC_ALIASES:
+        return 'NC', best_value
+
+    # Valeur de classement standard (ex: "15/2", "30", "-2/6", "40")
+    return current_part if current_part else 'NC', best_value
+
+
+def _open_tenup_csv(csvfile):
+    """
+    Ouvre un fichier CSV Tenup en gérant les variantes d'encodage du header.
+    Retourne une liste de dicts avec des clés normalisées :
+      'prenom', 'nom', 'naissance', 'licence', 'club', 'classement'
+    """
+    import unicodedata
+
+    def normalize(s):
+        """Supprime les accents et met en minuscules pour comparaison."""
+        return unicodedata.normalize('NFD', s).encode('ascii', 'ignore').decode().lower().strip()
+
+    COL_MAP = {
+        'prenom': 'prenom',
+        'nom':    'nom',
+        'ne en':  'naissance',
+        'licence':'licence',
+        'club':   'club',
+        'c. tennis': 'classement',
+    }
+
+    for encoding in ('utf-8', 'utf-8-sig', 'latin-1', 'cp1252'):
+        try:
+            with open(csvfile, 'r', newline='', encoding=encoding) as f:
+                reader = csv.DictReader(f, delimiter='\t')
+                raw_rows = list(reader)
+                if not raw_rows:
+                    return []
+                # Construire le mapping clé brute → clé normalisée
+                key_map = {}
+                for raw_key in raw_rows[0].keys():
+                    norm = normalize(raw_key)
+                    for pattern, canonical in COL_MAP.items():
+                        if pattern in norm:
+                            key_map[raw_key] = canonical
+                            break
+                # Convertir les lignes
+                result = []
+                for row in raw_rows:
+                    mapped = {canonical: row.get(raw_key, '')
+                              for raw_key, canonical in key_map.items()}
+                    result.append(mapped)
+                return result
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return []
+
+
+def parse_csv_license_ids(csvfile) -> set:
+    """
+    Lit un fichier CSV Tenup et retourne l'ensemble des numéros de licence présents.
+    Utile pour un pré-scan avant traitement.
+    """
+    ids = set()
+    try:
+        for row in _open_tenup_csv(csvfile):
+            license_info = row.get('licence', '')
+            match = re.match(r'(\d+)\s*(\w)', license_info)
+            if match:
+                ids.add(int(match.group(1)))
+    except FileNotFoundError:
+        pass
+    return ids
+
+
+def update_players(app, gender, csvfile, club, db, all_csv_license_ids: set = None):
+    """
+    Met à jour les classements des joueurs d'un club depuis un fichier CSV Tenup.
+    - Met à jour le classement actuel et le meilleur classement de chaque joueur trouvé dans le CSV.
+    - Supprime les joueurs du club absents du CSV (ils ont quitté le club ou n'ont pas repris de licence).
+    - Ne supprime pas les joueurs absents s'ils sont encore dans une équipe active.
+    - Retourne: (success: bool, conflicts: list, deleted_players: list, updated_count: int)
+      conflicts       : joueurs du CSV de ce club déjà rattachés à un autre club en base
+      deleted_players : joueurs supprimés car absents du CSV
+    """
+    conflicts = []
+    deleted_players = []
+    updated_count = 0
+    try:
+        csv_license_ids = set()
+        rows_to_process = []
+
+        for row in _open_tenup_csv(csvfile):
+            first_name    = row.get('prenom', '')
+            last_name     = row.get('nom', '')
+            birth_year    = row.get('naissance', '')
+            license_info  = row.get('licence', '')
+            ranking_value = row.get('classement', '')
+
+            match = re.match(r'(\d+)\s*(\w)', license_info)
+            if not match:
+                continue
+
+            current_ranking_value, best_ranking_value = parse_ranking_field(ranking_value)
+            current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
+            best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
+            if not current_ranking:
+                app.logger.warning(f'Classement inconnu "{current_ranking_value}" pour {first_name} {last_name} – ligne ignorée.')
+                continue
+            lic_number = int(match.group(1))
+            lic_letter = match.group(2)
+            csv_license_ids.add(lic_number)
+            rows_to_process.append({
+                'lic_number': lic_number,
+                'lic_letter': lic_letter,
+                'first_name': first_name,
+                'last_name': last_name,
+                'birth_year': birth_year,
+                'current_ranking': current_ranking,
+                'best_ranking': best_ranking,
+            })
+
+        # Traitement ligne par ligne : mise à jour ou création
+        for data in rows_to_process:
+            lic_number = data['lic_number']
+            existing_license = License.query.filter_by(id=lic_number).first()
+            if existing_license:
+                existing_player = Player.query.filter_by(licenseId=existing_license.id).first()
+                if existing_player and str(existing_player.clubId) != str(club.id):
+                    existing_club = Club.query.get(existing_player.clubId)
+                    conflicts.append({
+                        'license_id': lic_number,
+                        'license_number': f"{lic_number} {data['lic_letter']}",
+                        'name': f"{data['first_name']} {data['last_name']}",
+                        'ranking': data['current_ranking'].value if data['current_ranking'] else 'N/A',
+                        'ranking_id': data['current_ranking'].id if data['current_ranking'] else None,
+                        'best_ranking_id': data['best_ranking'].id if data['best_ranking'] else None,
+                        'current_club': existing_club.name if existing_club else 'Inconnu',
+                        'new_club': club.name,
+                        'new_club_id': club.id,
+                    })
+                    continue
+                # Mise à jour du classement
+                if data['current_ranking']:
+                    existing_license.rankingId = data['current_ranking'].id
+                if data['best_ranking']:
+                    existing_license.bestRankingId = data['best_ranking'].id
+                db.session.add(existing_license)
+                if existing_player:
+                    db.session.add(existing_player)
+                else:
+                    # Licence connue mais player absent → créer le player
+                    try:
+                        birth_year = datetime.strptime(data['birth_year'], '%Y').replace(month=1, day=1)
+                    except (ValueError, TypeError):
+                        birth_year = None
+                    new_player = Player(birthDate=birth_year, isActive=True, hiddenInTenup=False)
+                    new_player.clubId = club.id
+                    new_player.licenseId = existing_license.id
+                    db.session.add(new_player)
+                    app.logger.debug(f"Joueur créé (licence existante) : {data['first_name']} {data['last_name']}")
+                updated_count += 1
+            else:
+                # Joueur inconnu en base → créer licence + joueur
+                try:
+                    birth_year = datetime.strptime(data['birth_year'], '%Y').replace(month=1, day=1)
+                except (ValueError, TypeError):
+                    app.logger.warning(f"Année de naissance invalide pour {data['first_name']} {data['last_name']} – ligne ignorée.")
+                    continue
+                license = License(
+                    id=lic_number,
+                    firstName=data['first_name'],
+                    lastName=data['last_name'],
+                    letter=data['lic_letter'],
+                    year=birth_year.year,
+                    gender=gender,
+                    rankingId=data['current_ranking'].id,
+                    bestRankingId=data['best_ranking'].id if data['best_ranking'] else data['current_ranking'].id,
+                )
+                db.session.add(license)
+                db.session.flush()  # rendre l'id de la licence disponible pour le joueur
+                player = Player(birthDate=birth_year, isActive=True, hiddenInTenup=False)
+                player.clubId = club.id
+                player.licenseId = license.id
+                db.session.add(player)
+                updated_count += 1
+
+        # Supprimer les joueurs du club absents du CSV
+        club_players = Player.query.join(Player.license).filter(
+            Player.clubId == club.id,
+            License.gender == gender
+        ).all()
+        for player in club_players:
+            if player.licenseId not in csv_license_ids:
+                deleted_players.append({
+                    'license_number': player.licenseId,
+                    'name': player.name,
+                    'ranking': player.ranking.value if player.ranking else 'N/A',
+                    'club': club.name,
+                    'in_team': bool(player.teams),
+                })
+                db.session.delete(player)
+
+        db.session.commit()
+        app.logger.debug(
+            f'UPDATE PLAYERS DONE: {updated_count} mis à jour, '
+            f'{len(deleted_players)} supprimés (absents du CSV)'
+        )
+        return True, conflicts, deleted_players, updated_count
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'update_players ERREUR: {e}', exc_info=True)
+        return False, [], [], 0
+
+
+def import_players(app, gender, csvfile, club, db):
+    """
+    Import players from CSV file.
+    Returns: (success: bool, conflicts: list, players_count: int)
+    """
+    conflicts = []
+    try:
+        for row in _open_tenup_csv(csvfile):
+            # Formatting player data
+            first_name    = row.get('prenom', '')
+            last_name     = row.get('nom', '')
+            birth_year    = row.get('naissance', '')
+            license_info  = row.get('licence', '')
+            ranking_value = row.get('classement', '')
+            match = re.match(r'(\d+)\s*(\w)', license_info)
+            if not match:
+                continue
+            # Parsing du classement via la fonction dédiée
+            current_ranking_value, best_ranking_value = parse_ranking_field(ranking_value)
+            current_ranking = Ranking.query.filter(Ranking.value == current_ranking_value).first()
+            best_ranking = BestRanking.query.filter(BestRanking.value == best_ranking_value).first() if best_ranking_value else None
+            if not current_ranking:
+                app.logger.warning(f'Classement inconnu "{current_ranking_value}" pour {first_name} {last_name} – ligne ignorée.')
+                continue
+            lic_number = int(match.group(1))
+            lic_letter = match.group(2)
+
+            # Vérifier si la licence existe déjà
+            existing_license = License.query.filter_by(id=lic_number).first()
+            if existing_license:
+                existing_player = Player.query.filter_by(licenseId=existing_license.id).first()
+                if existing_player and str(existing_player.clubId) != str(club.id):
+                    existing_club = Club.query.get(existing_player.clubId)
+                    conflicts.append({
+                        'license_number': f'{lic_number} {lic_letter}',
+                        'name': f'{first_name} {last_name}',
+                        'ranking': current_ranking.value if current_ranking else 'N/A',
+                        'current_club': existing_club.name if existing_club else 'Inconnu',
+                        'new_club': club.name
+                    })
+                    continue
+
+            # Convertir l'année en datetime
+            year_date = datetime.strptime(birth_year, '%Y')
+            year_start_date = year_date.replace(month=1, day=1)
+
+            if existing_license:
+                license = existing_license
+            else:
+                license = License(id=lic_number, gender=gender, firstName=first_name, lastName=last_name,
+                                  letter=lic_letter, year=year_start_date.year,
+                                  rankingId=current_ranking.id,
+                                  bestRankingId=best_ranking.id if best_ranking else current_ranking.id)
+                db.session.add(license)
+                db.session.flush()
+
+            player = Player(birthDate=year_start_date, weight=None, height=None, isActive=True)
+            player.clubId, player.licenseId = club.id, license.id
+            db.session.add(player)
+            db.session.commit()
+            player = Player.query.get(player.id)
+            injuries = Injury.query.all()
+            injuries_id = [i.id for i in injuries]
+            if (player.age > 45 and randint(1, 10) == 1) or (player.age > 35 and randint(1, 20) == 1):
+                max_injuries_count = (player.age // 20)
+                selected_injuries = sample(injuries_id, randint(1, max_injuries_count))
+                for injury_id in selected_injuries:
+                    player.injuries.append(Injury.query.get(injury_id))
+            db.session.add(player)
+
+        # Si des conflits ont été détectés, faire un rollback
+        if conflicts:
+            db.session.rollback()
+            app.logger.warning(f'{len(conflicts)} conflit(s) détecté(s) lors de l\'importation des joueurs.')
+            return False, conflicts, 0
+
+        db.session.commit()
+        players_count = Player.query.join(Player.license).filter(Player.clubId == club.id, License.gender == gender).count()
+        app.logger.debug(f'COMMIT PLAYERS DONE = {players_count}')
+        return True, [], players_count
+    except FileNotFoundError:
+        if hasattr(app, 'logger'):
+            app.logger.warning("Aucun joueur importé : aucun fichier CSV défini.")
+        else:
+            print("Aucun joueur importé : aucun fichier CSV défini.")
+        return False, [], 0
+
+
+def get_players_order_by_ranking(gender: int, club_id: str, asc_param=True, age_category=None, is_active=True) -> List[Player]:
+    order = asc if asc_param else desc
+    if gender in [Gender.Male.value, Gender.Female.value]:
+        players = Player.query \
+            .join(Player.license) \
+            .join(License.ranking) \
+            .filter(Player.isActive == is_active, License.gender == gender, Player.clubId == club_id) \
+            .order_by(Ranking.id) \
+            .all()
+        if age_category:
+            # Filter players based on age category using Python
+            players = [player for player in players if player.has_valid_age(age_category)]
+    else:
+        players = Player.query \
+            .join(Player.license) \
+            .join(License.ranking) \
+            .filter(Player.isActive == is_active, Player.clubId == club_id) \
+            .order_by(Ranking.id) \
+            .all()
+        if age_category:
+            # Filter players based on age category using Python
+            players = [player for player in players if player.has_valid_age(age_category)]
+    return players
+
+
+def get_championships(gender: int) -> List[Championship]:
+    if gender in [Gender.Male.value, Gender.Female.value]:
+        championships = Championship.query \
+            .join(Championship.division) \
+            .filter(Division.gender == gender) \
+            .order_by(desc(Division.id)) \
+            .all()
+    else:
+        championships = Championship.query \
+            .order_by(desc(Division.id)) \
+            .all()
+    return championships
+
+
+def ranking(player: Player) -> Ranking:
+    return Ranking.query.get(player.license.rankingId)
+
+
+def check_license(license_number: str) -> Optional[tuple[int, str]]:
+    """
+        Check if the license number is valid
+    :param license_number: 
+    :return: 
+    """""
+    # Utilisation d'une expression régulière pour vérifier le format
+    pattern = r'^(\d{1,10})([A-Za-z])$'
+    # Vérification si la license_number correspond au format
+    match = re.match(pattern, license_number.replace(' ', ''))
+    if match:
+        return int(match.group(1)), match.group(2)
+    else:
+        return None
+
+
+def keys_with_same_value(d):
+    return [value for value in set(d.values()) if list(d.values()).count(value) > 1]
+
+
+def remove_text_between_parentheses(text):
+    # Utilise une expression régulière pour rechercher et remplacer le contenu entre parenthèses
+    return re.sub(r'\([^()]*\)', '', text).strip()
+
+
+# Section 1.1: formation des équipes
+def form_teams(championship, club_ids_to_filter: list[int] = None):
+    teams = []
+    for club in Club.query.all():
+        if club_ids_to_filter and club.id in club_ids_to_filter:
+            continue
+        players = get_players_order_by_ranking(
+            gender=championship.division.gender,
+            club_id=club.id,
+            asc_param=True,
+            age_category=championship.age_category,
+            is_active=True
+        )
+        if len(players) < championship.singlesCount:
+            continue
+        captain = max(players, key=lambda p: p.best_elo)
+        club_name = remove_text_between_parentheses(club.name)
+        team = Team(name=f'{club_name} 1', captainId=captain.id, clubId=club.id)
+        team.players = players[:15]
+        teams.append(team)
+    return teams
+
+# Section 1.2: Création des poules et assignation des équipes
+def create_pools_and_assign_teams(app, db, championship, teams):
+    M = min(len(teams), len(championship.matchdays))
+    num_teams_per_pool = M if M % 2 == 0 else M + 1
+    num_pools = len(teams) // num_teams_per_pool
+    teams.sort(key=lambda t: t.weight(championship))
+    selected_teams = teams[:num_pools * num_teams_per_pool]
+    exempted_teams = teams[num_pools * num_teams_per_pool:]
+
+    for i in range(0, len(selected_teams), num_teams_per_pool):
+        pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
+        db.session.add(pool)
+        db.session.commit()
+
+    app.logger.debug(f'selected_teams = {selected_teams}')
+    team_candidates = [*selected_teams]
+    while team_candidates:
+        letters: list[str] = [p.letter for p in championship.pools]
+        shuffle(letters)
+        for letter in letters:
+            pool = Pool.query.filter(Pool.championshipId == championship.id, Pool.letter == letter).first()
+            team = team_candidates.pop()
+            team.poolId = pool.id
+
+    exempted_pool = Pool(championshipId=championship.id)
+    db.session.add(exempted_pool)
+    db.session.commit()
+    for team in exempted_teams:
+        team.poolId = exempted_pool.id
+    teams = selected_teams + exempted_teams
+    db.session.add_all(teams)
+    db.session.commit()
+
+    return num_teams_per_pool, exempted_teams
+
+def populate_championship(app, db, championship: Championship):
+    # Section I: Constitution des poules et journées de championnat
+    try:
+        # Section 1.1: formation des équipes
+        teams = form_teams(championship)
+
+        # Section 1.2: Création des poules et assignation des équipes
+        num_teams_per_pool, exempted_teams = create_pools_and_assign_teams(app, db, championship, teams)
+
+    except Exception as e:
+        app.logger.debug(f"Erreur dans la fonction 'populate_championship'!")
+    finally:
+        pools = Pool.query.filter(Pool.championshipId == championship.id).all()
+        app.logger.debug(f'COMMIT DONE = {len(pools) - int(len(exempted_teams) > 0)} POOLS of {num_teams_per_pool} teams for {championship}')
+
+    # Section II: Génération des ordonnancements de matches
+    for pool in championship.pools:
+        if pool.letter is None:
+            continue
+        schedule_matches(app, db, pool)
+        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
+
+    # Section III: génération du tableau final
+    # (This section remains commented out as in the original code)
+
+
+def populate_championship_old(app, db, championship: Championship):
+    # Section I: Constitution des poules et journées de championnat
+    try:
+        # Section 1.1: formation des équipes
+        teams = []
+        for club in Club.query.all():
+            # app.logger.debug(f'Détermination équipe: {club} - championnat: {championship}')
+            players = get_players_order_by_ranking(gender=championship.division.gender, club_id=club.id, asc_param=True, age_category=championship.age_category, is_active=True)
+            # app.logger.debug(f'Nombre joueurs éligibles du club {club}: {len(players)}')
+            if len(players) < championship.singlesCount:
+                continue
+            captain = max(players, key=lambda p: p.best_elo)
+            club_name = remove_text_between_parentheses(club.name)
+            team = Team(name=f'{club_name} 1', captainId=captain.id)
+            team.players = players[:15]
+            teams.append(team)
+            # app.logger.debug(f'Equipe {team} de poids {team.weight(championship)} créée avec succès composée de {len(team.players)} joueurs! {team.players}')
+
+        # Section 1.2: Création des poules et assignation des équipes
+        M = min(len(teams) - 1, len(championship.matchdays))
+        num_teams_per_pool = M + 1 if M % 2 == 0 else M
+        num_pools = len(teams) // num_teams_per_pool
+        teams.sort(key=lambda t: t.weight(championship))
+        selected_teams = teams[:num_pools * num_teams_per_pool]
+        exempted_teams = teams[num_pools * num_teams_per_pool:]
+        # shuffle(selected_teams)
+        # app.logger.debug(f'{championship} - Nombre équipes par poule: {num_teams_per_pool} - Nombre de journées: {M}')
+        # app.logger.debug(f'{len(selected_teams)} équipes sélectionnées pour la phase de poules')
+        for i in range(0, len(selected_teams), num_teams_per_pool):
+            pool = Pool(letter=chr(ord('A') + i // num_teams_per_pool), championshipId=championship.id)
+            db.session.add(pool)
+            db.session.commit()
+            # for j in range(i, i + num_teams_per_pool):
+            #     selected_teams[j].poolId = pool.id
+        app.logger.debug(f'selected_teams = {selected_teams}')
+        team_candidates = [*selected_teams]
+        while team_candidates:
+            # shuffle(championship.pools)
+            letters: list[str] = [p.letter for p in championship.pools]
+            shuffle(letters)
+            for letter in letters:
+                pool = Pool.query.filter(Pool.championshipId == championship.id, Pool.letter == letter).first()
+                team = team_candidates.pop()
+                team.poolId = pool.id
+
+        # if exempted_teams:
+        exempted_pool = Pool(championshipId=championship.id)
+        db.session.add(exempted_pool)
+        db.session.commit()
+        for team in exempted_teams:
+            team.poolId = exempted_pool.id
+        teams = selected_teams + exempted_teams
+        db.session.add_all(teams)
+        db.session.commit()
+    except Exception as e:
+        app.logger.debug(f"Erreur dans la fonction 'populate_championship'!")
+    finally:
+        pools = Pool.query.filter(Pool.championshipId == championship.id).all()
+        app.logger.debug(f'COMMIT DONE = {len(pools) - int(len(exempted_teams) > 0)} POOLS of {num_teams_per_pool} teams for {championship}')
+
+    # Section II: Génération des ordonnancements de matches
+    for pool in championship.pools:
+        if pool.letter is None:
+            continue
+        schedule_matches(app, db, pool)
+        app.logger.debug(f'COMMIT DONE = {len(pool.matches)} MATCHES scheduled for pool {pool}')
+
+    # Section III: génération du tableau final
+    # if exempted_pool:
+    #     final_teams = exempted_pool.teams
+    #     min_teams_count = len(championship.pools)
+    #     n = min_teams_count + len(final_teams)
+    #     p = n // 2 + 1
+    #     qualified_teams = {}
+    #     for pool in championship.pools:
+    #         if pool.letter is None:
+    #             continue
+    #         pool_rankings = calculer_classement(pool)
+    #         qualified_teams[pool.id] = [team_id for team_id, ranking in pool_rankings]
+    #         app.logger.debug(f'{len(qualified_teams[pool.id])} TEAMS for pool {pool}: {qualified_teams[pool.id]}')
+    #     while len(final_teams) < 2 ** p:
+    #         for pool in championship.pools:
+    #             if pool.letter is None:
+    #                 continue
+    #             team_id = qualified_teams[pool.id].pop(0)
+    #             final_teams += [Team.query.get(team_id)]
+    #             if len(final_teams) == 2 ** p:
+    #                 break
+    #     app.logger.debug(f'COMMIT DONE = {len(final_teams)} TEAMS for FINALS of {championship}: {final_teams}')
+
+
+def round_robin(n):
+    a = []
+    b = []
+    c = (n * (n - 1)) / 2
+    c = int(c)
+    e = []
+    f = []
+    result = []
+    result1 = []
+
+    # creating (0,1), (0,2) ··· (n-1, n)
+    f = [(i1, i2) for i1 in range(n) for i2 in range(n) if i1 < i2]
+
+    # creating list of waiting time a = [0,1,2, ··· , n-1] and b = [0,0, ··· , 0]
+    for i in range(n):
+        a.append(i)
+        b.append(0)
+
+    # main dish
+    for i1 in range(c):
+        d1 = b.copy()
+        d2 = a.copy()
+        e = []
+
+        # ordering from largest waiting time to smallest waiting time e = [largest to smallest] in index
+        # d1 is the waiting time list
+        # d2 is [0,1,···,n-1] but decreases gradually
+        for j in range(n):
+            m = max(d1)
+            for k in range(n):
+                if b[k] == m and k not in e:
+                    n1 = k
+                    e.append(n1)
+                    d1.remove(m)
+                    d2.remove(n1)
+                    break
+                else:
+                    continue
+
+        for (p, q) in f:
+            if (e[p], e[q]) not in result and (e[q], e[p]) not in result:
+                result.append((e[p], e[q]))
+                for i in range(n):
+                    if i != e[p] and i != e[q]:
+                        b[i] = b[i] + 1
+                    else:
+                        b[i] = 0
+                break
+            else:
+                continue
+
+    # making (2,0)s into (0,2)s
+    for (k1, k2) in result:
+        if k1 < k2:
+            result1.append((k1 + 1, k2 + 1))
+        else:
+            result1.append((k2 + 1, k1 + 1))
+
+    return result1
+
+
+def paires_avec_somme_N(liste, N):
+    paires = []
+    for i in range(len(liste)):
+        for j in range(i, len(liste)):  # Modifier la boucle pour inclure aussi i
+            if liste[i] + liste[j] == N:
+                paires.append((liste[i], liste[j]))
+    return paires
+
+
+def simulate_score_old(home_team, visitor_team, pool):
+    num_matches = pool.championship.num_matches
+    liste_entiers = list(range(num_matches + 1))
+    scores = paires_avec_somme_N(liste_entiers, num_matches)
+    home_score, visitor_score = home_team.weight(pool.championship), visitor_team.visitorTeam.weight(pool.championship)
+    winnerId = home_team.id if home_score > visitor_score else visitor_team.id if visitor_score > home_score else None
+    filtered_scores = list(filter(lambda x: x[0] != x[1], scores)) if winnerId else scores
+    score = choice(filtered_scores)
+    sorted_score = tuple(sorted(score, reverse=True)) if winnerId == home_team.id else tuple(sorted(score))
+    return f'{sorted_score[0]}-{sorted_score[1]}'
+
+
+def simulate_set(player1: Player, player2: Player):
+    sets = [(6, i) for i in range(4)]
+    sets += [(7, 6), (6, 7)]
+    sets += [(i, 6) for i in range(4)]
+
+
+### New simulation
+
+def calculate_strength(rank_difference: int) -> float:
+    # Convertir la différence de classement en un facteur de force
+    # Plus la différence est grande, plus le joueur avec le classement le plus bas est désavantagé
+    return 1 / (1 + 10 ** (rank_difference / 400))
+
+
+def game(player1_strength: float, player2_strength: float) -> str:
+    player1_score = 0
+    player2_score = 0
+
+    while max(player1_score, player2_score) < 4 or abs(player1_score - player2_score) < 2:
+        player1_point_probability = player1_strength / (player1_strength + player2_strength)
+        player2_point_probability = 1 - player1_point_probability
+
+        if random() < player1_point_probability:
+            player1_score += 1
+        else:
+            player2_score += 1
+
+    return 'player1' if player1_score > player2_score else 'player2'
+
+
+def tie_break(player1_strength: float, player2_strength: float, max_points: int):
+    player1_score = 0
+    player2_score = 0
+
+    while max(player1_score, player2_score) < max_points or abs(player1_score - player2_score) < 2:
+        player1_point_probability = player1_strength / (player1_strength + player2_strength)
+        player2_point_probability = 1 - player1_point_probability
+
+        if random() < player1_point_probability:
+            player1_score += 1
+        else:
+            player2_score += 1
+
+    return player1_score, player2_score
+
+
+def calculate_set_probability(player1_strength: float, player2_strength: float, is_third_set: bool = False):
+    # Si c'est le 3ème set (super tie-break), jouer un seul jeu
+    if is_third_set:
+        super_tie_break_score_p1, super_tie_break_score_p2 = tie_break(player1_strength, player2_strength, 10)
+        if super_tie_break_score_p1 > super_tie_break_score_p2:
+            return 1, 0, super_tie_break_score_p2
+        else:
+            return 0, 1, super_tie_break_score_p1
+    else:
+        # Initialiser les scores des joueurs
+        player1_score = 0
+        player2_score = 0
+
+        # Parcourir les jeux jusqu'à ce qu'un joueur atteigne 6 jeux avec un écart de 2 jeux OU que les deux joueurs soient à égalité à 6 jeux
+        while (max(player1_score, player2_score) < 6 or abs(player1_score - player2_score) < 2) and not (player1_score == player2_score == 6):
+            winning_player = game(player1_strength, player2_strength)
+            if winning_player == 'player1':
+                player1_score += 1
+            else:
+                player2_score += 1
+
+        # Si aucun joueur n'a un écart de 2 jeux après avoir atteint 6 jeux, jouer un jeu décisif
+        if player1_score == player2_score == 6:
+            tie_break_score_p1, tie_break_score_p2 = tie_break(player1_strength, player2_strength, 7)
+            if tie_break_score_p1 > tie_break_score_p2:
+                return 7, 6, tie_break_score_p2
+            else:
+                return 6, 7, tie_break_score_p1
+        else:
+            return player1_score, player2_score, None
+
+
+def play_game(app, home_players: List[Player], visitor_players: List[Player], home_team: Team, visitor_team: Team):
+    """
+        Simulate a game between two players.
+    :param app:
+    :param home_players: selected players for the home team
+    :param visitor_players: selected players for the visitor team
+    :param home_team:
+    :param visitor_team:
+    :return: winning team, final score
+    """
+    home_team_rank = sum([player.refined_elo for player in home_players])
+    visitor_team_rank = sum([player.refined_elo for player in visitor_players])
+    rank_difference = abs(home_team_rank - visitor_team_rank)  # Différence de classement ELO entre les joueurs
+    # app.logger.debug(f"Classement ELO : {player1_rank} - {player2_rank}")
+    strength_factor = calculate_strength(rank_difference)
+    # app.logger.debug(f"Facteur de force : {strength_factor}")
+    if home_team_rank < visitor_team_rank:
+        home_strength, visitor_strength = strength_factor, 1 - strength_factor
+    else:
+        home_strength, visitor_strength = 1 - strength_factor, strength_factor
+    winning_team = None
+    home_sets = []
+    visitor_sets = []
+    final_score = []
+    while not winning_team:
+        is_third_set: bool = True if len(home_sets) == len(visitor_sets) == 1 else False
+        result = calculate_set_probability(home_strength, visitor_strength, is_third_set)
+        # app.logger.debug(f"Score set : {result} - is_third_set: {is_third_set}")
+        home_set_score, visitor_set_score, tie_break_score = result
+        if home_set_score > visitor_set_score:
+            home_sets += [(home_set_score, visitor_set_score, tie_break_score)]
+        else:
+            visitor_sets += [(home_set_score, visitor_set_score, tie_break_score)]
+        final_score += [(home_set_score, visitor_set_score, tie_break_score)]
+        winning_team = home_team if len(home_sets) == 2 else visitor_team if len(visitor_sets) == 2 else None
+    return winning_team, final_score
+
+
+def simulate_score(app, db, home_players: List[Player], visitor_players: List[Player], match: Match,
+                   home_doubles_players: List[Player] = None, visitor_doubles_players: List[Player] = None):
+    """Simulate the score of a match.
+
+    :param home_players:            joueurs domicile pour les simples (et doubles si non fournis séparément)
+    :param visitor_players:         joueurs visiteurs pour les simples (et doubles si non fournis séparément)
+    :param home_doubles_players:    joueurs domicile pour les doubles (None = utiliser home_players)
+    :param visitor_doubles_players: joueurs visiteurs pour les doubles (None = utiliser visitor_players)
+    """
+    pool = match.homeTeam.pool
+    singles_count = pool.championship.singlesCount
+    doubles_count = pool.championship.doublesCount
+    home_score = visitor_score = 0
+
+    # SIMPLES — trier et compléter si nécessaire par fallback sur tous les joueurs de l'équipe
+    home_singles_players    = sorted(home_players,    key=lambda p: p.current_elo, reverse=True)
+    visitor_singles_players = sorted(visitor_players, key=lambda p: p.current_elo, reverse=True)
+
+    # Fallback : si trop peu de joueurs sélectionnés, compléter avec les joueurs de l'équipe triés par ELO
+    def _pad_with_team(players: List[Player], team, needed: int) -> List[Player]:
+        if len(players) >= needed:
+            return players
+        existing_ids = {p.id for p in players}
+        extras = sorted(
+            [p for p in team.players if p.id not in existing_ids and p.isActive],
+            key=lambda p: p.current_elo, reverse=True
+        )
+        return players + extras
+
+    home_singles_players    = _pad_with_team(home_singles_players,    match.homeTeam,    singles_count)
+    visitor_singles_players = _pad_with_team(visitor_singles_players, match.visitorTeam, singles_count)
+
+    for i in range(singles_count):
+        if i >= len(home_singles_players) or i >= len(visitor_singles_players):
+            app.logger.warning(f"Match {match.id} simple {i+1} ignoré : pas assez de joueurs "
+                               f"(home={len(home_singles_players)} visitor={len(visitor_singles_players)})")
+            break
+        player1, player2 = home_singles_players[i], visitor_singles_players[i]
+        result = play_game(app, home_players=[player1], visitor_players=[player2], home_team=match.homeTeam, visitor_team=match.visitorTeam)
+        winning_team = result[0]
+        final_score  = result[1]
+        first_set  = final_score[0]
+        second_set = final_score[1]
+        third_set  = final_score[2] if len(final_score) == 3 else (None, None, False)
+        firstSetP1,  firstSetP2,  firstTieBreak  = first_set
+        secondSetP1, secondSetP2, secondTieBreak = second_set
+        thirdSetP1,  thirdSetP2,  superTieBreak  = third_set
+        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak,
+                      secondSetP1=secondSetP1, secondSetP2=secondSetP2, secondTieBreak=secondTieBreak,
+                      thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
+        db.session.add(score)
+        db.session.commit()
+        if winning_team == match.homeTeam:
+            home_score += 1
+        else:
+            visitor_score += 1
+        single = Single(player1Id=player1.id, player2Id=player2.id, scoreId=score.id, matchId=match.id)
+        db.session.add(single)
+        db.session.commit()
+        match.singles += [single]
+
+    # DOUBLES — utiliser les listes spécifiques si fournies, sinon home/visitor_players
+    home_doublers_candidates    = sorted(home_doubles_players    or home_players,    key=lambda p: p.refined_elo, reverse=True)
+    visitor_doublers_candidates = sorted(visitor_doubles_players or visitor_players, key=lambda p: p.refined_elo, reverse=True)
+
+    # Compléter si besoin
+    home_doublers_candidates    = _pad_with_team(home_doublers_candidates,    match.homeTeam,    doubles_count * 2)
+    visitor_doublers_candidates = _pad_with_team(visitor_doublers_candidates, match.visitorTeam, doubles_count * 2)
+
+    for i in range(doubles_count):
+        home_doublers    = home_doublers_candidates[2 * i:2 * i + 2]
+        visitor_doublers = visitor_doublers_candidates[2 * i:2 * i + 2]
+        if len(home_doublers) < 2 or len(visitor_doublers) < 2:
+            app.logger.warning(f"Match {match.id} double {i+1} ignoré : pas assez de joueurs "
+                               f"(home={len(home_doublers_candidates)} visitor={len(visitor_doublers_candidates)})")
+            break
+        result = play_game(app, home_doublers, visitor_doublers, match.homeTeam, match.visitorTeam)
+        winning_team = result[0]
+        final_score  = result[1]
+        first_set  = final_score[0]
+        second_set = final_score[1]
+        third_set  = final_score[2] if len(final_score) == 3 else (None, None, False)
+        firstSetP1,  firstSetP2,  firstTieBreak  = first_set
+        secondSetP1, secondSetP2, secondTieBreak = second_set
+        thirdSetP1,  thirdSetP2,  superTieBreak  = third_set
+        score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak,
+                      secondSetP1=secondSetP1, secondSetP2=secondSetP2, secondTieBreak=secondTieBreak,
+                      thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
+        db.session.add(score)
+        db.session.commit()
+        if winning_team == match.homeTeam:
+            home_score += 1
+        else:
+            visitor_score += 1
+        player1, player2 = home_doublers
+        player3, player4 = visitor_doublers
+        double = Double(player1Id=player1.id, player2Id=player2.id, player3Id=player3.id, player4Id=player4.id,
+                        scoreId=score.id, matchId=match.id)
+        db.session.add(double)
+        match.doubles += [double]
+    match.homeScore, match.visitorScore = home_score, visitor_score
+    # app.logger.debug(f'home_score: {home_score}, visitor_score: {visitor_score}')
+    db.session.add(match)
+    db.session.commit()
+
+
+def distribute_matches(matches, Q, num_match_per_pool):
+    # Répartition des matchs$
+    done = False
+    while not done:
+        # Initialiser le calendrier
+        schedule = {day: [] for day in range(1, Q + 1)}
+        teams_played_per_day = {day: set() for day in range(1, Q + 1)}
+        match_copy = matches[:]
+        is_duplicate = False
+        for day in range(1, Q + 1):
+            if is_duplicate:
+                continue
+            for _ in range(num_match_per_pool):
+                if is_duplicate:
+                    continue
+                team1, team2 = choice(match_copy)
+                match_copy.remove((team1, team2))
+                if team1 not in teams_played_per_day[day] and team2 not in teams_played_per_day[day]:
+                    schedule[day].append((team1, team2))
+                    teams_played_per_day[day].add(team1)
+                    teams_played_per_day[day].add(team2)
+                else:
+                    is_duplicate = True
+        if not is_duplicate:
+            done = True
+    return schedule
+
+def schedule_matches(app, db, pool: Pool):
+    try:
+        teams = {i + 1: team for i, team in enumerate(pool.teams)}
+        for team in pool.teams:
+            team.initialize_player_availability()
+        app.logger.debug(f'TEAMS = {teams}')
+        n = len(teams)
+        num_days = n - 1 if n % 2 == 0 else n
+        schedule = distribute_matches(round_robin(n), num_days, n // 2)
+        matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+        for i in range(len(matchdays)):
+            matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+            matchday = matchdays[i]
+            matches = schedule[i + 1]
+            matches = [Match(poolId=pool.id, matchdayId=matchday.id, homeTeamId=teams[j].id, visitorTeamId=teams[k].id, date=matchday.date) for j, k in matches]
+            db.session.add_all(matches)
+            db.session.commit()
+    except Exception as e:
+        app.logger.debug(f"Error in schedule_matches function!\n{e}")
+
+def simulate_match_scores(app, db, pool: Pool):
+    try:
+        singles_count = pool.championship.singlesCount
+        doubles_count = pool.championship.doublesCount
+        matchdays = Matchday.query.filter_by(championshipId=pool.championship.id).all()
+        for matchday in matchdays:
+            for match in matchday.matches:
+                if match.poolId != pool.id:
+                    continue
+                # Ignorer les matchs dont une équipe est absente (supprimée)
+                if match.homeTeam is None or match.visitorTeam is None:
+                    app.logger.debug(f"Match {match.id} ignoré : homeTeam={match.homeTeamId} visitorTeam={match.visitorTeamId} (équipe manquante)")
+                    continue
+
+                # Récupérer les joueurs selon la sélection du capitaine (ou tous si pas de sélection)
+                try:
+                    home_singles, home_doubles = match.homeTeam.get_players_for_simulation(
+                        matchday, singles_count, doubles_count)
+                    visitor_singles, visitor_doubles = match.visitorTeam.get_players_for_simulation(
+                        matchday, singles_count, doubles_count)
+                    app.logger.debug(
+                        f"Match {match.id} [{match.homeTeam} vs {match.visitorTeam}] J{matchday.id} : "
+                        f"home S={len(home_singles)} D={len(home_doubles)} | "
+                        f"visitor S={len(visitor_singles)} D={len(visitor_doubles)}"
+                    )
+                    simulate_score(
+                        app=app, db=db,
+                        home_players=home_singles, visitor_players=visitor_singles,
+                        home_doubles_players=home_doubles, visitor_doubles_players=visitor_doubles,
+                        match=match
+                    )
+                except Exception as match_err:
+                    app.logger.warning(
+                        f"Erreur match {match.id} [{match.homeTeam} vs {match.visitorTeam}] J{matchday.id} : {match_err}"
+                    )
+                    continue
+                match = Match.query.get(match.id)
+    except Exception as e:
+        import traceback
+        app.logger.debug(f"Error in simulate_match_scores function!\n{e}\n{traceback.format_exc()}")
+
+def play(app, db, pool: Pool):
+    schedule_matches(app, db, pool)
+    simulate_match_scores(app, db, pool)
+
+
+def extract_courts(club_json):
+    # Expression régulière pour extraire le nombre de terrains de tennis, padel et beach
+    regex = r"Tennis : (\d+) terrains, Padel : (\d+), Beach Tennis : (\d+)"
+    # Rechercher les correspondances dans la chaîne 'terrainPratiqueLibelle'
+    matches = re.search(regex, club_json['terrainPratiqueLibelle'])
+    if matches:
+        tennis_count = int(matches.group(1))
+        padel_count = int(matches.group(2))
+        beach_count = int(matches.group(3))
+        return [tennis_count, padel_count, beach_count]
+    return [0] * 3
+
+
+def calculer_classement(pool):
+    classement = dict()  # Liste pour stocker les détails du classement de chaque équipe
+    num_matches = pool.championship.singlesCount + pool.championship.doublesCount
+    # Parcourir toutes les équipes de la poule
+    for team in pool.teams:
+        # Requête pour récupérer les matchs de l'équipe donnée dans la poule donnée
+        matches = Match.query \
+            .join(Match.pool) \
+            .filter(
+            (Match.homeTeamId == team.id) |
+            (Match.visitorTeamId == team.id)) \
+            .filter(Match.poolId == pool.id) \
+            .all()
+        # Ignorer uniquement les matchs où AUCUNE des deux équipes n'est connue
+        # (les matchs vs équipe supprimée sont conservés pour le classement)
+        matches = [m for m in matches if m.homeTeamId is not None or m.visitorTeamId is not None]
+        # matches = Match.query.filter(Match.poolId == pool.id, Match.homeTeamId == team.id).all()
+        # logging.info(f'{team} : {len(matches)} matches')
+
+        if all(m.homeScore is None and m.visitorScore is None for m in matches):
+            # If no matches have been played, initialize all values to 0
+            team_matches_played = 0
+            team_matches_won = 0
+            team_matches_lost = 0
+            team_matches_draw = 0
+            points = 0
+            won_matches = 0
+            lost_matches = 0
+            diff_matchs = 0
+            sets_won = 0
+            sets_lost = 0
+            games_won = 0
+            games_lost = 0
+            diff_sets = 0
+            diff_games = 0
+        else:
+            team_matches_played: int = len(matches)
+            # matches_played = len(pool.teams) - 1
+            team_matches_won: int = (sum(1 for m in matches if team.is_visitor(match=m) and m.homeScore < m.visitorScore)
+                                     + sum(1 for m in matches if not team.is_visitor(match=m) and m.homeScore > m.visitorScore))
+            team_matches_lost: int = (sum(1 for m in matches if team.is_visitor(match=m) and m.homeScore > m.visitorScore)
+                                      + sum(1 for m in matches if not team.is_visitor(match=m) and m.homeScore < m.visitorScore))
+            team_matches_draw: int = sum(1 for m in matches if m.homeScore == m.visitorScore)
+            points = 3 * team_matches_won + 2 * team_matches_draw + team_matches_lost
+
+            won_matches: int = 0
+            lost_matches: int = 0
+            for m in matches:
+                if m.visitorTeamId == team.id:
+                    team_is_visitor = True
+                    visitor_score = m.visitorScore
+                elif m.homeTeamId == team.id:
+                    team_is_visitor = False
+                    home_score = m.homeScore
+                won_matches += visitor_score if team_is_visitor else home_score
+                # lost_matches += home_score if team_is_visitor else visitor_score
+            lost_matches: int = team_matches_played * num_matches - won_matches
+            diff_matchs = won_matches - lost_matches  # Différence de matchs
+
+            sets_won = sets_lost = 0
+            games_won = games_lost = 0
+            for m in matches:
+                if not (m.visitorTeamId == team.id or m.homeTeamId == team.id):
+                    continue
+                home_sets, visitor_sets = m.sets_count
+                home_games, visitor_games = m.games_count
+                sets_won += visitor_sets if team.is_visitor(match=m) else home_sets
+                sets_lost += home_sets if team.is_visitor(match=m) else visitor_sets
+                games_won += visitor_games if team.is_visitor(match=m) else home_games
+                games_lost += home_games if team.is_visitor(match=m) else visitor_games
+            diff_sets = sets_won - sets_lost  # Différence de sets
+            diff_games = games_won - games_lost  # Différence de jeux
+
+        # Ajouter les détails de l'équipe au classement
+        # logging.info(classement)
+        matches_details: List[str] = []
+        if team_matches_won: matches_details += [f'{team_matches_won}V']
+        if team_matches_draw: matches_details += [f'{team_matches_draw}N']
+        if team_matches_lost: matches_details += [f'{team_matches_lost}D']
+        team_matches_played = f"{team_matches_played} ({'/'.join(matches_details)})"
+        matches_details = f'{diff_matchs} (+{won_matches}/-{lost_matches})'
+        sets_details = f'{diff_sets} (+{sets_won}/-{sets_lost})'
+        games_details = f'{diff_games} (+{games_won}/-{games_lost})'
+        classement.update({team.id: {
+            'team': team.name,
+            'points': points,
+            'matches_played': team_matches_played,
+            'diff_matchs_sort': diff_matchs,
+            'diff_matchs': matches_details,
+            'diff_sets_sort': diff_sets,
+            'diff_sets': sets_details,
+            'diff_games_sort': diff_games,
+            'diff_games': games_details
+        }})
+    # classement = sorted(classement.items(), key=lambda x: x[1]['points'], reverse=True)
+    classement = sorted(classement.items(), key=lambda x: (x[1]['points'], x[1]['diff_matchs_sort'], x[1]['diff_sets_sort'], x[1]['diff_games_sort']), reverse=True)
+
+    return classement
+
+
+#
+# Some basic tutorial on using Directions Mapbox API :-)
+#   - https://github.com/mapbox/mapbox-sdk-py/blob/master/docs/directions.md#directions
+# et une doc plus générale pour décrire les différentes fonctionalités exploitables par l'API:
+#   - https://docs.mapbox.com/help/how-mapbox-works/directions/
+#
+# Paramètres d'entrée: Location Object Source, Location Object Destination, Mapbox API key
+#         N.B. en fait on a besoin seulement des attributs (Longitude, Latitude).
+#              On utilise ici le module geojson pour créer nos objets de type Feature GEOJSON et accessoirement pour extraire plus aisément (ou pas) les données en sortie :-D
+#               Consultable ici: https://pypi.org/project/geojson/
+# Paramètres de sortie: JSON Object {'distance': 9176.91, 'duration': 1263.044} ou code d'erreur HTTP si pas d'objet JSON retourné par l'API Mapbox
+#
+def get_Directions_Mapbox(visitor: Club, home: Club, api_key):
+    service = Directions(access_token=api_key)
+    origin = Feature(geometry=Point((visitor.longitude, visitor.latitude)))
+    destination = Feature(geometry=Point((home.longitude, home.latitude)))
+    # my_profile = 'mapbox/driving'
+    my_profile = 'mapbox/driving-traffic'
+    response = service.directions([origin, destination], profile=my_profile, geometries=None, annotations=['duration', 'distance'])
+    driving_routes = response.geojson()
+    # print("JSON Object: ", driving_routes, file=sys.stderr)
+    # new_json = driving_routes['features'][0]['properties']
+    # pprint.pprint(new_json)
+    if response.status_code == 200:
+        return driving_routes['features'][0]['properties']
+    else:
+        return response.status_code
+
+
+def calculate_distance_and_duration(visitor: Club, home: Club, api_key):
+    directions_json = get_Directions_Mapbox(visitor, home, api_key)
+    if directions_json['distance'] > 0:
+        return (directions_json['distance'], directions_json['duration'])
+    else:
+        return (0, 0)

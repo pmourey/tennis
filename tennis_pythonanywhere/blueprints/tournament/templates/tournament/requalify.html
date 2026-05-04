@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="container">
+  <h1>&#8635; Requalification (Art. 52.2 FFT)</h1>
+  <p>Tournoi : <strong>{{ tournament.name }}</strong></p>
+
+  <div class="card mb-3">
+    <div class="card-header bg-warning text-dark"><strong>Match avec joueur forfait</strong></div>
+    <div class="card-body">
+      <p>
+        <strong>{{ match.player1.name if match.player1 else '?' }}</strong> vs
+        <strong>{{ match.player2.name if match.player2 else '?' }}</strong>
+        &mdash; {{ match.draw.display_name }}, Tour {{ match.round_number }}
+      </p>
+      <p>Score&nbsp;: <strong>{{ match.score_text or 'WO' }}</strong>
+        &nbsp;|&nbsp; Vainqueur&nbsp;: <strong>{{ match.winner.name if match.winner else '?' }}</strong>
+      </p>
+    </div>
+  </div>
+
+  {% if candidate %}
+  <div class="card mb-3">
+    <div class="card-header bg-info text-white"><strong>Candidat &agrave; la requalification</strong></div>
+    <div class="card-body">
+      <p><strong>{{ candidate.name }}</strong> ({{ candidate.ranking.value }})</p>
+      {% if source_match %}
+      <p class="text-muted" style="font-size:12px">
+        &Eacute;limin&eacute; par le joueur forfait au tour pr&eacute;c&eacute;dent
+        (T{{ source_match.round_number }}, score&nbsp;: {{ source_match.score_text or '?' }})
+      </p>
+      {% endif %}
+      <p class="text-info" style="font-size:12px">
+        Ce joueur remplacera le forfait dans tous les matchs futurs du tableau (Art.&nbsp;52.2).
+      </p>
+      <form method="POST">
+        <button type="submit" class="btn btn-success">&#10003; Confirmer la requalification</button>
+        <a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=match.draw_id) }}" class="btn btn-secondary ml-2">Annuler</a>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-warning">
+    <strong>Requalification impossible</strong> : aucun candidat trouv&eacute;.
+    <ul style="margin-top:6px;font-size:12px">
+      <li>Le joueur forfait doit avoir jou&eacute; au moins un match dans ce tableau (tour &ge; 2)</li>
+      <li>La requalification s&rsquo;applique en tableau final &agrave; partir des 16e de finale (Art. 52.2)</li>
+      <li>Non applicable en premier tour</li>
+    </ul>
+  </div>
+  <a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=match.draw_id) }}" class="btn btn-secondary">&#8592; Retour</a>
+  {% endif %}
+</div>
+{% endblock %}

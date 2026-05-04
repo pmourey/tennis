@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="container">
+	<h1>&#127931; {{ tournament.name }}</h1>
+	<a href="{{ url_for('tournament.index') }}" class="btn btn-secondary btn-sm">&#8592; Retour liste</a>
+
+	<!-- Infos générales -->
+	<div class="card mt-3">
+		<div class="card-body">
+			<p>
+				<strong>Club&nbsp;:</strong> {{ tournament.club.name }} &nbsp;|&nbsp;
+				<strong>Dates&nbsp;:</strong> {{ tournament.start_date.strftime('%d/%m/%Y') }} &#8594; {{
+				tournament.end_date.strftime('%d/%m/%Y') }} &nbsp;|&nbsp;
+				<strong>Type&nbsp;:</strong> {{ 'Open' if tournament.is_open else 'Interne' }} &nbsp;|&nbsp;
+				<strong>Statut&nbsp;:</strong> <em>{{ tournament.status_label }}</em>
+			</p>
+			{% if tournament.notes %}<p><em>{{ tournament.notes }}</em></p>{% endif %}
+
+			<!-- Changement de statut -->
+			<div class="mt-2">
+				{% if tournament.status == 'DRAFT' %}
+				<form method="POST"
+					action="{{ url_for('tournament.set_status', tid=tournament.id, new_status='OPEN') }}"
+					style="display:inline">
+					<button class="btn btn-success btn-sm">&#128226; Ouvrir les inscriptions</button>
+				</form>
+				{% elif tournament.status == 'OPEN' %}
+				<form method="POST"
+					action="{{ url_for('tournament.set_status', tid=tournament.id, new_status='IN_PROGRESS') }}"
+					style="display:inline">
+					<button class="btn btn-warning btn-sm">&#9654; Démarrer le tournoi</button>
+				</form>
+				{% elif tournament.status == 'IN_PROGRESS' %}
+				<form method="POST"
+					action="{{ url_for('tournament.set_status', tid=tournament.id, new_status='CLOSED') }}"
+					style="display:inline">
+					<button class="btn btn-danger btn-sm">&#127937; Clôturer le tournoi</button>
+				</form>
+				{% endif %}
+
+				<!-- Suppression du tournoi -->
+				{% if tournament.status in ('DRAFT', 'OPEN') %}
+				<form method="POST" action="{{ url_for('tournament.delete_tournament', tid=tournament.id) }}"
+					style="display:inline"
+					onsubmit="return confirm('Supprimer définitivement le tournoi « {{ tournament.name }} » et toutes ses données (inscriptions, tableaux, planning) ?')">
+					<button class="btn btn-outline-danger btn-sm">&#128465; Supprimer ce tournoi</button>
+				</form>
+				{% else %}
+				<button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal"
+					data-target="#deleteModal">&#128465; Supprimer ce tournoi</button>
+
+				<!-- Modal de confirmation pour tournoi démarré / terminé -->
+				<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">&#9888; Suppression irréversible</h5>
+								<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+							</div>
+							<div class="modal-body">
+								<p>Le tournoi <strong>{{ tournament.name }}</strong> est actuellement
+									<strong>{{ tournament.status_label }}</strong>.
+								</p>
+								<p>Supprimer ce tournoi supprimera <strong>définitivement</strong> toutes les
+									catégories, inscriptions, tableaux et données de planification associées.</p>
+								<p>Cette action est <strong>irréversible</strong>.</p>
+							</div>
+							<div class="modal-footer">
+								<form method="POST"
+									action="{{ url_for('tournament.delete_tournament', tid=tournament.id) }}"
+									style="display:inline">
+									<input type="hidden" name="force" value="1">
+									<button type="submit" class="btn btn-danger">&#128465; Oui, supprimer
+										définitivement</button>
+								</form>
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+
+	<!-- ═══ CATÉGORIES ═══════════════════════════════════════════════════════════ -->
+	<h2 class="mt-4">Catégories de jeu</h2>
+
+	{% if tournament.categories %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Catégorie</th>
+				<th>Format</th>
+				<th>Surfaces</th>
+				<th>Durée moy.</th>
+				<th>Inscrits</th>
+				<th>Tableaux</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for cat in tournament.categories %}
+			{% set nb_reg = cat.registrations | selectattr('status', 'equalto', 'REGISTERED') | list | length %}
+			<tr>
+				<td><strong>{{ cat.name }}</strong></td>
+				<td>{{ cat.format_label }}</td>
+				<td>
+					{% for surf in cat.surfaces_list %}
+					<span class="badge badge-info">{{ surf }}</span>
+					{% endfor %}
+				</td>
+				<td>{{ cat.match_duration_minutes }} min</td>
+				<td><strong>{{ nb_reg }}</strong></td>
+				<td>
+					{% if cat.draws %}
+					{% set dtype = draw_types.get(cat.id, 'classique') %}
+					{% if dtype == 'cascade' %}
+					<span class="badge badge-warning" title="Tableau en cascade (Art. 46)">&#9654; Cascade</span>
+					{% elif dtype == 'sections' %}
+					<span class="badge badge-info" title="Tableau à sections (Art. 49)">&#9868; Sections</span>
+					{% else %}
+					<span class="badge badge-secondary" title="Tableau classique">&#9651; Classique</span>
+					{% endif %}
+					{% endif %}
+					{% for draw in cat.draws %}
+					{% set draw_has_played = draw.matches | selectattr('status', 'in', ['COMPLETED', 'WALKOVER']) | list
+					| length > 0 %}
+					<div style="display:flex; align-items:center; gap:4px; margin-bottom:4px;">
+						<a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=draw.id) }}"
+							class="btn btn-xs btn-outline-primary">
+							{{ draw.display_name }}
+						</a>
+						{% if tournament.status not in ('CLOSED',) and not (tournament.status == 'IN_PROGRESS' and
+						draw_has_played) %}
+						<form method="POST"
+							action="{{ url_for('tournament.delete_draw', tid=tournament.id, draw_id=draw.id) }}"
+							style="display:inline"
+							onsubmit="return confirm('Supprimer le tableau « {{ draw.display_name }} » et toutes ses données de planification ?')">
+							<button class="btn btn-xs btn-outline-danger" title="Supprimer ce tableau">&#10005;</button>
+						</form>
+						{% endif %}
+					</div>
+					{% endfor %}
+				</td>
+				<td>
+					<a href="{{ url_for('tournament.registrations', tid=tournament.id, cid=cat.id) }}"
+						class="btn btn-sm btn-info" title="Inscrits &amp; g&eacute;n&eacute;ration du tableau">&#128101;
+						Inscrits</a>
+					<form method="POST"
+						action="{{ url_for('tournament.delete_category', tid=tournament.id, cid=cat.id) }}"
+						style="display:inline" onsubmit="return confirm('Supprimer cette catégorie ?')">
+						<button class="btn btn-sm btn-danger">&#128465;</button>
+					</form>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<p class="empty-msg">Aucune catégorie définie. Ajoutez-en une ci-dessous.</p>
+	{% endif %}
+
+	<!-- Formulaire ajout catégorie -->
+	<div class="form-inline-card mt-2">
+		<h3>Ajouter une catégorie</h3>
+		<form method="POST" action="{{ url_for('tournament.add_category', tid=tournament.id) }}">
+			<div class="form-row">
+				<div class="form-group col">
+					<label>Catégorie d&#39;âge</label>
+					<select name="age_category_id" class="form-control">
+						<option value="">Seniors (toutes catégories)</option>
+						{% for ac in age_categories %}
+						<option value="{{ ac.id }}">{{ ac.name }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group col">
+					<label>Genre</label>
+					<select name="gender" class="form-control">
+						<option value="0">Hommes</option>
+						<option value="1">Femmes</option>
+						<option value="2">Mixte</option>
+					</select>
+				</div>
+				<div class="form-group col">
+					<label>Format de jeu</label>
+					<select name="game_format" class="form-control">
+						<option value="1">Format 1 – 3 sets (6j, TB à 6-6)</option>
+						<option value="2">Format 2 – 2 sets + Super TB (10 pts)</option>
+					</select>
+				</div>
+				<div class="form-group col">
+					<label>Classement minimum autorisé <small class="text-muted">(plancher)</small></label>
+					<select name="min_ranking_id" class="form-control">
+						<option value="">Aucune restriction</option>
+						{% for r in rankings %}
+						<option value="{{ r.id }}">{{ r.value }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group col">
+					<label>Classement maximum autorisé <small class="text-muted">(plafond)</small></label>
+					<select name="max_ranking_id" class="form-control">
+						<option value="">Aucune restriction</option>
+						{% for r in rankings %}
+						<option value="{{ r.id }}">{{ r.value }}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+			<!-- Séries autorisées -->
+			<div class="form-group mt-2">
+				<label><strong>Séries autorisées</strong> <small class="text-muted">(aucune case = toutes les séries)</small></label>
+				<div class="surface-checkboxes">
+					<label class="form-check-inline">
+						<input type="checkbox" name="allowed_series[]" value="1" class="form-check-input"> 1ère série
+					</label>
+					<label class="form-check-inline">
+						<input type="checkbox" name="allowed_series[]" value="2" class="form-check-input"> 2ème série
+					</label>
+					<label class="form-check-inline">
+						<input type="checkbox" name="allowed_series[]" value="3" class="form-check-input"> 3ème série
+					</label>
+					<label class="form-check-inline">
+						<input type="checkbox" name="allowed_series[]" value="4" class="form-check-input"> 4ème série
+					</label>
+				</div>
+			</div>
+			<!-- Surfaces de jeu pour cette catégorie -->
+			<div class="form-group mt-2">
+				<label><strong>Surfaces de jeu autorisées pour cette catégorie</strong></label>
+				<div class="surface-checkboxes">
+					<label class="form-check-inline">
+						<input type="checkbox" name="surfaces[]" value="TB" checked class="form-check-input"> Terre
+						battue (TB)
+					</label>
+					<label class="form-check-inline">
+						<input type="checkbox" name="surfaces[]" value="Dur" class="form-check-input"> Dur
+					</label>
+					<label class="form-check-inline">
+						<input type="checkbox" name="surfaces[]" value="Gazon" class="form-check-input"> Gazon
+					</label>
+					<label class="form-check-inline">
+						<input type="checkbox" name="surfaces[]" value="Synthétique" class="form-check-input">
+						Synthétique
+					</label>
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary btn-sm mt-2">&#10133; Ajouter la catégorie</button>
+		</form>
+	</div>
+
+	<!-- ═══ TERRAINS ════════════════════════════════════════════════════════════ -->
+	<h2 class="mt-4">Terrains disponibles</h2>
+
+	{% if tournament.courts %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Terrain</th>
+				<th>Surface</th>
+				<th>Disponible</th>
+				<th>Action</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for court in tournament.courts %}
+			<tr>
+				<td>{{ court.name }}</td>
+				<td><span class="badge badge-info">{{ court.surface or 'Non défini' }}</span></td>
+				<td>{{ '✅' if court.is_available else '❌' }}</td>
+				<td>
+					<form method="POST"
+						action="{{ url_for('tournament.delete_court', tid=tournament.id, coid=court.id) }}"
+						style="display:inline" onsubmit="return confirm('Supprimer ce terrain ?')">
+						<button class="btn btn-sm btn-danger">&#128465;</button>
+					</form>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<p class="empty-msg">Aucun terrain défini.</p>
+	{% endif %}
+
+	<form method="POST" action="{{ url_for('tournament.add_court', tid=tournament.id) }}"
+		class="form-row mt-2 align-items-end">
+		<div class="form-group col-4">
+			<label>Nom du terrain</label>
+			<input type="text" name="name" class="form-control" placeholder="Court Central" required>
+		</div>
+		<div class="form-group col-3">
+			<label>Surface</label>
+			<select name="surface" class="form-control">
+				<option value="TB">Terre battue</option>
+				<option value="Dur">Dur</option>
+				<option value="Gazon">Gazon</option>
+				<option value="Synthétique">Synthétique</option>
+			</select>
+		</div>
+		<div class="form-group col-2">
+			<label>&nbsp;</label>
+			<button type="submit" class="btn btn-primary" style="display:block">&#10133; Ajouter terrain</button>
+		</div>
+	</form>
+</div>
+
+<style>
+	.form-check-inline {
+		display: inline-flex;
+		align-items: center;
+		margin-right: 16px;
+		gap: 5px;
+		font-size: 13px;
+		cursor: pointer;
+	}
+
+	.surface-checkboxes {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 6px;
+	}
+</style>
+{% endblock %}

@@ -1,0 +1,233 @@
+<!-- templates/club/update_players_result.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <div style="margin-bottom: 20px;">
+        <h2 style="text-align: center;">Résultat de la mise à jour – {{ club.name }}</h2>
+        <p style="text-align: center; color: #1a7a1a;">
+            ✅ <strong>{{ total_updated }}</strong> joueur(s) mis à jour avec succès.
+        </p>
+    </div>
+
+    {% if conflicts %}
+    <div style="margin: 16px 0; padding: 16px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px;">
+        <h3 style="color: #856404;">⚠️ {{ conflicts|length }} conflit(s) détecté(s) – joueur(s) appartenant à un autre club en base</h3>
+        <p style="font-size: 13px; color: #856404;">
+            Ces joueurs apparaissent dans le CSV de <strong>{{ club.name }}</strong> mais sont déjà rattachés
+            à un autre club en base. Cochez les joueurs à transférer puis cliquez sur le bouton correspondant.
+        </p>
+    </div>
+
+    <form id="transferForm" method="POST" action="{{ url_for('club.transfer_player') }}">
+        <input type="hidden" name="transfers" id="transfersInput">
+
+        <div style="
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        ">
+            <!-- Checkbox tout sélectionner -->
+            <label style="display:flex; align-items:center; gap:6px; font-size:14px; font-weight:bold; cursor:pointer; color:#333;">
+                <input type="checkbox" id="selectAll"
+                       style="width:18px; height:18px; cursor:pointer; accent-color:#e65100;">
+                Tout sélectionner
+            </label>
+
+            <div style="width:1px; height:28px; background:#ccc;"></div>
+
+            <!-- Bouton sélection -->
+            <button type="button"
+                    onclick="submitTransfer(false)"
+                    style="
+                        background-color: #e65100;
+                        color: #fff;
+                        font-weight: bold;
+                        font-size: 13px;
+                        padding: 7px 16px;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        white-space: nowrap;
+                    ">
+                🔄 Transférer la sélection
+            </button>
+
+            <!-- Bouton tout transférer -->
+            <button type="button"
+                    onclick="submitTransfer(true)"
+                    style="
+                        background-color: #2e7d32;
+                        color: #fff;
+                        font-weight: bold;
+                        font-size: 13px;
+                        padding: 7px 16px;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        white-space: nowrap;
+                    ">
+                ✅ Tout transférer
+            </button>
+
+            <!-- Compteur -->
+            <span id="selectionCount"
+                  style="font-size: 13px; font-weight: bold; color: #e65100; margin-left: 4px;"></span>
+        </div>
+
+        <table class="default-table">
+            <caption class="table-caption">Joueurs en conflit ({{ conflicts|length }})</caption>
+            <thead>
+                <tr>
+                    <th style="width:36px; text-align:center;">✔</th>
+                    <th>N° Licence</th>
+                    <th>Nom</th>
+                    <th>Classement</th>
+                    <th>Club actuel en base</th>
+                    <th>Nouveau club (CSV)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conflict in conflicts %}
+                <tr class="conflict-row">
+                    <td style="text-align:center;">
+                        <input type="checkbox" class="conflict-cb"
+                               style="width:16px; height:16px; cursor:pointer; accent-color:#e65100;"
+                               data-license-id="{{ conflict.license_id }}"
+                               data-new-club-id="{{ conflict.new_club_id }}"
+                               data-ranking-id="{{ conflict.ranking_id }}"
+                               data-best-ranking-id="{{ conflict.best_ranking_id or '' }}">
+                    </td>
+                    <td>{{ conflict.license_number }}</td>
+                    <td>{{ conflict.name }}</td>
+                    <td>{{ conflict.ranking }}</td>
+                    <td style="background-color: #ffebee; font-weight: bold;">{{ conflict.current_club }}</td>
+                    <td style="background-color: #e8f5e9; font-weight: bold;">{{ conflict.new_club }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+
+    <script>
+    (function () {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.conflict-cb');
+        const countEl = document.getElementById('selectionCount');
+
+        function highlightRow(cb) {
+            const row = cb.closest('tr');
+            row.style.backgroundColor = cb.checked ? '#fff8e1' : '';
+        }
+
+        function updateCount() {
+            const n = document.querySelectorAll('.conflict-cb:checked').length;
+            countEl.textContent = n > 0 ? n + ' joueur(s) sélectionné(s)' : '';
+            selectAll.checked = n === checkboxes.length && n > 0;
+            selectAll.indeterminate = n > 0 && n < checkboxes.length;
+        }
+
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+                highlightRow(cb);
+            });
+            updateCount();
+        });
+
+        checkboxes.forEach(cb => cb.addEventListener('change', function () {
+            highlightRow(this);
+            updateCount();
+        }));
+
+        window.submitTransfer = function (all) {
+            const toTransfer = [];
+            const targets = all ? checkboxes : document.querySelectorAll('.conflict-cb:checked');
+            targets.forEach(cb => {
+                toTransfer.push({
+                    license_id:      parseInt(cb.dataset.licenseId),
+                    new_club_id:     cb.dataset.newClubId,
+                    ranking_id:      cb.dataset.rankingId      ? parseInt(cb.dataset.rankingId)      : null,
+                    best_ranking_id: cb.dataset.bestRankingId  ? parseInt(cb.dataset.bestRankingId)  : null,
+                });
+            });
+            if (toTransfer.length === 0) {
+                alert('Veuillez sélectionner au moins un joueur.');
+                return;
+            }
+            const label = all
+                ? 'tous les joueurs en conflit (' + toTransfer.length + ')'
+                : toTransfer.length + ' joueur(s) sélectionné(s)';
+            if (!confirm('Transférer ' + label + ' vers leur nouveau club ?')) return;
+            document.getElementById('transfersInput').value = JSON.stringify(toTransfer);
+            document.getElementById('transferForm').submit();
+        };
+    })();
+    </script>
+    {% endif %}
+
+    {% if deleted_players %}
+    <div style="margin: 16px 0; padding: 16px; background-color: #fdecea; border: 1px solid #e57373; border-radius: 5px;">
+        <h3 style="color: #b71c1c;">🗑️ {{ deleted_players|length }} joueur(s) supprimé(s) – absents du fichier CSV</h3>
+        <p style="font-size: 13px; color: #b71c1c;">
+            Ces joueurs ne figurent plus dans le fichier Tenup de <strong>{{ club.name }}</strong>
+            (départ vers un autre club, arrêt ou non-renouvellement de licence).<br>
+            Ils ont été <strong>supprimés de la base de données</strong>.
+            Si nécessaire, réinscrivez-les manuellement via « Nouveau joueur ».
+        </p>
+        {% if deleted_players | selectattr('in_team') | list %}
+        <p style="font-size: 13px; color: #7b1fa2; font-weight: bold;">
+            ⚠️ Certains joueurs supprimés étaient encore présents dans une équipe (signalés ci-dessous).
+            Veuillez vérifier la composition des équipes concernées.
+        </p>
+        {% endif %}
+    </div>
+    <table class="default-table">
+        <caption class="table-caption">Joueurs supprimés ({{ deleted_players|length }})</caption>
+        <thead>
+            <tr>
+                <th>N° Licence</th>
+                <th>Nom</th>
+                <th>Classement</th>
+                <th>Club</th>
+                <th>Dans une équipe ?</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in deleted_players %}
+            <tr style="background-color: {{ '#f3e5f5' if player.in_team else '#fce4ec' }};">
+                <td>{{ player.license_number }}</td>
+                <td>{{ player.name }}</td>
+                <td>{{ player.ranking }}</td>
+                <td>{{ player.club }}</td>
+                <td style="text-align: center; font-weight: bold; color: {{ '#7b1fa2' if player.in_team else '#b71c1c' }};">
+                    {{ '⚠️ Oui' if player.in_team else 'Non' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if not conflicts and not deleted_players %}
+    <p style="text-align: center; color: #1a7a1a; font-size: 15px;">
+        ✅ Tous les joueurs du fichier sont à jour, aucun absent et aucun conflit détecté.
+    </p>
+    {% endif %}
+
+    <div style="margin-top: 24px; text-align: center;">
+        <a href="{{ url_for('club.index') }}" class="button">Retour au club</a>
+    </div>
+</main>
+{% endblock main %}
+
+
+
+

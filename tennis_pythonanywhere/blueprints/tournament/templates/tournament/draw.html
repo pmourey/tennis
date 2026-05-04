@@ -1,0 +1,1117 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="container-fluid">
+  <h1>&#127942; {{ draw.name or draw.category.name }}</h1>
+  <p>Tournoi&nbsp;: <strong>{{ tournament.name }}</strong>
+    &nbsp;|&nbsp; {{ draw.category.name }}
+    &nbsp;|&nbsp; G&eacute;n&eacute;r&eacute; le {{ draw.generated_at.strftime('%d/%m/%Y') }}
+    &nbsp;|&nbsp; Format {{ draw.category.game_format }}
+  </p>
+
+  {% if overdue_count > 0 %}
+  <div class="alert-overdue">
+    &#9888; <strong>{{ overdue_count }} résultat(s) en attente de saisie depuis plus de 48h !</strong>
+    <a href="{{ url_for('tournament.convocations', tid=tournament.id) }}" class="alert-overdue-link">Voir les convocations</a>
+  </div>
+  {% endif %}
+
+  <!-- Navigation entre tableaux (fil d'Ariane) -->
+  {% if all_draws | length > 1 %}
+  <div class="draw-nav">
+    {% for d in all_draws %}
+      {% set stats = draw_stats[d.id] %}
+      {% set is_active = (d.id == draw.id) %}
+      <a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=d.id) }}"
+         class="draw-nav-link {% if is_active %}active{% endif %}">
+        {% if d.draw_type == 'QUALIFYING' %}&#9658;{% else %}&#127942;{% endif %}
+        {{ d.name or ('Tableau Final' if d.draw_type == 'MAIN' else 'Qualifications') }}
+        {% if stats.total > 0 %}
+          <span class="nav-badge {% if stats.done == stats.total %}nav-badge-done{% endif %}">
+            {{ stats.done }}/{{ stats.total }}
+          </span>
+        {% endif %}
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="draw-actions">
+    <a href="{{ url_for('tournament.detail', tid=tournament.id) }}" class="btn btn-secondary btn-sm">&#8592; Tournoi</a>
+    {% if prev_draw %}
+      <a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=prev_draw.id) }}" class="btn btn-outline-secondary btn-sm">&#8592; {{ prev_draw.name or 'Précédent' }}</a>
+    {% endif %}
+    {% if next_draw %}
+      <a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=next_draw.id) }}" class="btn btn-outline-secondary btn-sm">{{ next_draw.name or 'Suivant' }} &#8594;</a>
+    {% endif %}
+    <a href="{{ url_for('tournament.convocations', tid=tournament.id) }}" class="btn btn-warning btn-sm">&#128197; Convocations</a>
+    <form method="POST" action="{{ url_for('tournament.schedule', tid=tournament.id, draw_id=draw.id) }}" style="display:inline">
+      <button class="btn btn-info btn-sm">&#128197; Planifier</button>
+    </form>
+    <a href="{{ url_for('tournament.print_draw', tid=tournament.id, draw_id=draw.id) }}" class="btn btn-primary btn-sm" target="_blank">&#128438; Imprimer / PDF</a>
+  </div>
+
+  <!-- ═══ BRACKET ══════════════════════════════════════════════════════════════ -->
+  {% set base_h = 110 %}
+  {% set gap_px = 32 %}
+
+  <div class="bracket-outer">
+    <div class="bracket-container" style="--gap:{{ gap_px }}px; --base-h:{{ base_h }}px">
+
+      {% for round_num in range(1, total_rounds + 1) %}
+        {% set wrapper_h = base_h * (2 ** (round_num - 1)) %}
+        {% set is_last = (round_num == total_rounds) %}
+        {% set nb_matches_in_round = matches_by_round.get(round_num, []) | length %}
+
+        {# Toujours afficher le round (plus de skip), mais le dernier round qualif sera rendu en cards #}
+        <div class="bracket-col {% if draw.draw_type == 'QUALIFYING' and is_last %}qualif-results-col{% endif %}">
+
+          <!-- Libellé du tour -->
+          <div class="round-header {% if draw.draw_type == 'QUALIFYING' and is_last %}round-header-qualif{% endif %}">
+            {% if draw.draw_type == 'QUALIFYING' %}
+              {% if is_last %}&#127937; Qualifi&eacute;(s) sortant(s)
+              {% else %}Tour {{ round_num }}{% endif %}
+            {% else %}
+              {% if total_rounds == 1 %}&#127937; Finale
+              {% elif round_num == total_rounds %}&#127937; Finale
+              {% elif round_num == total_rounds - 1 %}Demi-finales
+              {% elif round_num == total_rounds - 2 %}Quarts de finale
+              {% elif round_num == total_rounds - 3 %}8&egrave;mes
+              {% elif round_num == total_rounds - 4 %}16&egrave;mes
+              {% else %}Tour {{ round_num }}{% endif %}
+            {% endif %}
+          </div>
+
+          <!-- Matchs -->
+          {% for match in matches_by_round.get(round_num, []) %}
+            {% if match.status == 'COMPLETED' %}{% set sc = 'mc-done' %}
+            {% elif match.status == 'WALKOVER' %}{% set sc = 'mc-wo' %}
+            {% elif match.status == 'BYE' %}{% set sc = 'mc-bye' %}
+            {% elif match.status == 'SCHEDULED' %}{% set sc = 'mc-sched' %}
+            {% else %}{% set sc = '' %}{% endif %}
+
+            {# Source matches pour les slots de ce match (venant du round précédent) #}
+            {% set src_round = source_match_map.get(round_num, {}) %}
+            {% set src_pos   = src_round.get(match.position, {}) %}
+            {% set src_p1    = src_pos.get('p1') %}
+            {% set src_p2    = src_pos.get('p2') %}
+            {# Qualifying finals pour les Q-slots du tableau final #}
+            {% set qfin_p1 = qualif_finals_map.get(match.id ~ '_p1') if draw.draw_type == 'MAIN' and match.round_number == 1 else none %}
+            {% set qfin_p2 = qualif_finals_map.get(match.id ~ '_p2') if draw.draw_type == 'MAIN' and match.round_number == 1 else none %}
+
+            <div class="match-wrapper" style="height:{{ wrapper_h }}px">
+
+              {% if round_num > 1 %}
+              <div class="conn-v"></div>
+              <div class="conn-h"></div>
+              {% endif %}
+              {% if not is_last %}
+              <div class="conn-r"></div>
+              {% endif %}
+
+              {# ── Dernier round d'un tableau qualificatif → card qualifié ─────── #}
+              {% if draw.draw_type == 'QUALIFYING' and is_last %}
+                <div class="qualif-result-box {% if match.winner %}qr-done{% endif %}">
+                  {# Numéro Qn si ce tableau alimente directement le tableau final,
+                     sinon "Qualifié" pour les tableaux intermédiaires de cascade #}
+                  {% if draw.qualif_number %}
+                    <div class="qr-number">Q{{ draw.qualif_number }}</div>
+                  {% else %}
+                    <div class="qr-number qr-number-inter">&#10003; Qualifi&eacute;</div>
+                  {% endif %}
+                  {% if match.winner %}
+                    <div class="qr-player">
+                      <span class="pname">{{ match.winner.name }}</span>
+                      <span class="pranking">{{ match.winner.ranking.value }}</span>
+                    </div>
+                    {% if match.score_text %}<div class="qr-score">{{ match.display_score }}</div>{% endif %}
+                    <button type="button" class="sf-open-btn sf-edit-btn qr-btn"
+                      data-mid="{{ match.id }}"
+                      data-p1id="{{ match.player1_id }}" data-p1="{{ match.player1.name if match.player1 else '' }}"
+                      data-p2id="{{ match.player2_id }}" data-p2="{{ match.player2.name if match.player2 else '' }}"
+                      data-fmt="{{ draw.category.game_format }}"
+                      data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=match.id) }}"
+                      data-score="{{ match.score_text or '' }}" data-winner="{{ match.winner_id or '' }}"
+                    >&#9998; Corriger</button>
+                  {% elif match.player1 and match.player2 %}
+                    {# Finale qualificative prête : les deux finalistes sont connus #}
+                    <div class="qr-players-pending">
+                      <span class="qr-p1">{{ match.player1.name }}</span>
+                      <span class="qr-vs">vs</span>
+                      <span class="qr-p2">{{ match.player2.name }}</span>
+                    </div>
+                    {% if match.scheduled_at %}
+                      <div class="qr-sched">{{ match.scheduled_at.strftime('%d/%m %H:%M') }}{% if match.court %} &ndash; {{ match.court.name }}{% endif %}</div>
+                    {% endif %}
+                    <button type="button" class="sf-open-btn qr-btn"
+                      data-mid="{{ match.id }}"
+                      data-p1id="{{ match.player1_id }}" data-p1="{{ match.player1.name }}"
+                      data-p2id="{{ match.player2_id }}" data-p2="{{ match.player2.name }}"
+                      data-fmt="{{ draw.category.game_format }}"
+                      data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=match.id) }}"
+                      data-score="" data-winner=""
+                    >&#9998; Saisir score</button>
+                  {% elif src_p1 or src_p2 %}
+                    {# Finale en attente : afficher les demi-finales sources pour permettre la saisie #}
+                    <div class="qr-semi-pending">
+                      <div class="qr-semi-label">&#9203; Demi-finales</div>
+                      {% if src_p1 and src_p1.player1 and src_p1.player2 %}
+                        <div class="qr-semi-match">
+                          <span class="qr-semi-p">{{ src_p1.player1.license.lastName }}</span>
+                          <span class="qr-vs">vs</span>
+                          <span class="qr-semi-p">{{ src_p1.player2.license.lastName }}</span>
+                          {% if src_p1.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                            <button type="button" class="sf-open-btn qr-btn qr-semi-btn"
+                              data-mid="{{ src_p1.id }}"
+                              data-p1id="{{ src_p1.player1_id }}" data-p1="{{ src_p1.player1.name }}"
+                              data-p2id="{{ src_p1.player2_id }}" data-p2="{{ src_p1.player2.name }}"
+                              data-fmt="{{ draw.category.game_format }}"
+                              data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p1.id) }}"
+                              data-score="{{ src_p1.score_text or '' }}" data-winner="{{ src_p1.winner_id or '' }}"
+                            >&#9998;</button>
+                          {% endif %}
+                        </div>
+                      {% endif %}
+                      {% if src_p2 and src_p2.player1 and src_p2.player2 %}
+                        <div class="qr-semi-match">
+                          <span class="qr-semi-p">{{ src_p2.player1.license.lastName }}</span>
+                          <span class="qr-vs">vs</span>
+                          <span class="qr-semi-p">{{ src_p2.player2.license.lastName }}</span>
+                          {% if src_p2.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                            <button type="button" class="sf-open-btn qr-btn qr-semi-btn"
+                              data-mid="{{ src_p2.id }}"
+                              data-p1id="{{ src_p2.player1_id }}" data-p1="{{ src_p2.player1.name }}"
+                              data-p2id="{{ src_p2.player2_id }}" data-p2="{{ src_p2.player2.name }}"
+                              data-fmt="{{ draw.category.game_format }}"
+                              data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p2.id) }}"
+                              data-score="{{ src_p2.score_text or '' }}" data-winner="{{ src_p2.winner_id or '' }}"
+                            >&#9998;</button>
+                          {% endif %}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <div class="qr-pending">&mdash; En attente</div>
+                  {% endif %}
+                </div>
+
+              {# ── Rendu normal (draw-match) ────────────────────────────────────── #}
+              {% else %}
+              <div class="draw-match {{ sc }}">
+
+                <!-- Joueur 1 -->
+                <div class="mp {{ 'mp-win' if match.winner_id and match.winner_id == match.player1_id }}">
+                  {% if match.player1 %}
+                    {% set reg1 = match.draw.category.registrations | selectattr('player_id','equalto',match.player1_id) | first %}
+                    {% if reg1 and reg1.is_seeded %}<span class="seed-badge">{{ reg1.seed_number }}</span>{% endif %}
+                    <span class="pname">{{ match.player1.name }}</span>
+                    <span class="pranking">{{ match.player1.ranking.value }}</span>
+                    {# Score + correction depuis le match source (rounds > 1) #}
+                    {% if src_p1 and src_p1.status in ['COMPLETED','WALKOVER'] %}
+                      {% if src_p1.score_text %}<span class="mp-prev-score">{{ src_p1.display_score }}</span>{% endif %}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ src_p1.id }}"
+                        data-p1id="{{ src_p1.player1_id }}" data-p1="{{ src_p1.player1.name if src_p1.player1 else '' }}"
+                        data-p2id="{{ src_p1.player2_id }}" data-p2="{{ src_p1.player2.name if src_p1.player2 else '' }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p1.id) }}"
+                        data-score="{{ src_p1.score_text or '' }}" data-winner="{{ src_p1.winner_id or '' }}">&#9998;</button>
+                    {% elif src_p1 and src_p1.player1 and src_p1.player2 and src_p1.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                      {# Joueur déjà propagé (ex. BYE) mais match source encore en attente #}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ src_p1.id }}"
+                        data-p1id="{{ src_p1.player1_id }}" data-p1="{{ src_p1.player1.name }}"
+                        data-p2id="{{ src_p1.player2_id }}" data-p2="{{ src_p1.player2.name }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p1.id) }}"
+                        data-score="" data-winner="">&#9998;</button>
+                    {% endif %}
+                    {# Round 1 tableau principal : score depuis la finale qualificative #}
+                    {% if draw.draw_type == 'MAIN' and match.round_number == 1 %}
+                      {% set qi_p1b = qualif_info_map.get(match.id ~ '_p1') %}
+                      {% if qi_p1b and qi_p1b.final_match and qi_p1b.final_match.status in ['COMPLETED','WALKOVER'] %}
+                        {% if qi_p1b.final_match.score_text %}<span class="mp-prev-score">{{ qi_p1b.final_match.display_score }}</span>{% endif %}
+                        <button type="button" class="sf-inline-btn"
+                          data-mid="{{ qi_p1b.final_match.id }}"
+                          data-p1id="{{ qi_p1b.final_match.player1_id }}" data-p1="{{ qi_p1b.final_match.player1.name if qi_p1b.final_match.player1 else '' }}"
+                          data-p2id="{{ qi_p1b.final_match.player2_id }}" data-p2="{{ qi_p1b.final_match.player2.name if qi_p1b.final_match.player2 else '' }}"
+                          data-fmt="{{ draw.category.game_format }}"
+                          data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=qi_p1b.final_match.id) }}"
+                          data-score="{{ qi_p1b.final_match.score_text or '' }}" data-winner="{{ qi_p1b.final_match.winner_id or '' }}">&#9998;</button>
+                      {% endif %}
+                    {% endif %}
+                  {% elif match.status == 'BYE' %}
+                    <span class="bye-label">BYE</span>
+                  {% elif draw.draw_type == 'MAIN' and match.round_number == 1 and not match.player1 %}
+                    {% set qi_p1 = qualif_info_map.get(match.id ~ '_p1') %}
+                    <span class="qualif-label">Q{{ qi_p1.qnum if qi_p1 else '?' }}</span>
+                    {% if qi_p1 and qi_p1.draw %}
+                      <a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=qi_p1.draw.id) }}" class="qlink" title="{{ qi_p1.draw.display_name }}">&#8594;</a>
+                    {% endif %}
+                    {# Bouton saisir score pour la finale qualificative correspondante #}
+                    {% set qfin_p1 = qualif_finals_map.get(match.id ~ '_p1') %}
+                    {% if qfin_p1 and qfin_p1.player1 and qfin_p1.player2 and qfin_p1.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ qfin_p1.id }}"
+                        data-p1id="{{ qfin_p1.player1_id }}" data-p1="{{ qfin_p1.player1.name }}"
+                        data-p2id="{{ qfin_p1.player2_id }}" data-p2="{{ qfin_p1.player2.name }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=qfin_p1.id) }}"
+                        data-score="" data-winner="">&#9998;</button>
+                    {% endif %}
+                  {% else %}
+                    <span class="tbd">&mdash;</span>
+                    {# Bouton saisir score pour le match source du round précédent #}
+                    {% if src_p1 and src_p1.player1 and src_p1.player2 and src_p1.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ src_p1.id }}"
+                        data-p1id="{{ src_p1.player1_id }}" data-p1="{{ src_p1.player1.name }}"
+                        data-p2id="{{ src_p1.player2_id }}" data-p2="{{ src_p1.player2.name }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p1.id) }}"
+                        data-score="" data-winner="">&#9998;</button>
+                    {% endif %}
+                  {% endif %}
+                </div>
+
+                <div class="msep"></div>
+
+                <!-- Joueur 2 -->
+                <div class="mp {{ 'mp-win' if match.winner_id and match.winner_id == match.player2_id }}">
+                  {% if match.player2 %}
+                    {% set reg2 = match.draw.category.registrations | selectattr('player_id','equalto',match.player2_id) | first %}
+                    {% if reg2 and reg2.is_seeded %}<span class="seed-badge">{{ reg2.seed_number }}</span>{% endif %}
+                    <span class="pname">{{ match.player2.name }}</span>
+                    <span class="pranking">{{ match.player2.ranking.value }}</span>
+                    {# Score + correction depuis le match source (rounds > 1) #}
+                    {% if src_p2 and src_p2.status in ['COMPLETED','WALKOVER'] %}
+                      {% if src_p2.score_text %}<span class="mp-prev-score">{{ src_p2.display_score }}</span>{% endif %}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ src_p2.id }}"
+                        data-p1id="{{ src_p2.player1_id }}" data-p1="{{ src_p2.player1.name if src_p2.player1 else '' }}"
+                        data-p2id="{{ src_p2.player2_id }}" data-p2="{{ src_p2.player2.name if src_p2.player2 else '' }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p2.id) }}"
+                        data-score="{{ src_p2.score_text or '' }}" data-winner="{{ src_p2.winner_id or '' }}">&#9998;</button>
+                    {% elif src_p2 and src_p2.player1 and src_p2.player2 and src_p2.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                      {# Joueur déjà propagé (ex. BYE) mais match source encore en attente #}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ src_p2.id }}"
+                        data-p1id="{{ src_p2.player1_id }}" data-p1="{{ src_p2.player1.name }}"
+                        data-p2id="{{ src_p2.player2_id }}" data-p2="{{ src_p2.player2.name }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p2.id) }}"
+                        data-score="" data-winner="">&#9998;</button>
+                    {% endif %}
+                    {# Round 1 tableau principal : score depuis la finale qualificative #}
+                    {% if draw.draw_type == 'MAIN' and match.round_number == 1 %}
+                      {% set qi_p2b = qualif_info_map.get(match.id ~ '_p2') %}
+                      {% if qi_p2b and qi_p2b.final_match and qi_p2b.final_match.status in ['COMPLETED','WALKOVER'] %}
+                        {% if qi_p2b.final_match.score_text %}<span class="mp-prev-score">{{ qi_p2b.final_match.display_score }}</span>{% endif %}
+                        <button type="button" class="sf-inline-btn"
+                          data-mid="{{ qi_p2b.final_match.id }}"
+                          data-p1id="{{ qi_p2b.final_match.player1_id }}" data-p1="{{ qi_p2b.final_match.player1.name if qi_p2b.final_match.player1 else '' }}"
+                          data-p2id="{{ qi_p2b.final_match.player2_id }}" data-p2="{{ qi_p2b.final_match.player2.name if qi_p2b.final_match.player2 else '' }}"
+                          data-fmt="{{ draw.category.game_format }}"
+                          data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=qi_p2b.final_match.id) }}"
+                          data-score="{{ qi_p2b.final_match.score_text or '' }}" data-winner="{{ qi_p2b.final_match.winner_id or '' }}">&#9998;</button>
+                      {% endif %}
+                    {% endif %}
+                  {% elif match.status == 'BYE' %}
+                    <span class="bye-label">BYE</span>
+                  {% elif draw.draw_type == 'MAIN' and match.round_number == 1 and not match.player2 %}
+                    {% set qi_p2 = qualif_info_map.get(match.id ~ '_p2') %}
+                    <span class="qualif-label">Q{{ qi_p2.qnum if qi_p2 else '?' }}</span>
+                    {% if qi_p2 and qi_p2.draw %}
+                      <a href="{{ url_for('tournament.show_draw', tid=tournament.id, draw_id=qi_p2.draw.id) }}" class="qlink" title="{{ qi_p2.draw.display_name }}">&#8594;</a>
+                    {% endif %}
+                    {% set qfin_p2 = qualif_finals_map.get(match.id ~ '_p2') %}
+                    {% if qfin_p2 and qfin_p2.player1 and qfin_p2.player2 and qfin_p2.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ qfin_p2.id }}"
+                        data-p1id="{{ qfin_p2.player1_id }}" data-p1="{{ qfin_p2.player1.name }}"
+                        data-p2id="{{ qfin_p2.player2_id }}" data-p2="{{ qfin_p2.player2.name }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=qfin_p2.id) }}"
+                        data-score="" data-winner="">&#9998;</button>
+                    {% endif %}
+                  {% else %}
+                    <span class="tbd">&mdash;</span>
+                    {% if src_p2 and src_p2.player1 and src_p2.player2 and src_p2.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                      <button type="button" class="sf-inline-btn"
+                        data-mid="{{ src_p2.id }}"
+                        data-p1id="{{ src_p2.player1_id }}" data-p1="{{ src_p2.player1.name }}"
+                        data-p2id="{{ src_p2.player2_id }}" data-p2="{{ src_p2.player2.name }}"
+                        data-fmt="{{ draw.category.game_format }}"
+                        data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=src_p2.id) }}"
+                        data-score="" data-winner="">&#9998;</button>
+                    {% endif %}
+                  {% endif %}
+                </div>
+
+                <!-- Planification (le score n'est affiché QUE dans la card suivante via mp-prev-score) -->
+                {% if match.status == 'WALKOVER' %}
+                  <div class="mscore mscore-wo"><span class="wo-badge">WO</span></div>
+                {% endif %}
+                {% if match.scheduled_at %}
+                  <div class="msched">{{ match.scheduled_at.strftime('%d/%m %H:%M') }}{% if match.court %} &ndash; {{ match.court.name }}{% endif %}</div>
+                {% endif %}
+
+                <!-- Bouton Requalifier (matchs WO uniquement) -->
+                {% if match.status == 'WALKOVER' and match.player1 and match.player2 %}
+                  <div class="score-open-wrap">
+                    <a href="{{ url_for('tournament.requalify', tid=tournament.id, mid=match.id) }}" class="sf-requal-btn">&#8635; Requalifier</a>
+                  </div>
+                {% endif %}
+
+                <!-- Bouton Saisir score (tous rounds, tous tableaux, quand les 2 joueurs sont présents) -->
+                {% if match.player1 and match.player2 and match.status not in ['COMPLETED','WALKOVER','BYE'] %}
+                  <div class="score-open-wrap">
+                    <button type="button" class="sf-open-btn"
+                      data-mid="{{ match.id }}"
+                      data-p1id="{{ match.player1_id }}" data-p1="{{ match.player1.name }}"
+                      data-p2id="{{ match.player2_id }}" data-p2="{{ match.player2.name }}"
+                      data-fmt="{{ draw.category.game_format }}"
+                      data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=match.id) }}"
+                      data-score="{{ match.score_text or '' }}" data-winner="{{ match.winner_id or '' }}"
+                    >&#9998; Saisir score</button>
+                  </div>
+                {% endif %}
+
+              </div><!-- draw-match -->
+              {% endif %}{# fin du if qualifying last round / else normal #}
+            </div><!-- match-wrapper -->
+          {% endfor %}
+
+        </div><!-- bracket-col -->
+      {% endfor %}
+
+      {# ── Colonne Vainqueur (tableau principal uniquement) ───────────────── #}
+      {% if draw.draw_type == 'MAIN' and total_rounds > 0 %}
+        {% set _final_matches = matches_by_round.get(total_rounds, []) %}
+        {% set _final_match = _final_matches[0] if _final_matches else none %}
+        {% set _winner_h = base_h * (2 ** (total_rounds - 1)) %}
+        <div class="bracket-col winner-col">
+          <div class="round-header round-header-winner">&#127942; Vainqueur</div>
+          <div class="match-wrapper" style="height:{{ _winner_h }}px">
+            <div class="conn-v"></div>
+            <div class="conn-h"></div>
+            {% if _final_match and _final_match.winner %}
+              <div class="winner-card">
+                <div class="winner-trophy">&#127942;</div>
+                {% set _w_reg = _final_match.draw.category.registrations | selectattr('player_id','equalto',_final_match.winner_id) | first %}
+                {% if _w_reg and _w_reg.is_seeded %}<span class="seed-badge">{{ _w_reg.seed_number }}</span>{% endif %}
+                <div class="winner-name">{{ _final_match.winner.name }}</div>
+                <div class="winner-ranking">{{ _final_match.winner.ranking.value }}</div>
+                {% if _final_match.score_text %}<div class="winner-score">{{ _final_match.display_score }}</div>{% endif %}
+                <button type="button" class="sf-open-btn sf-edit-btn qr-btn"
+                  data-mid="{{ _final_match.id }}"
+                  data-p1id="{{ _final_match.player1_id }}" data-p1="{{ _final_match.player1.name if _final_match.player1 else '' }}"
+                  data-p2id="{{ _final_match.player2_id }}" data-p2="{{ _final_match.player2.name if _final_match.player2 else '' }}"
+                  data-fmt="{{ draw.category.game_format }}"
+                  data-action="{{ url_for('tournament.enter_score', tid=tournament.id, mid=_final_match.id) }}"
+                  data-score="{{ _final_match.score_text or '' }}" data-winner="{{ _final_match.winner_id or '' }}"
+                >&#9998; Corriger</button>
+              </div>
+            {% else %}
+              <div class="winner-card winner-card-empty">
+                <div class="winner-trophy winner-trophy-pending">&#127942;</div>
+                <span class="tbd">&mdash;</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+    </div><!-- bracket-container -->
+  </div><!-- bracket-outer -->
+
+  <!-- Légende -->
+  <div class="draw-legend">
+    <span class="mc-done legend-item">&#10003; Termin&eacute;</span>
+    <span class="mc-wo legend-item">WO Forfait</span>
+    <span class="mc-sched legend-item">&#128197; Planifi&eacute;</span>
+    <span class="mc-bye legend-item">BYE</span>
+    <span class="legend-item"><span class="seed-badge">1</span> T&ecirc;te de s&eacute;rie</span>
+    <span class="legend-item"><span class="qualif-label">Q1</span> Qualifi&eacute;</span>
+  </div>
+
+</div><!-- /container-fluid -->
+
+<!-- ═══ MODAL SAISIE DE SCORE ══════════════════════════════════════════════════ -->
+<div id="scoreModal" class="score-modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="score-modal-box">
+    <div class="score-modal-header">
+      <span id="smTitle">Saisir le score</span>
+      <button type="button" class="sm-close-btn" id="smClose" aria-label="Fermer">&times;</button>
+    </div>
+    <form id="smForm" method="POST" action="">
+
+      <!-- Sélection vainqueur -->
+      <div class="sm-players">
+        <div class="sm-player-row" id="smRow1">
+          <input type="radio" name="winner_id" id="smW1" required>
+          <label for="smW1" id="smP1Label">Joueur 1</label>
+          <span class="sm-win-icon">&#127942;</span>
+        </div>
+        <div class="sm-player-row" id="smRow2">
+          <input type="radio" name="winner_id" id="smW2" required>
+          <label for="smW2" id="smP2Label">Joueur 2</label>
+          <span class="sm-win-icon">&#127942;</span>
+        </div>
+      </div>
+
+      <!-- Toggle WO -->
+      <div class="sm-wo-row">
+        <label class="sm-wo-label">
+          <input type="checkbox" id="smWoCheck">
+          <span>&#9940; Forfait / WO</span>
+        </label>
+      </div>
+
+        <!-- Saisie par set — format numérique avec validation -->
+        <div id="smSetsSection">
+          <div class="sm-sets-header">
+            <span></span>
+            <span id="smColP1" class="sm-col-name">J1</span>
+            <span class="sm-col-sep">/</span>
+            <span id="smColP2" class="sm-col-name">J2</span>
+            <span></span>
+          </div>
+
+          <div class="sm-set-row" id="smSetRow1">
+            <span class="sm-set-lbl">Set 1</span>
+            <input type="number" class="sm-num" id="smS1a" min="0" max="7" placeholder="">
+            <span class="sm-col-sep">/</span>
+            <input type="number" class="sm-num" id="smS1b" min="0" max="7" placeholder="">
+            <span class="sm-set-ok" id="smOk1"></span>
+          </div>
+          <div class="sm-set-row sm-tb-sub" id="smTbRow1" style="display:none">
+            <span class="sm-set-lbl sm-tb-lbl">&#8618; TB</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num sm-num-tb" id="smTb1a" min="0" max="98" placeholder="?">
+              <span class="sm-num sm-tb-disp" id="smTb1aD" style="display:none"></span>
+            </span>
+            <span class="sm-col-sep">/</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num sm-num-tb" id="smTb1b" min="0" max="98" placeholder="?">
+              <span class="sm-num sm-tb-disp" id="smTb1bD" style="display:none"></span>
+            </span>
+            <span></span>
+          </div>
+
+          <div class="sm-set-row" id="smSetRow2">
+            <span class="sm-set-lbl">Set 2</span>
+            <input type="number" class="sm-num" id="smS2a" min="0" max="7" placeholder="">
+            <span class="sm-col-sep">/</span>
+            <input type="number" class="sm-num" id="smS2b" min="0" max="7" placeholder="">
+            <span class="sm-set-ok" id="smOk2"></span>
+          </div>
+          <div class="sm-set-row sm-tb-sub" id="smTbRow2" style="display:none">
+            <span class="sm-set-lbl sm-tb-lbl">&#8618; TB</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num sm-num-tb" id="smTb2a" min="0" max="98" placeholder="?">
+              <span class="sm-num sm-tb-disp" id="smTb2aD" style="display:none"></span>
+            </span>
+            <span class="sm-col-sep">/</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num sm-num-tb" id="smTb2b" min="0" max="98" placeholder="?">
+              <span class="sm-num sm-tb-disp" id="smTb2bD" style="display:none"></span>
+            </span>
+            <span></span>
+          </div>
+
+          <!-- Set 3 / Super TB : structure TB (input perdant + affichage calculé gagnant) -->
+          <div class="sm-set-row" id="smSetRow3" style="display:none">
+            <span class="sm-set-lbl" id="smSet3Lbl">Set 3</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num" id="smS3a" min="0" max="99" placeholder="">
+              <span class="sm-num sm-tb-disp" id="smS3aD" style="display:none"></span>
+            </span>
+            <span class="sm-col-sep">/</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num" id="smS3b" min="0" max="99" placeholder="">
+              <span class="sm-num sm-tb-disp" id="smS3bD" style="display:none"></span>
+            </span>
+            <span class="sm-set-ok" id="smOk3"></span>
+          </div>
+          <!-- TB set 3 (format 1 uniquement, si 3e set = 7/6) -->
+          <div class="sm-set-row sm-tb-sub" id="smTbRow3" style="display:none">
+            <span class="sm-set-lbl sm-tb-lbl">&#8618; TB</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num sm-num-tb" id="smTb3a" min="0" max="98" placeholder="?">
+              <span class="sm-num sm-tb-disp" id="smTb3aD" style="display:none"></span>
+            </span>
+            <span class="sm-col-sep">/</span>
+            <span class="sm-tb-cell">
+              <input type="number" class="sm-num sm-num-tb" id="smTb3b" min="0" max="98" placeholder="?">
+              <span class="sm-num sm-tb-disp" id="smTb3bD" style="display:none"></span>
+            </span>
+            <span></span>
+          </div>
+
+          <div class="sm-tally" id="smTally"></div>
+          <div class="sm-error" id="smError"></div>
+        </div>
+
+      <input type="hidden" name="score_text" id="smScoreText">
+      <input type="hidden" name="is_wo" id="smIsWo" value="0">
+      <div class="sm-footer">
+        <button type="button" class="btn btn-secondary btn-sm" id="smCancelBtn">Annuler</button>
+        <button type="submit" class="btn btn-success btn-sm" id="smSubmitBtn">&#10003; Valider</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function() {
+  var modal = document.getElementById('scoreModal');
+  var form  = document.getElementById('smForm');
+  var woCheck = document.getElementById('smWoCheck');
+  var setsSection = document.getElementById('smSetsSection');
+  var fmt = 1;  // game_format courant (1=3sets, 2=2sets+superTB)
+
+  /* ── Validation d'un set classique ─────────────────────────────────────── */
+  var VALID_SETS = [
+    [6,0],[6,1],[6,2],[6,3],[6,4],[7,5],[7,6],
+    [0,6],[1,6],[2,6],[3,6],[4,6],[5,7],[6,7]
+  ];
+  function isValidSet(a, b) {
+    for (var i=0; i<VALID_SETS.length; i++)
+      if (VALID_SETS[i][0]===a && VALID_SETS[i][1]===b) return true;
+    return false;
+  }
+  function isValidSuperTB(a, b) {
+    return Math.max(a,b) >= 10 && Math.abs(a-b) >= 2;
+  }
+  function isTBSet(a, b) {
+    return (a===7 && b===6) || (a===6 && b===7);
+  }
+  function setWinner(a, b) {
+    if (a > b) return 1; if (b > a) return 2; return 0;
+  }
+
+  /* ── Lire une valeur numérique d'un input (robuste pour la valeur 0) ───── */
+  function numVal(id) {
+    var el = document.getElementById(id);
+    if (!el || el.value === '' || el.value === null) return null;
+    var n = el.valueAsNumber;
+    if (isNaN(n)) n = parseInt(el.value, 10);
+    return isNaN(n) ? null : n;
+  }
+
+  /* ── Score winner TB = max(7, loser+2) ────────────────────────────────── */
+  function tbWinScore(loser) {
+    if (loser === null || isNaN(loser)) return '?';
+    return String(Math.max(7, loser + 2));
+  }
+
+  /* ── Score winner Super TB = max(10, loser+2) ───────────────────────────  */
+  function superTbWinScore(loser) {
+    if (loser === null || isNaN(loser)) return '?';
+    return String(Math.max(10, loser + 2));
+  }
+
+  /* ── Rafraîchit un TB sub-row : place input côté perdant, display côté gagnant ── */
+  function refreshTBRow(rowId, sa, sb, aInpId, bInpId, aDId, bDId) {
+    var row = document.getElementById(rowId);
+    if (sa === null || sb === null || !isTBSet(sa, sb)) {
+      row.style.display = 'none'; return;
+    }
+    row.style.display = '';
+    var aInp = document.getElementById(aInpId);
+    var bInp = document.getElementById(bInpId);
+    var aD   = document.getElementById(aDId);
+    var bD   = document.getElementById(bDId);
+    if (sa > sb) {
+      // P1 a gagné le set → P1 col = score gagnant (affiché), P2 col = score perdant (input)
+      aInp.style.display = 'none';  aD.style.display = '';
+      bInp.style.display = '';      bD.style.display = 'none';
+      aD.textContent = tbWinScore(numVal(bInpId));
+    } else {
+      // P2 a gagné le set → P2 col = score gagnant (affiché), P1 col = score perdant (input)
+      bInp.style.display = 'none';  bD.style.display = '';
+      aInp.style.display = '';      aD.style.display = 'none';
+      bD.textContent = tbWinScore(numVal(aInpId));
+    }
+  }
+
+  /* ── Rafraîchit le row Super TB (format 2) selon le vainqueur sélectionné ── */
+  function refreshSuperTBRow() {
+    var aInp = document.getElementById('smS3a');
+    var bInp = document.getElementById('smS3b');
+    var aD   = document.getElementById('smS3aD');
+    var bD   = document.getElementById('smS3bD');
+    var w1c  = document.getElementById('smW1').checked;
+    var w2c  = document.getElementById('smW2').checked;
+
+    if (!w1c && !w2c) {
+      // Pas de vainqueur sélectionné : deux inputs visibles
+      aInp.style.display=''; aD.style.display='none';
+      bInp.style.display=''; bD.style.display='none';
+      return;
+    }
+    if (w1c) {
+      // P1 gagne : P2 saisit score perdant, P1 affiche score calculé
+      aInp.style.display='none'; aD.style.display='';
+      bInp.style.display='';     bD.style.display='none';
+      aD.textContent = superTbWinScore(numVal('smS3b'));
+    } else {
+      // P2 gagne : P1 saisit score perdant, P2 affiche score calculé
+      bInp.style.display='none'; bD.style.display='';
+      aInp.style.display='';     aD.style.display='none';
+      bD.textContent = superTbWinScore(numVal('smS3a'));
+    }
+  }
+
+  /* ── Retourne le score du perdant TB (depuis l'input côté perdant) ─────── */
+  function getTBLoser(sa, sb, aInpId, bInpId) {
+    if (sa === null || sb === null || !isTBSet(sa, sb)) return null;
+    return sa > sb ? numVal(bInpId) : numVal(aInpId);
+  }
+
+  /* ── Mise à jour dynamique de la validation ─────────────────────────────  */
+  function updateValidation() {
+    var s1a=numVal('smS1a'), s1b=numVal('smS1b');
+    var s2a=numVal('smS2a'), s2b=numVal('smS2b');
+
+    var ok1=null, ok2=null, ok3=null;
+    // w1_12 / w2_12 = gains sur les sets 1&2 uniquement (pour show3)
+    var w1_12=0, w2_12=0;
+    var w1=0, w2=0;
+
+    if (s1a !== null && s1b !== null) {
+      ok1 = isValidSet(s1a, s1b);
+      if (ok1) { var sw1=setWinner(s1a,s1b); if(sw1===1){w1++;w1_12++;} else if(sw1===2){w2++;w2_12++;} }
+    }
+    if (s2a !== null && s2b !== null) {
+      ok2 = isValidSet(s2a, s2b);
+      if (ok2) { var sw2=setWinner(s2a,s2b); if(sw2===1){w1++;w1_12++;} else if(sw2===2){w2++;w2_12++;} }
+    }
+
+    // Set 3 : visible si sets 1&2 valides et 1-1 en sets
+    var show3 = false;
+    if (fmt === 2) {
+      show3 = (ok1 === true && ok2 === true && w1_12 === 1 && w2_12 === 1);
+    } else {
+      show3 = (ok1 === true && ok2 === true && w1_12 < 2 && w2_12 < 2);
+    }
+
+    // Validation set 3
+    if (show3) {
+      if (fmt === 2) {
+        // Super TB : score du perdant saisi selon vainqueur sélectionné
+        var w1c = document.getElementById('smW1').checked;
+        var w2c = document.getElementById('smW2').checked;
+        if (w1c) {
+          var loser3 = numVal('smS3b');
+          if (loser3 !== null && loser3 >= 0) { ok3 = true; w1++; }
+        } else if (w2c) {
+          var loser3 = numVal('smS3a');
+          if (loser3 !== null && loser3 >= 0) { ok3 = true; w2++; }
+        }
+        refreshSuperTBRow();
+      } else {
+        // Set 3 classique (format 1)
+        var s3a=numVal('smS3a'), s3b=numVal('smS3b');
+        if (s3a !== null && s3b !== null) {
+          ok3 = isValidSet(s3a, s3b);
+          if (ok3) { var sw3=setWinner(s3a,s3b); if(sw3===1) w1++; else if(sw3===2) w2++; }
+        }
+        // TB set 3 (7/6)
+        if (s3a !== null && s3b !== null && isTBSet(s3a, s3b)) {
+          refreshTBRow('smTbRow3', s3a, s3b, 'smTb3a', 'smTb3b', 'smTb3aD', 'smTb3bD');
+        } else {
+          document.getElementById('smTbRow3').style.display = 'none';
+        }
+      }
+    }
+
+    // TB rows sets 1 et 2
+    refreshTBRow('smTbRow1', s1a, s1b, 'smTb1a', 'smTb1b', 'smTb1aD', 'smTb1bD');
+    refreshTBRow('smTbRow2', s2a, s2b, 'smTb2a', 'smTb2b', 'smTb2aD', 'smTb2bD');
+
+    // Indicateurs par set
+    function showOk(id, val) {
+      var el = document.getElementById(id);
+      if (val === null) { el.textContent=''; el.className='sm-set-ok'; }
+      else if (val) { el.textContent='✓'; el.className='sm-set-ok ok'; }
+      else { el.textContent='✗'; el.className='sm-set-ok err'; }
+    }
+    showOk('smOk1', ok1);
+    showOk('smOk2', ok2);
+    showOk('smOk3', show3 ? ok3 : null);
+
+    // Tally
+    var tally = document.getElementById('smTally');
+    if (w1===0 && w2===0) { tally.textContent=''; }
+    else {
+      var p1n = document.getElementById('smP1Label').textContent;
+      var p2n = document.getElementById('smP2Label').textContent;
+      tally.textContent = p1n + ' ' + w1 + ' – ' + w2 + ' ' + p2n;
+      tally.style.color = w1 > w2 ? '#15803d' : w2 > w1 ? '#b91c1c' : '#374151';
+    }
+
+    // Auto-sélection du vainqueur
+    var matchDone = false;
+    if ((w1_12===2 || w2_12===2) && ok1 && ok2) matchDone = true;
+    if (show3 && ok1 && ok2 && ok3) matchDone = true;
+    if (matchDone) {
+      document.getElementById(w1 > w2 ? 'smW1' : 'smW2').checked = true;
+    }
+
+    // Set 3 : afficher/masquer la ligne
+    var row3 = document.getElementById('smSetRow3');
+    row3.style.display = show3 ? '' : 'none';
+    document.getElementById('smSet3Lbl').textContent = (fmt === 2) ? 'Super TB' : 'Set 3';
+    // Pour fmt=1 : réinitialiser les displays du set 3 (pas de super TB)
+    if (fmt !== 2) {
+      document.getElementById('smS3aD').style.display = 'none';
+      document.getElementById('smS3bD').style.display = 'none';
+      document.getElementById('smS3a').style.display = '';
+      document.getElementById('smS3b').style.display = '';
+    }
+    // smTbRow3 masqué pour fmt=2 (géré dans la branche super TB ci-dessus)
+    if (fmt === 2) document.getElementById('smTbRow3').style.display = 'none';
+
+    return { ok1:ok1, ok2:ok2, ok3:ok3, w1:w1, w2:w2, w1_12:w1_12, w2_12:w2_12,
+             s1a:s1a,s1b:s1b,s2a:s2a,s2b:s2b,s3a:s3a,s3b:s3b, show3:show3, matchDone:matchDone };
+  }
+
+  /* ── Parser un "part" du score existant ── "7/6(3)" → [7,6,3] ─────────── */
+  function parsePart(p) {
+    if (!p || !p.trim()) return [null, null, null];
+    var tbMatch = p.match(/\((\d+)\)/);
+    var tb = tbMatch ? parseInt(tbMatch[1], 10) : null;
+    var clean = p.replace(/\(\d+\)/, '').trim();
+    var sp = clean.split('/');
+    var a = parseInt(sp[0], 10);
+    var b = sp[1] !== undefined ? parseInt(sp[1], 10) : NaN;
+    return [isNaN(a) ? null : a, isNaN(b) ? null : b, tb];
+  }
+
+  /* ── Pré-remplit les inputs TB depuis un score parsé ───────────────────── */
+  function fillTBInputs(pp, aInpId, bInpId) {
+    var a = pp[0], b = pp[1], tb = pp[2];
+    document.getElementById(aInpId).value = '';
+    document.getElementById(bInpId).value = '';
+    if (tb !== null && a !== null && b !== null) {
+      if (a > b) document.getElementById(bInpId).value = String(tb);
+      else        document.getElementById(aInpId).value = String(tb);
+    }
+  }
+
+  /* ── Ouvrir le modal ────────────────────────────────────────────────────── */
+  function openModal(btn) {
+    var p1id   = btn.dataset.p1id,  p1 = btn.dataset.p1;
+    var p2id   = btn.dataset.p2id,  p2 = btn.dataset.p2;
+    fmt    = parseInt(btn.dataset.fmt, 10) || 1;
+    var action = btn.dataset.action;
+    var score  = btn.dataset.score || '';
+    var winner = btn.dataset.winner || '';
+
+    document.getElementById('smTitle').textContent = p1 + ' vs ' + p2;
+    document.getElementById('smP1Label').textContent = p1;
+    document.getElementById('smP2Label').textContent = p2;
+    document.getElementById('smColP1').textContent = p1.split(' ')[0];
+    document.getElementById('smColP2').textContent = p2.split(' ')[0];
+    document.getElementById('smW1').value = p1id;
+    document.getElementById('smW2').value = p2id;
+    document.getElementById('smW1').checked = (winner == p1id);
+    document.getElementById('smW2').checked = (winner == p2id);
+
+    document.getElementById('smS3a').max = (fmt===2) ? '99' : '7';
+    document.getElementById('smS3b').max = (fmt===2) ? '99' : '7';
+
+    var isWo = (score === 'WO' || score.indexOf('WO') === 0);
+    woCheck.checked = isWo;
+    document.getElementById('smIsWo').value = isWo ? '1' : '0';
+    setsSection.style.opacity = isWo ? '0.35' : '1';
+    setsSection.style.pointerEvents = isWo ? 'none' : '';
+
+    var cleanScore = score.replace(/\s*\[REQUAL\]/, '').replace(/^WO\s*/, '').trim();
+    var parts = cleanScore ? cleanScore.split(' ') : [];
+    var p1v = parsePart(parts[0]);
+    var p2v = parsePart(parts[1]);
+    var p3v = parsePart(parts[2]);
+
+    function setNum(id, val) {
+      document.getElementById(id).value = val !== null ? String(val) : '';
+    }
+    setNum('smS1a', p1v[0]); setNum('smS1b', p1v[1]);
+    setNum('smS2a', p2v[0]); setNum('smS2b', p2v[1]);
+    setNum('smS3a', p3v[0]); setNum('smS3b', p3v[1]);
+    // TB inputs : mettre le score du perdant dans la bonne cellule
+    fillTBInputs(p1v, 'smTb1a', 'smTb1b');
+    fillTBInputs(p2v, 'smTb2a', 'smTb2b');
+    fillTBInputs(p3v, 'smTb3a', 'smTb3b');
+
+    document.getElementById('smError').textContent = '';
+    document.getElementById('smTally').textContent = '';
+
+    form.action = action;
+    modal.style.display = 'flex';
+    updateValidation();
+    if (!isWo) document.getElementById('smS1a').focus();
+  }
+
+  function closeModal() { modal.style.display = 'none'; }
+
+  /* ── Événements ─────────────────────────────────────────────────────────── */
+  document.querySelectorAll('.sf-open-btn, .sf-inline-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { openModal(btn); });
+  });
+  document.getElementById('smClose').addEventListener('click', closeModal);
+  document.getElementById('smCancelBtn').addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) { if (e.target===modal) closeModal(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key==='Escape' && modal.style.display==='flex') closeModal();
+  });
+
+  woCheck.addEventListener('change', function() {
+    setsSection.style.opacity = woCheck.checked ? '0.35' : '1';
+    setsSection.style.pointerEvents = woCheck.checked ? 'none' : '';
+    document.getElementById('smIsWo').value = woCheck.checked ? '1' : '0';
+  });
+
+  // Saisie des scores : 'input' + 'change' pour compatibilité navigateur
+  ['smS1a','smS1b','smS2a','smS2b','smS3a','smS3b',
+   'smTb1a','smTb1b','smTb2a','smTb2b','smTb3a','smTb3b'].forEach(function(id) {
+    var el = document.getElementById(id);
+    el.addEventListener('input', updateValidation);
+    el.addEventListener('change', updateValidation);
+  });
+
+  // Changement de vainqueur → recalcul (important pour Super TB)
+  document.getElementById('smW1').addEventListener('change', updateValidation);
+  document.getElementById('smW2').addEventListener('change', updateValidation);
+
+  /* ── Soumission avec validation ─────────────────────────────────────────── */
+  form.addEventListener('submit', function(e) {
+    var isWo = document.getElementById('smIsWo').value === '1';
+    var errEl = document.getElementById('smError');
+    errEl.textContent = '';
+
+    if (!document.querySelector('input[name="winner_id"]:checked')) {
+      e.preventDefault(); errEl.textContent = 'Sélectionnez le vainqueur.'; return;
+    }
+    if (isWo) {
+      document.getElementById('smScoreText').value = 'WO'; return;
+    }
+
+    var v = updateValidation();
+    if (!v.ok1 || !v.ok2) {
+      e.preventDefault(); errEl.textContent = 'Les sets 1 et 2 doivent être valides.'; return;
+    }
+
+    function setStr(sa, sb, aInpId, bInpId) {
+      var s = sa + '/' + sb;
+      if (isTBSet(sa, sb)) {
+        var loser = getTBLoser(sa, sb, aInpId, bInpId);
+        if (loser !== null) s += '(' + loser + ')';
+      }
+      return s;
+    }
+
+    var buildParts = [];
+    buildParts.push(setStr(v.s1a, v.s1b, 'smTb1a', 'smTb1b'));
+    buildParts.push(setStr(v.s2a, v.s2b, 'smTb2a', 'smTb2b'));
+
+    if (fmt === 2) {
+      // Super TB requis seulement si 1-1 après 2 sets
+      if (v.w1_12 === 1 && v.w2_12 === 1) {
+        if (!v.ok3) { e.preventDefault(); errEl.textContent = 'Super tiebreak invalide (premier à 10, écart ≥ 2).'; return; }
+        var selW = document.querySelector('input[name="winner_id"]:checked');
+        var w1c = (selW && selW.id === 'smW1');
+        var loserScore3 = w1c ? numVal('smS3b') : numVal('smS3a');
+        var winnerScore3 = Math.max(10, loserScore3 + 2);
+        buildParts.push(w1c ? (winnerScore3 + '/' + loserScore3) : (loserScore3 + '/' + winnerScore3));
+      }
+    } else {
+      // Set 3 requis seulement si 1-1 après 2 sets (show3 = true)
+      if (v.show3) {
+        if (!v.ok3) { e.preventDefault(); errEl.textContent = 'Set 3 invalide.'; return; }
+        buildParts.push(setStr(v.s3a, v.s3b, 'smTb3a', 'smTb3b'));
+      }
+    }
+
+    var selWinner = document.querySelector('input[name="winner_id"]:checked');
+    var selectedIsP1 = (selWinner.id === 'smW1');
+    if (selectedIsP1 && v.w1 <= v.w2) {
+      e.preventDefault(); errEl.textContent = 'Le score ne correspond pas au vainqueur sélectionné.'; return;
+    }
+    if (!selectedIsP1 && v.w2 <= v.w1) {
+      e.preventDefault(); errEl.textContent = 'Le score ne correspond pas au vainqueur sélectionné.'; return;
+    }
+
+    // Score toujours stocké en ordre joueur1/joueur2 — display_score gère l'affichage gagnant à gauche
+    document.getElementById('smScoreText').value = buildParts.join(' ');
+  });
+})();
+</script>
+
+<style>
+/* ═══ BRACKET LAYOUT ═══════════════════════════════════════════════════════ */
+.bracket-outer { overflow-x: auto; padding: 15px 0 30px; }
+.bracket-container {
+  display: flex; gap: var(--gap, 32px); align-items: flex-start;
+  min-width: max-content; padding: 10px 20px;
+}
+.bracket-col { display: flex; flex-direction: column; min-width: 220px; flex-shrink: 0; }
+.round-header {
+  text-align: center; font-size: 11px; font-weight: 700; padding: 5px 10px;
+  margin-bottom: 8px; background: linear-gradient(135deg,#3b5998,#4a6eb5);
+  color:#fff; border-radius:4px; letter-spacing:.5px; position:sticky; top:0; z-index:10;
+}
+.match-wrapper {
+  position: relative; display: flex; align-items: center; justify-content: stretch;
+  box-sizing: border-box; padding: 4px 0;
+}
+.conn-v { position:absolute; left:calc(-1*var(--gap,32px)/2); top:25%; height:50%; width:2px; background:#b0b8c4; }
+.conn-h { position:absolute; left:calc(-1*var(--gap,32px)/2); top:50%; width:calc(var(--gap,32px)/2); height:2px; background:#b0b8c4; margin-top:-1px; }
+.conn-r { position:absolute; right:calc(-1*var(--gap,32px)/2); top:50%; width:calc(var(--gap,32px)/2); height:2px; background:#b0b8c4; margin-top:-1px; }
+
+/* ═══ MATCH BOX ═══════════════════════════════════════════════════════════ */
+.draw-match { width:100%; border:1.5px solid #d1d5db; border-radius:6px; background:#fff; font-size:12px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.mc-done  { border-color:#16a34a; background:#f0fdf4; }
+.mc-wo    { border-color:#dc2626; background:#fef2f2; }
+.mc-sched { border-color:#2563eb; background:#eff6ff; }
+.mc-bye   { border-color:#e5e7eb; opacity:.55; }
+.mp { display:flex; align-items:center; gap:4px; padding:4px 7px; min-height:26px; flex-wrap:nowrap; }
+.mp-win { background:#dcfce7; font-weight:700; color:#15803d; }
+.pname  { flex:1; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pranking { font-size:9px; color:#6b7280; background:#f3f4f6; padding:1px 4px; border-radius:3px; white-space:nowrap; }
+.seed-badge { font-size:8px; font-weight:bold; background:#f59e0b; color:#fff; padding:1px 5px; border-radius:10px; flex-shrink:0; }
+.bye-label  { color:#9ca3af; font-style:italic; font-size:10px; }
+.qualif-label { font-size:9px; font-weight:bold; color:#7c3aed; background:#ede9fe; padding:2px 5px; border-radius:3px; }
+.qlink { font-size:9px; color:#7c3aed; text-decoration:none; font-weight:bold; margin-left:2px; }
+.qlink:hover { text-decoration:underline; }
+.tbd { color:#d1d5db; font-style:italic; font-size:10px; }
+
+/* SCORE PRÉCÉDENT (inline dans slot joueur) */
+.mp-prev-score { font-size:8px; color:#dc2626; font-weight:bold; background:#fef2f2; padding:1px 4px; border-radius:3px; white-space:nowrap; flex-shrink:0; }
+
+/* ═══ COLONNE VAINQUEUR ══════════════════════════════════════════════════ */
+.winner-col { min-width: 160px; }
+.round-header-winner { background: linear-gradient(135deg, #92400e, #f59e0b) !important; }
+.winner-card {
+  background: linear-gradient(135deg, #fffbeb, #fff);
+  border: 2px solid #f59e0b; border-radius: 8px;
+  padding: 8px 10px; width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  box-sizing: border-box; box-shadow: 0 2px 8px rgba(245,158,11,.2); text-align: center;
+}
+.winner-card-empty { background: #f9fafb; border: 1.5px dashed #d1d5db; box-shadow: none; }
+.winner-trophy { font-size: 22px; }
+.winner-trophy-pending { opacity: .3; }
+.winner-name { font-size: 12px; font-weight: 700; color: #92400e; }
+.winner-ranking { font-size: 9px; color: #6b7280; background: #f3f4f6; padding: 1px 4px; border-radius: 3px; }
+.winner-score { font-size: 9px; color: #dc2626; font-weight: bold; }
+
+/* ═══ COLONNE QUALIFIÉ(S) ═════════════════════════════════════════════════ */
+.qualif-results-col { min-width:160px; }
+.round-header-qualif { background: linear-gradient(135deg,#6d28d9,#7c3aed) !important; }
+.qualif-result-box {
+  background:#fff; border:1.5px solid #ddd6fe; border-radius:6px;
+  padding:6px 8px; width:100%; display:flex; flex-direction:column;
+  align-items:center; gap:3px; box-sizing:border-box;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+}
+.qualif-result-box.qr-done { border-color:#7c3aed; background:#f5f3ff; }
+/* La card occupe la zone centrale du match-wrapper (même comportement que draw-match) */
+.qualif-results-col .match-wrapper { align-items:center; }
+.qr-number { font-size:10px; font-weight:bold; color:#7c3aed; background:#ede9fe; padding:1px 8px; border-radius:10px; }
+.qr-number-inter { color:#059669; background:#d1fae5; }
+.qr-player { font-size:11px; font-weight:600; text-align:center; }
+.qr-player .pranking { margin-left:4px; }
+.qr-score { font-size:9px; color:#dc2626; font-weight:bold; }
+.qr-pending { color:#d1d5db; font-style:italic; font-size:10px; }
+.qr-semi-pending { display:flex; flex-direction:column; gap:4px; width:100%; padding:4px 0; }
+.qr-semi-label { font-size:10px; color:#6b7280; font-style:italic; margin-bottom:2px; }
+.qr-semi-match { display:flex; align-items:center; gap:4px; font-size:11px; color:#374151; }
+.qr-semi-p { max-width:58px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.qr-semi-btn { padding:1px 5px; font-size:10px; min-width:0; }
+.qr-players-pending { font-size:10px; text-align:center; color:#374151; line-height:1.4; }
+.qr-vs { color:#9ca3af; margin:0 3px; }
+.qr-sched { font-size:8px; color:#9ca3af; margin-top:2px; }
+.qr-btn { font-size:9px; padding:2px 7px; margin-top:4px; }
+.msep { height:1px; background:#e5e7eb; }
+.mscore { text-align:center; font-size:10px; color:#dc2626; font-weight:bold; padding:2px 4px; background:#fef2f2; display:flex; align-items:center; justify-content:center; gap:4px; }
+.mscore-wo { color:#b91c1c; }
+.wo-badge { font-size:8px; background:#dc2626; color:#fff; padding:1px 5px; border-radius:3px; }
+.msched { text-align:center; font-size:8px; color:#9ca3af; padding:1px 4px; }
+
+/* ═══ BOUTON INLINE (dans slot joueur) ════════════════════════════════════ */
+.sf-inline-btn {
+  font-size:9px; padding:1px 5px; background:#2563eb; color:#fff;
+  border:none; border-radius:3px; cursor:pointer; font-weight:600; flex-shrink:0; line-height:1.4;
+}
+.sf-inline-btn:hover { background:#1d4ed8; }
+
+/* ═══ BOUTON CORRIGER (bas du match) ══════════════════════════════════════ */
+.score-open-wrap { padding:3px 6px; border-top:1px solid #e5e7eb; background:#f9fafb; display:flex; gap:4px; flex-wrap:wrap; }
+.sf-open-btn { font-size:10px; padding:3px 8px; background:#16a34a; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:600; }
+.sf-open-btn:hover { background:#15803d; }
+.sf-edit-btn { background:#2563eb; }
+.sf-edit-btn:hover { background:#1d4ed8; }
+.sf-requal-btn { font-size:10px; padding:3px 8px; background:#f59e0b; color:#fff; border-radius:4px; text-decoration:none; font-weight:600; }
+.sf-requal-btn:hover { background:#d97706; }
+
+/* ═══ ALERTE J/A ══════════════════════════════════════════════════════════ */
+.alert-overdue { background:#fef3c7; border:1.5px solid #f59e0b; border-radius:6px; padding:8px 14px; margin-bottom:12px; font-size:12px; color:#92400e; display:flex; align-items:center; gap:10px; }
+.alert-overdue-link { color:#b45309; font-weight:700; text-decoration:underline; }
+
+/* ═══ MODAL SCORE ═════════════════════════════════════════════════════════ */
+.score-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:9999; display:flex; align-items:center; justify-content:center; }
+.score-modal-box { background:#fff; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,.25); width:370px; max-width:96vw; overflow:hidden; }
+.score-modal-header { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(135deg,#3b5998,#4a6eb5); color:#fff; padding:11px 16px; font-weight:700; font-size:13px; }
+.sm-close-btn { background:none; border:none; color:#fff; font-size:20px; cursor:pointer; line-height:1; }
+.sm-players { padding:10px 14px 4px; }
+.sm-player-row { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; margin-bottom:5px; border:1.5px solid #e5e7eb; font-size:12px; cursor:pointer; }
+.sm-player-row:has(input:checked) { border-color:#16a34a; background:#dcfce7; font-weight:700; }
+.sm-player-row input[type=radio] { accent-color:#16a34a; width:15px; height:15px; }
+.sm-player-row label { flex:1; cursor:pointer; }
+.sm-win-icon { color:#f59e0b; }
+.sm-wo-row { padding:5px 14px; background:#fef3c7; border-top:1px solid #fde68a; }
+.sm-wo-label { display:flex; align-items:center; gap:8px; font-size:11px; color:#92400e; cursor:pointer; font-weight:600; }
+.sm-wo-label input[type=checkbox] { accent-color:#dc2626; width:14px; height:14px; }
+
+/* Sets numeriques */
+.sm-sets-header { display:flex; align-items:center; gap:0; padding:8px 14px 2px; font-size:10px; font-weight:700; color:#6b7280; }
+.sm-sets-header span:first-child { width:44px; }
+.sm-col-name { width:48px; text-align:center; font-weight:700; color:#374151; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sm-col-sep { width:18px; text-align:center; color:#9ca3af; }
+.sm-set-row { display:flex; align-items:center; gap:0; padding:3px 14px; }
+.sm-set-lbl { width:44px; font-size:10px; font-weight:600; color:#374151; }
+.sm-num { width:48px; text-align:center; font-size:15px; font-weight:700; padding:4px 2px; border:1.5px solid #d1d5db; border-radius:5px; background:#fff; }
+.sm-num:focus { border-color:#3b5998; outline:none; box-shadow:0 0 0 2px #bfdbfe; }
+.sm-set-ok { width:22px; text-align:center; font-size:13px; margin-left:4px; }
+.sm-set-ok.ok  { color:#16a34a; }
+.sm-set-ok.err { color:#dc2626; }
+.sm-tally { text-align:center; font-size:12px; font-weight:700; padding:4px 14px; }
+.sm-error { color:#dc2626; font-size:11px; padding:2px 14px 4px; min-height:16px; }
+.sm-footer { display:flex; justify-content:flex-end; gap:8px; padding:8px 14px 12px; border-top:1px solid #e5e7eb; }
+
+/* TB sub-row */
+.sm-tb-sub { background:#f5f3ff; border-radius:4px; margin:0 8px 2px; padding:2px 6px !important; }
+.sm-tb-lbl { font-size:9px; color:#7c3aed; width:44px; font-weight:600; line-height:1.2; }
+.sm-tb-cell { display:inline-flex; width:48px; justify-content:center; }
+.sm-num-tb { width:40px; font-size:13px; }
+.sm-tb-disp { width:40px; text-align:center; font-size:13px; font-weight:700; color:#7c3aed; background:#ede9fe; border-radius:4px; padding:2px 0; }
+
+/* ═══ NAV + LEGEND ════════════════════════════════════════════════════════ */
+.draw-nav { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+.draw-nav-link { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:20px; font-size:11px; font-weight:500; border:1.5px solid #d1d5db; text-decoration:none; color:#374151; }
+.draw-nav-link:hover { background:#f3f4f6; }
+.draw-nav-link.active { background:#3b5998; color:#fff; border-color:#3b5998; font-weight:700; }
+.nav-badge { background:#e5e7eb; color:#374151; font-size:9px; padding:1px 5px; border-radius:10px; font-weight:600; }
+.nav-badge-done { background:#16a34a; color:#fff; }
+.draw-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+.draw-legend { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; padding-top:10px; border-top:1px solid #e5e7eb; }
+.legend-item { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:4px; font-size:10px; border:1px solid #d1d5db; }
+.mc-done.legend-item  { border-color:#16a34a; background:#f0fdf4; }
+.mc-wo.legend-item    { border-color:#dc2626; background:#fef2f2; }
+.mc-sched.legend-item { border-color:#2563eb; background:#eff6ff; }
+.mc-bye.legend-item   { opacity:.6; }
+</style>
+{% endblock %}

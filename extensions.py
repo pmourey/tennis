@@ -1,9 +1,20 @@
-# uncompyle6 version 3.9.3
-# Python bytecode version base 3.10 (3439)
-# Decompiled from: Python 3.10.11 (v3.10.11:7d4cc5aa85, Apr  4 2023, 19:05:19) [Clang 13.0.0 (clang-1300.0.29.30)]
-# Embedded file name: /Users/display/PycharmProjects/tennis/extensions.py
-# Compiled at: 2026-03-22 13:08:43
-# Size of source mod 2**32: 535 bytes
+# Source Generated with Decompyle++
+# File: extensions.cpython-310.pyc (Python 3.10)
 
-Unsupported Python version, 3.10, for decompilation
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+import sqlite3
+db = SQLAlchemy()
+migrate = Migrate()
 
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    '''Active les clés étrangères SQLite à chaque connexion.'''
+    if isinstance(dbapi_connection, sqlite3.Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute('PRAGMA foreign_keys=ON')
+        cursor.close()
+        return None
+
+set_sqlite_pragma = event.listens_for(Engine, 'connect')(set_sqlite_pragma)

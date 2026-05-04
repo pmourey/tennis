@@ -1,0 +1,27 @@
+<!-- medical/templates/medical_index.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Localisation</th>
+                <th>Blessures aïgues</th>
+                <th>Blessures de surmenage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+                <tr>
+                    <td>{{ item['site'] }}</td>
+                    <td>{{ ', '.join(item['Acute']) }}</td>
+                    <td>{{ ', '.join(item['Overuse']) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</main>
+{% endblock main %}

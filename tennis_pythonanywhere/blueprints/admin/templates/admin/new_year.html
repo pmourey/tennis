@@ -1,0 +1,29 @@
+<!-- templates/select_club.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<form action="{{ url_for('admin.new_year') }}" method="POST">
+    {% if years %}
+    <table class="update-form">
+        <caption class="table-caption">Création nouvelle saison sportive</caption>
+        <tr>
+            <td><label for="year">Année:</label></td>
+            <td>
+                <select id="year" name="year_id" required>
+                    <option value="">Sélectionner une nouvelle année</option> <!-- Option vide -->
+                    {% for year in years %}
+                        <option value="{{ year['id'] }}">{{ year['name'] }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="submit" value="Continuer"></td>
+        </tr>
+    </table>
+    {% else %}
+        <p style="font-size: 16px; text-align: center;">Pas de nouvelle année à ajouter! ✌️</p>
+    {% endif %}
+</form>
+{% endblock %}

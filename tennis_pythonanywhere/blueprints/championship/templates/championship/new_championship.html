@@ -1,0 +1,63 @@
+<!-- templates/new_championship.html -->
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <form action="{{ url_for('championship.new_championship') }}" method="POST">
+        <table class="update-form">
+            <caption class="table-caption">Fiche création championnat {{selected_division}}</caption>
+            <!-- Hidden field for division_id -->
+            <input type="hidden" name="division" value="{{ selected_division.id }}">
+
+            <!-- Calendar dates selection -->
+            <tr>
+                <td><label for="dates">Sélectionner les dates du championnat :</label></td>
+                <td>
+                    <div id="dates_container">
+                        <input type="date" name="dates[]" class="championship-date" 
+                               value="{{ default_date }}" min="{{ season_start }}" required>
+                    </div>
+                    <button type="button" id="add_date_button">Ajouter une date</button>
+                </td>
+            </tr>
+
+            <tr>
+                <td><label for="singles_count">Nombre de matchs simples :</label></td>
+                <td><input type="number" id="singles_count" name="singles_count" min="0" required></td>
+            </tr>
+
+            <tr>
+                <td><label for="doubles_count">Nombre de matchs doubles :</label></td>
+                <td><input type="number" id="doubles_count" name="doubles_count" min="0" required></td>
+            </tr>
+
+            <tr>
+                <td colspan="2"><input type="submit" value="Créer championnat"></td>
+            </tr>
+        </table>
+    </form>
+
+    <script>
+        // Add more date input fields dynamically
+        document.getElementById('add_date_button').addEventListener('click', function() {
+            // Find next Sunday from last date
+            var lastDate = document.querySelectorAll('.championship-date');
+            var baseDate = lastDate.length > 0 ? new Date(lastDate[lastDate.length - 1].value) : new Date('{{ default_date }}');
+            
+            // Calculate next Sunday
+            var nextSunday = new Date(baseDate);
+            nextSunday.setDate(nextSunday.getDate() + 7);
+            
+            var newDateInput = document.createElement('input');
+            newDateInput.setAttribute('type', 'date');
+            newDateInput.setAttribute('name', 'dates[]');
+            newDateInput.setAttribute('min', '{{ season_start }}');
+            newDateInput.setAttribute('value', nextSunday.toISOString().split('T')[0]);
+            newDateInput.classList.add('championship-date');
+            newDateInput.required = false;
+            document.getElementById('dates_container').appendChild(newDateInput);
+        });
+    </script>
+</main>
+{% endblock %}

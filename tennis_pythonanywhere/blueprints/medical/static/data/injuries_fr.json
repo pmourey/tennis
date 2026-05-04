@@ -1,0 +1,102 @@
+[
+  {
+    "site": "Os",
+    "Acute": [
+      "Fracture périmédullaire",
+      "Contusion"
+    ],
+    "Overuse": [
+      "Fracture de stress",
+      "Tension osseuse",
+      "Réaction au stress",
+      "Ostéite",
+      "Périostite",
+      "Apophysite"
+    ]
+  },
+  {
+    "site": "Cartilage articulaire",
+    "Acute": [
+      "Fracture ostéochondrale/cartilagineuse",
+      "Lésion mineure ostéochondrale"
+    ],
+    "Overuse": [
+      "Chondropathie (par exemple, chondromalacie)"
+    ]
+  },
+  {
+    "site": "Articulation",
+    "Acute": [
+      "Luxation",
+      "Subluxation"
+    ],
+    "Overuse": [
+      "Synovite",
+      "Arthrose"
+    ]
+  },
+  {
+    "site": "Ligament",
+    "Acute": [
+      "Entorse/déchirure (degrés I - III)"
+    ],
+    "Overuse": [
+      "Inflammation"
+    ]
+  },
+  {
+    "site": "Muscle",
+    "Acute": [
+      "Entorse/déchirure (degrés I - III)",
+      "Contusion",
+      "Crampes",
+      "Syndrome des loges (aigu)"
+    ],
+    "Overuse": [
+      "Syndrome des loges (chronique)",
+      "Douleurs musculaires retardées (DOMS)",
+      "Épaississement/fibrose tissulaire focalisé"
+    ]
+  },
+  {
+    "site": "Tendon",
+    "Acute": [
+      "Déchirure (complète ou partielle)"
+    ],
+    "Overuse": [
+      "Tendinopathie"
+    ]
+  },
+  {
+    "site": "Bourse",
+    "Acute": [
+      "Bursite traumatique"
+    ],
+    "Overuse": [
+      "Bursite"
+    ]
+  },
+  {
+    "site": "Nerf",
+    "Acute": [
+      "Neuropraxie"
+    ],
+    "Overuse": [
+      "Compression nerveuse",
+      "Lésion/irritation mineure du nerf",
+      "Tension nerveuse néfaste"
+    ]
+  },
+  {
+    "site": "Peau",
+    "Acute": [
+      "Lacération",
+      "Abrasion",
+      "Blessure par perforation"
+    ],
+    "Overuse": [
+      "Ampoule",
+      "Callosité"
+    ]
+  }
+]

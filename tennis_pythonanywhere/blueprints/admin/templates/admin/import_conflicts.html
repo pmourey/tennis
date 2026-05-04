@@ -1,0 +1,50 @@
+<!-- templates/admin/import_conflicts.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <div style="margin: 20px; padding: 20px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px;">
+        <h2 style="color: #856404;">⚠️ Conflit d'importation de joueurs</h2>
+        <p style="font-size: 16px;">
+            L'importation des joueurs pour le club <strong>{{ club_name }}</strong> a été annulée car {{ conflicts|length }} joueur(s)
+            {{ 'est' if conflicts|length == 1 else 'sont' }} déjà enregistré(s) dans un autre club.
+        </p>
+        <p style="font-size: 14px; color: #856404;">
+            <strong>Action requise :</strong> Veuillez supprimer le club contenant ces joueurs avant de réessayer l'importation,
+            ou vérifiez que les fichiers CSV ne contiennent pas de doublons.
+        </p>
+    </div>
+
+    <table class="default-table">
+        <caption class="table-caption">Liste des joueurs en conflit ({{ conflicts|length }})</caption>
+        <thead>
+            <tr>
+                <th>N° Licence</th>
+                <th>Nom</th>
+                <th>Classement</th>
+                <th>Club actuel</th>
+                <th>Nouveau club (importation)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for conflict in conflicts %}
+            <tr>
+                <td>{{ conflict.license_number }}</td>
+                <td>{{ conflict.name }}</td>
+                <td>{{ conflict.ranking }}</td>
+                <td style="background-color: #ffebee; font-weight: bold;">{{ conflict.current_club }}</td>
+                <td style="background-color: #e3f2fd;">{{ conflict.new_club }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="{{ url_for('admin.index') }}" class="button" style="padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+            Retour à l'administration
+        </a>
+    </div>
+</main>
+{% endblock main %}

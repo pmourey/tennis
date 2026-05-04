@@ -1,0 +1,19 @@
+<!-- templates/index.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<main>
+    <table class="welcome">
+        <caption class="table-caption">Gestion championnats</caption> <!-- Titre ajouté ici -->
+        <tr>
+            <td><a href="{{ url_for('championship.select_age_category') }}">Nouveau championnat</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('championship.show_championships') }}">Liste championnats</a></td>
+        </tr>
+    </table>
+</main>
+
+{% endblock main %}

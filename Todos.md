@@ -1,0 +1,3 @@
+- Ajouter statut rencontre terminée et formulaire d'édition de la feuille de match
+- Ajouter d'autres formats possibles de scores pour chaque championnat pour chaque type de match (simple et double) avec ou sans super tie-break au 3ème set
+- Ne simuler que les rencontres non terminées dont le score n'a pas été renseigné

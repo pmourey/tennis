@@ -1,0 +1,38 @@
+<!-- medical/templates/search_player.html -->
+
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+<!-- Inclure jQuery depuis un CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<main>
+    <form id="search-form">
+        <input type="text" id="search-input" name="search_query" placeholder="Rechercher un joueur...">
+        <button type="submit">Rechercher</button>
+    </form>
+
+    <div id="search-results"></div>
+
+</main>
+<script>
+$(document).ready(function() {
+    $('#search-form').submit(function(event) {
+        event.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+            type: 'GET',
+            url: '{{ url_for("medical.search_players") }}',
+            data: formData,
+            success: function(response) {
+                $('#search-results').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+});
+</script>
+<!--<script src="{{ url_for('medical.static', filename='js/search_player.js') }}"></script>-->
+{% endblock main %}

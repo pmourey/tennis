@@ -1,0 +1,155 @@
+<!-- shop/templates/shop/racquets.html -->
+{% extends 'base.html' %}
+
+{% block main %}
+{% include 'partials/_menu.html' %}
+<main>
+    <table class="welcome">
+        <caption class="table-caption">Catalogue Raquettes</caption>
+        <tr>
+            <td><a href="{{ url_for('shop.scrape') }}">&#x1F504; Importer / Mettre à jour</a></td>
+        </tr>
+    </table>
+
+    <!-- Filtres -->
+    <form method="GET" action="{{ url_for('shop.racquets') }}">
+        <table class="update-form">
+            <caption class="table-caption">Filtres</caption>
+            <tr>
+                <td><label>Marque :</label></td>
+                <td>
+                    <select name="brand">
+                        <option value="">Toutes</option>
+                        {% for b in brands %}
+                            <option value="{{ b }}" {% if filters.get('brand') == b %}selected{% endif %}>{{ b }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><label>Recherche nom :</label></td>
+                <td><input type="text" name="name_search" value="{{ filters.get('name_search', '') }}"></td>
+                <td><label>Cordage :</label></td>
+                <td>
+                    <select name="string_pattern">
+                        <option value="">Tous</option>
+                        {% for p in patterns %}
+                            <option value="{{ p }}" {% if filters.get('string_pattern') == p %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label>Poids cordée (g) :</label></td>
+                <td>
+                    <input type="number" name="min_weight" placeholder="min" value="{{ filters.get('min_weight', '') }}" style="width:60px">
+                    –
+                    <input type="number" name="max_weight" placeholder="max" value="{{ filters.get('max_weight', '') }}" style="width:60px">
+                </td>
+                <td><label>Taille tamis (cm²) :</label></td>
+                <td>
+                    <input type="number" name="min_head" placeholder="min" value="{{ filters.get('min_head', '') }}" style="width:60px">
+                    –
+                    <input type="number" name="max_head" placeholder="max" value="{{ filters.get('max_head', '') }}" style="width:60px">
+                </td>
+                <td><label>Balance (pts) :</label></td>
+                <td>
+                    <input type="number" name="min_balance" placeholder="min" value="{{ filters.get('min_balance', '') }}" style="width:60px">
+                    –
+                    <input type="number" name="max_balance" placeholder="max" value="{{ filters.get('max_balance', '') }}" style="width:60px">
+                </td>
+            </tr>
+            <tr>
+                <td><label>Swingweight :</label></td>
+                <td>
+                    <input type="number" name="min_swingweight" placeholder="min" value="{{ filters.get('min_swingweight', '') }}" style="width:60px">
+                    –
+                    <input type="number" name="max_swingweight" placeholder="max" value="{{ filters.get('max_swingweight', '') }}" style="width:60px">
+                </td>
+                <td><label>Rigidité :</label></td>
+                <td>
+                    <input type="number" name="min_stiffness" placeholder="min" value="{{ filters.get('min_stiffness', '') }}" style="width:60px">
+                    –
+                    <input type="number" name="max_stiffness" placeholder="max" value="{{ filters.get('max_stiffness', '') }}" style="width:60px">
+                </td>
+                <td><label>Trier par :</label></td>
+                <td>
+                    <select name="sort_by">
+                        <option value="brand" {% if filters.get('sort_by','brand') == 'brand' %}selected{% endif %}>Marque</option>
+                        <option value="name" {% if filters.get('sort_by') == 'name' %}selected{% endif %}>Nom</option>
+                        <option value="weight" {% if filters.get('sort_by') == 'weight' %}selected{% endif %}>Poids</option>
+                        <option value="head_size" {% if filters.get('sort_by') == 'head_size' %}selected{% endif %}>Taille tamis</option>
+                        <option value="swingweight" {% if filters.get('sort_by') == 'swingweight' %}selected{% endif %}>Swingweight</option>
+                        <option value="price" {% if filters.get('sort_by') == 'price' %}selected{% endif %}>Prix</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <label><input type="checkbox" name="current_only" {% if filters.get('current_only') == 'on' %}checked{% endif %}> Modèles actuels uniquement</label>
+                </td>
+                <td colspan="4">
+                    <input type="submit" value="Filtrer">
+                    <a href="{{ url_for('shop.racquets') }}"><button type="button">Réinitialiser</button></a>
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    <!-- Liste des raquettes -->
+    <p><strong>{{ racquets|length }} raquette(s) trouvée(s)</strong></p>
+
+    {% if racquets %}
+    <table class="pool">
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Marque</th>
+                <th>Nom</th>
+                <th>Poids (g)</th>
+                <th>Tamis (cm²)</th>
+                <th>Balance</th>
+                <th>Swingweight</th>
+                <th>Rigidité</th>
+                <th>Cordage</th>
+                <th>Prix (€)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for racquet in racquets %}
+            <tr>
+                <td>
+                    {% if racquet.image_local %}
+                        <img src="{{ url_for('static', filename='shop/images/' + racquet.image_local) }}" alt="{{ racquet.name }}" style="height:50px">
+                    {% elif racquet.image_url %}
+                        <img src="{{ racquet.image_url }}" alt="{{ racquet.name }}" style="height:50px">
+                    {% else %}
+                        🎾
+                    {% endif %}
+                </td>
+                <td>{{ racquet.brand }}</td>
+                <td>
+                    <a href="{{ url_for('shop.racquet_detail', racquet_id=racquet.id) }}">{{ racquet.name }}</a>
+                    {% if not racquet.is_current %}<small style="color:grey">(ancien)</small>{% endif %}
+                </td>
+                <td>{{ racquet.strung_weight | none_to_zero }}</td>
+                <td>{{ racquet.head_size | none_to_zero }}</td>
+                <td>{{ racquet.balance_label }}</td>
+                <td>{{ racquet.swingweight | none_to_zero }}</td>
+                <td>{{ racquet.stiffness | none_to_zero }}</td>
+                <td>{{ racquet.string_pattern or '-' }}</td>
+                <td>{{ '%.0f' % racquet.price if racquet.price else '-' }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('shop.delete_racquet', racquet_id=racquet.id) }}" onsubmit="return confirm('Supprimer cette raquette ?')">
+                        <button type="submit">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Aucune raquette trouvée. <a href="{{ url_for('shop.scrape') }}">Importer des raquettes</a>.</p>
+    {% endif %}
+</main>
+{% endblock main %}
+

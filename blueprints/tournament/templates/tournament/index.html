@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="container">
+	<h1>🎾 Tournois de club</h1>
+
+	<div class="actions" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+		<a href="{{ url_for('welcome') }}" class="btn btn-secondary">&#8592; Accueil</a>
+		<a href="{{ url_for('tournament.create') }}" class="btn btn-primary">&#10133; Nouveau tournoi</a>
+	</div>
+
+	{% if tournaments %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Nom</th>
+				<th>Club</th>
+				<th>Dates</th>
+				<th>Type</th>
+				<th>Surface</th>
+				<th>Statut</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for t in tournaments %}
+			<tr>
+				<td><strong>{{ t.name }}</strong></td>
+				<td>{{ t.club.name }}</td>
+				<td>{{ t.start_date.strftime('%d/%m/%Y') }} → {{ t.end_date.strftime('%d/%m/%Y') }}</td>
+				<td>{{ 'Open' if t.is_open else 'Interne' }}</td>
+				<td>{{ t.surface }}</td>
+				<td><span
+						class="badge badge-{{ 'success' if t.status == 'IN_PROGRESS' else 'info' if t.status == 'OPEN' else 'secondary' }}">{{
+						t.status_label }}</span></td>
+				<td>
+					<a href="{{ url_for('tournament.detail', tid=t.id) }}" class="btn btn-sm btn-info">&#128203;
+						D&eacute;tail</a>
+					{% if t.status in ('DRAFT', 'OPEN') %}
+					<form method="POST" action="{{ url_for('tournament.delete_tournament', tid=t.id) }}"
+						style="display:inline"
+						onsubmit="return confirm('Supprimer définitivement le tournoi «\u00a0{{ t.name }}\u00a0» ?')">
+						<button class="btn btn-sm btn-outline-danger" title="Supprimer ce tournoi">&#128465;</button>
+					</form>
+					{% else %}
+					<a href="{{ url_for('tournament.detail', tid=t.id) }}" class="btn btn-sm btn-outline-danger"
+						title="Supprimer (depuis la page de détail)">&#128465;</a>
+					{% endif %}
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<p class="empty-msg">Aucun tournoi créé. <a href="{{ url_for('tournament.create') }}">Créer le premier tournoi</a>.
+	</p>
+	{% endif %}
+</div>
+{% endblock %}

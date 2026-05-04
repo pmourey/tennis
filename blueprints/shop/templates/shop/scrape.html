@@ -1,0 +1,29 @@
+<!-- shop/templates/shop/scrape.html -->
+{% extends 'base.html' %}
+
+{% block main %}
+{% include 'partials/_menu.html' %}
+<main>
+    <table class="update-form">
+        <caption class="table-caption">Import / Mise à jour des raquettes</caption>
+        <tr>
+            <td colspan="2">
+                <p>Cet outil permet d'importer ou de mettre à jour le catalogue de raquettes depuis une source externe.</p>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <form method="POST" action="{{ url_for('shop.scrape') }}">
+                    <input type="submit" value="🔄 Lancer l'import">
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <a href="{{ url_for('shop.racquets') }}"><button type="button">← Retour catalogue</button></a>
+            </td>
+        </tr>
+    </table>
+</main>
+{% endblock main %}
+

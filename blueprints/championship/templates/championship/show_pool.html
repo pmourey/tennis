@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% include './partials/_menu.html' %}
+
+{% block main %}
+
+<main>
+    <table>
+        <tr>
+            <td style="border: none;"><button onclick="batchSimulatePool()" class="btn btn-primary">Nouvelle simulation</button></td>
+            <td style="border: none;"><button onclick="browseExistingSims()" class="btn btn-primary">Historique simulations</button></td>
+        </tr>
+    </table>
+    <table class="pool">
+        <caption class="table-caption">{{ pool.championship.name }} (Poule {{ pool.letter }})</caption>
+        <thead>
+        <tr>
+            <th>Classement</th>
+            <th>Équipe</th>
+            <th>Points</th>
+            <th>Rencontres disputées</th>
+            <th>Diff. Matchs</th>
+            <th>Diff. Sets</th>
+            <th>Diff. Jeux</th>
+        </tr>
+        </thead>
+        {% for team_id, data in classement %}
+            {% set team = pool.get_team_by_id(team_id) %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><a href="{{ url_for('club.show_team', id=team.id) }}">{{ team.name }} ({{ team.avg_age }} ans - poids: {{ team.weight(pool.championship) }})</a></td>
+                <td>{{ data['points'] }}</td>
+                <td>{{ data['matches_played'] }}</td>
+                <td>{{ data['diff_matchs'] }}</td>
+                <td>{{ data['diff_sets'] }}</td>
+                <td>{{ data['diff_games'] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <!-- Affichage des journées de rencontres et résultats -->
+    {% if matchdays %}
+        <h2>Journées de rencontres et résultats</h2>
+        <ul>
+            {% for matchday in matchdays %}
+                <li>
+                    <strong>Journée {{ loop.index }} :</strong>
+                    {% if not matchday.is_completed %}
+                         <!-- Tooltip container -->
+                        <div class="tooltip" onclick="toggleTooltip(this)">
+                            {{ matchday.date }}
+                            <!-- Tooltip with championship match days -->
+                            <span class="tooltiptext">Date report possible: {{ matchday.report_date }}</span>
+                        </div>
+                    {% else %}
+                        {{ matchday.date }}
+                    {% endif %}
+                    <ul>
+                        {% if matches %}
+                            {% for match in matches %}
+                                {% if match.matchdayId == matchday.id %}
+                                    <li>{{ match.homeTeam.name }} vs {{ match.visitorTeam.name }} : {{ match.score }}
+                                        <a href="{{ url_for('championship.show_match', id=match.id) }}">&#x1F3BE;</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <li>Aucun match prévu pour cette poule lors de cette journée.</li>
+                        {% endif %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+        {% if not pool.is_started %}
+            <h2>Modification du calendrier</h2>
+            <table class="update-form">
+                    {% for matchday in matchdays %}
+                        <table>
+                            <caption class="table-caption">Journée {{ loop.index }}</caption>
+                            {% for match in matches %}
+                                {% if match.matchdayId == matchday.id %}
+                                    <tr>
+                                    <td>
+                                        <select name="home" data-match-id="{{ match.id }}">
+                                            <option value="">Sélectionner une équipe de cette poule</option> <!-- Option vide -->
+                                            {% for team in pool.teams %}
+                                                {% if match.homeTeamId == team.id %}
+                                                    <option value="{{ team.id }}" selected>{{ team.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="visitor" data-match-id="{{ match.id }}">
+                                            <option value="">Sélectionner une équipe de cette poule</option> <!-- Option vide -->
+                                            {% for team in pool.teams %}
+                                                {% if match.visitorTeamId == team.id %}
+                                                    <option value="{{ team.id }}" selected>{{ team.name }}</option>
+                                                {% else %}
+                                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </table>
+                    {% endfor %}
+                </table>
+            <button onclick="updateSchedule()" class="btn btn-success">Enregistrer</button>
+        {% endif %}
+    {% else %}
+        <p style="font-size: 16px; text-align: center;">Aucune journée de rencontres programmée dans cette poule! 📅</p>
+    {% endif %}
+</main>
+<script>
+    function batchSimulatePool() {
+        window.location.href = "{{ url_for('championship.simulate_pool_batch', pool_id=pool.id) }}";
+    }
+    function browseExistingSims() {
+        window.location.href = "{{ url_for('championship.show_simulations', pool_id=pool.id) }}";
+    }
+    function updateSchedule() {
+        const selectItems = document.querySelectorAll('select');
+        const schedule = [];
+        selectItems.forEach(item => {
+            schedule.push({
+                home: item.name == 'home',
+                match_id: item.dataset.matchId,
+                team_id: item.value
+            });
+        });
+        console.log('Schedule:', schedule);  // For debugging
+
+        fetch("{{ url_for('championship.update_schedule', pool_id=pool.id) }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ schedule: schedule })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Nouveau calendrier enregistré avec succès');
+                window.location.href = "{{ url_for('championship.show_pool', id=pool.id) }}";
+            } else {
+                alert('Erreur lors de l\'enregistrement du calendrier\n' + data.error + '\n' + data.details);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de l\'enregistrement du calendrier\n' + data.error + '\n' + data.details);
+        });
+    }
+</script>
+
+{% endblock main %}
