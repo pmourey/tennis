@@ -7,7 +7,6 @@ from pytz import timezone
 class Config:
     DEBUG = True
     # TESTING = True
-    SECRET_KEY = 'fifa 2022'
     SQLALCHEMY_DATABASE_URI = 'sqlite:///tennis.sqlite3'
     CLUBS = [{'id': '62060107', 'active': True, 'name': 'US CAGNES TENNIS', 'city': 'Cagnes-sur-Mer', 'csvfile': 'us_cagnes_tennis'},
              {'id': '62060207', 'active': True, 'name': 'TC MOUGINS', 'city': 'Mougins', 'csvfile': 'tc_mougins'},
