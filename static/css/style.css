@@ -1,3 +1,20 @@
+/* ── Sliders raquette ── */
+.slider-group label { display:block; font-size:.85em; font-weight:600; margin-bottom:4px; color:#333; }
+.slider-group input[type=range] { width:100%; accent-color:#0066cc; cursor:pointer; padding:0; margin:0; }
+.btn-primary { background:#0066cc; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600; }
+.btn-primary:hover { background:#0052a3; }
+.btn-sm { font-size:.82em; padding:5px 12px; }
+/* ── Sélecteur personnalisé ── */
+.selector-form .form-group { margin-bottom:18px; }
+.selector-form label.group-label { font-weight:600; font-size:.88em; display:block; margin-bottom:6px; color:#333; }
+.radio-group { display:flex; flex-wrap:wrap; gap:8px; }
+.radio-group label { font-weight:400; font-size:.85em; display:flex; align-items:center; gap:5px; cursor:pointer;
+    background:#f0f4f8; border:1px solid #ccc; border-radius:20px; padding:5px 12px; transition:.15s; }
+.radio-selected { background:#0066cc !important; color:#fff !important; border-color:#0066cc !important; }
+.rec-card { background:#fff; border:1px solid #dde; border-radius:10px; padding:16px; margin-bottom:12px; }
+.rec-card h4 { margin:0 0 8px; font-size:.95em; color:#0066cc; }
+.rec-badge { display:inline-block; background:#e8f4e8; color:#1a6e1a; border-radius:12px; padding:3px 10px; font-size:.8em; font-weight:600; margin:2px; }
+
 body {
     background-color: #F7FAFC;
     justify-content: center;

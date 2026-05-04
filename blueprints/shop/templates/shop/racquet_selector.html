@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block main %}
+{% include 'partials/_menu.html' %}
+<main>
+<div class="shop-container">
+<div class="shop-detail" style="max-width:900px; margin:0 auto;">
+
+  <div style="margin-bottom:24px;">
+    <h2 style="margin-bottom:4px;">🧠 Sélecteur de raquette &amp; cordage</h2>
+    <p class="text-muted" style="font-size:.88em;">
+      Renseignez votre profil pour obtenir des recommandations personnalisées sur la raquette
+      et le cordage adaptés à votre jeu.
+      <a href="{{ url_for('shop.racquets') }}" style="margin-left:12px;">← Retour catalogue</a>
+    </p>
+  </div>
+
+  {# ── FORMULAIRE ── #}
+  <form method="POST" action="{{ url_for('shop.racquet_selector') }}" class="selector-form">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+      {# Colonne gauche #}
+      <div>
+
+        <div class="form-group">
+          <label class="group-label">👤 Groupe d'âge</label>
+          <div class="radio-group" id="rg_age">
+            {% for val, lbl in [('enfant','Enfant (< 12 ans)'),('junior','Junior (12–17 ans)'),('adulte','Adulte'),('senior','Senior (55+)')] %}
+            <label class="{{ 'radio-selected' if form.get('age_group', 'adulte') == val else '' }}">
+              <input type="radio" name="age_group" value="{{ val }}" {% if form.get('age_group','adulte') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="group-label">📊 Niveau de jeu</label>
+          <div class="radio-group">
+            {% for val, lbl in [('debutant','Débutant'),('loisir','Loisir'),('intermediaire','Intermédiaire'),('competiteur','Compétiteur')] %}
+            <label class="{{ 'radio-selected' if form.get('level', 'loisir') == val else '' }}">
+              <input type="radio" name="level" value="{{ val }}" {% if form.get('level','loisir') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="group-label">🎯 Style de jeu</label>
+          <div class="radio-group">
+            {% for val, lbl in [('attaquant','Attaquant / Montée filet'),('polyvalent','Polyvalent'),('defenseur','Défenseur fond de court')] %}
+            <label class="{{ 'radio-selected' if form.get('style', 'polyvalent') == val else '' }}">
+              <input type="radio" name="style" value="{{ val }}" {% if form.get('style','polyvalent') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="group-label">📅 Fréquence de jeu</label>
+          <div class="radio-group">
+            {% for val, lbl in [('occasionnel','Occasionnel (< 1x/sem)'),('regulier','Régulier (1–3x/sem)'),('intensif','Intensif (4x+/sem)')] %}
+            <label class="{{ 'radio-selected' if form.get('frequency', 'regulier') == val else '' }}">
+              <input type="radio" name="frequency" value="{{ val }}" {% if form.get('frequency','regulier') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+
+      {# Colonne droite #}
+      <div>
+
+        <div class="form-group">
+          <label class="group-label">🏋️ Morphologie / gabarit</label>
+          <div class="radio-group">
+            {% for val, lbl in [('petit','Petit / léger'),('moyen','Moyen'),('grand','Grand / puissant')] %}
+            <label class="{{ 'radio-selected' if form.get('morphologie', 'moyen') == val else '' }}">
+              <input type="radio" name="morphologie" value="{{ val }}" {% if form.get('morphologie','moyen') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="group-label">⚕️ Blessures / sensibilités</label>
+          <div class="radio-group">
+            {% for val, lbl in [('none','Aucune'),('tennis_elbow','Tennis Elbow'),('poignet','Poignet'),('epaule','Épaule')] %}
+            <label class="{{ 'radio-selected' if form.get('injuries', 'none') == val else '' }}">
+              <input type="radio" name="injuries" value="{{ val }}" {% if form.get('injuries','none') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="group-label">⭐ Priorité de jeu</label>
+          <div class="radio-group">
+            {% for val, lbl in [('puissance','Puissance'),('controle','Contrôle'),('effets','Effets / Lift'),('confort','Confort')] %}
+            <label class="{{ 'radio-selected' if form.get('priority', 'confort') == val else '' }}">
+              <input type="radio" name="priority" value="{{ val }}" {% if form.get('priority','confort') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="group-label">🧵 Fréquence de casse de cordage</label>
+          <div class="radio-group">
+            {% for val, lbl in [('jamais','Jamais / rare'),('rarement','Rarement (1–2x/an)'),('parfois','Parfois (trimestriel)'),('souvent','Souvent (mensuel+)')] %}
+            <label class="{{ 'radio-selected' if form.get('casseur', 'rarement') == val else '' }}">
+              <input type="radio" name="casseur" value="{{ val }}" {% if form.get('casseur','rarement') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
+              <span>{{ lbl }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top:24px; text-align:center;">
+      <button type="submit" class="btn btn-primary" style="padding:12px 36px; font-size:1em; border-radius:8px;">
+        🎾 Obtenir mes recommandations
+      </button>
+    </div>
+
+  </form>
+
+  {# ── RECOMMANDATIONS ── #}
+  {% if recs %}
+  <hr style="margin:32px 0; border-color:#e0e0e0;">
+
+  <h3 style="margin-bottom:18px;">✅ Recommandations personnalisées</h3>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px;">
+
+    <div class="rec-card">
+      <h4>🎾 Raquette — Critères clés</h4>
+      <p style="font-size:.85em; margin:4px 0;">
+        <span class="rec-badge">Tamis : {{ recs.head_min }}–{{ recs.head_max }} sq.in</span>
+        <span class="rec-badge">Poids : {{ recs.weight_min }}–{{ recs.weight_max }} g</span>
+      </p>
+      <p style="font-size:.82em; color:#444; margin:8px 0 4px;">{{ recs.balance_label }}</p>
+      <p style="font-size:.82em; color:#444; margin:0;">{{ recs.ra_label }}</p>
+      <p style="font-size:.82em; color:#444; margin:6px 0 0;">{{ recs.head_label }}</p>
+    </div>
+
+    <div class="rec-card" style="border-color:#c8e6c9;">
+      <h4 style="color:#1a6e1a;">🧵 Cordage recommandé</h4>
+      <p style="font-size:.9em; font-weight:700; margin:6px 0 4px; color:#333;">{{ recs.string_type }}</p>
+      <p style="font-size:.83em; margin:2px 0; color:#555;">
+        <strong>Jauge :</strong> {{ recs.string_gauge }} &nbsp;|&nbsp; <strong>Tension :</strong> {{ recs.string_tension }}
+      </p>
+      <p style="font-size:.82em; color:#444; margin-top:8px; line-height:1.5;">{{ recs.string_rationale }}</p>
+      <p style="font-size:.75em; color:#888; margin-top:8px;">
+        ⏱ Rappel : changer le cordage tous les 6 mois même s'il n'est pas cassé.
+      </p>
+    </div>
+
+  </div>
+
+  {# Raquettes correspondantes #}
+  <h3 style="margin-bottom:14px;">📦 Raquettes correspondantes dans le catalogue</h3>
+  {% if matching %}
+  <p class="text-muted" style="font-size:.85em; margin-bottom:14px;">
+    {{ matching | length }} modèle(s) trouvé(s) — <strong>les modèles actuels</strong> apparaissent en tête.
+  </p>
+  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px;">
+    {% for r in matching %}
+    <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card"
+       style="display:block;border:1px solid #ddd;border-radius:8px;padding:12px;text-decoration:none;color:inherit;background:{{ '#f0fff4' if r.is_current else '#fafafa' }};transition:box-shadow .2s;">
+      <div style="font-size:.7em;font-weight:bold;color:{{ '#28a745' if r.is_current else '#888' }};margin-bottom:4px;">
+        {{ '● Actuel' if r.is_current else '○ Archive' }}
+      </div>
+      <div style="font-weight:bold;font-size:.9em;">{{ r.brand }}</div>
+      <div style="font-size:.85em;color:#555;margin-bottom:6px;">{{ r.name }}</div>
+      <div style="font-size:.78em;color:#777;line-height:1.7;">
+        {% if r.head_size %}🔵 {{ r.head_size | int }} sq.in<br>{% endif %}
+        {% if r.strung_weight %}⚖️ {{ r.strung_weight | int }} g<br>{% endif %}
+        {% if r.stiffness %}📏 RA {{ r.stiffness }}<br>{% endif %}
+        {% if r.string_pattern %}📐 {{ r.string_pattern }}<br>{% endif %}
+        {% if r.swingweight %}🌀 SW {{ r.swingweight }}{% endif %}
+      </div>
+      {% if r.price %}<div style="font-size:.82em;font-weight:bold;color:#333;margin-top:6px;">{{ '%.0f €'|format(r.price) }}</div>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:16px;font-size:.88em;color:#555;">
+    <strong>⚠️ Aucune raquette ne correspond exactement</strong> à ces critères dans votre catalogue actuel.<br>
+    Essayez d'importer plus de modèles via le scraper, ou élargissez les critères en sélectionnant un niveau différent.
+    <br><a href="{{ url_for('shop.racquets') }}" style="color:#0066cc;">→ Parcourir tout le catalogue</a>
+  </div>
+  {% endif %}
+
+  {% endif %}
+
+</div>
+</div>
+</main>
+
+<script>
+function updateRadio(input) {
+  const group = input.closest('.radio-group');
+  group.querySelectorAll('label').forEach(l => l.classList.remove('radio-selected'));
+  input.closest('label').classList.add('radio-selected');
+}
+</script>
+{% endblock main %}
+

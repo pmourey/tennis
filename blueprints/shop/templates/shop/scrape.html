@@ -11,10 +11,18 @@
             </div>
             <div class="shop-scrape-body">
                 <p>Cet outil importe les raquettes depuis <code>racquetfinder.com</code> et met a jour la base locale.</p>
+
+                {% if not import_enabled %}
+                <div class="alert alert-warning" style="padding:12px 16px; border-left:4px solid #f0ad4e; background:#fff8e1; margin-bottom:16px;">
+                    ⚠️ L'import est <strong>désactivé</strong> sur ce serveur (<code>SHOP_IMPORT_ENABLED = False</code>).
+                    Veuillez l'activer dans <code>config.py</code> pour pouvoir importer.
+                </div>
+                {% endif %}
+
                 <form method="POST" action="{{ url_for('shop.scrape') }}">
                     <div class="form-group">
                         <label for="manufacturer">Fabricant cible</label>
-                        <select id="manufacturer" name="manufacturer" class="form-control">
+                        <select id="manufacturer" name="manufacturer" class="form-control" {% if not import_enabled %}disabled{% endif %}>
                             <option value="">Tous les fabricants</option>
                             {% for m in manufacturers %}
                                 <option value="{{ m.value }}">{{ m.label }}</option>
@@ -24,20 +32,24 @@
 
                     <div class="form-check">
                         <label>
-                            <input type="checkbox" name="current_only" class="form-check-input">
+                            <input type="checkbox" name="current_only" class="form-check-input" {% if not import_enabled %}disabled{% endif %}>
                             Importer seulement les modeles actuels
                         </label>
                     </div>
 
                     <div class="form-check">
                         <label>
-                            <input type="checkbox" name="normalize_legacy" class="form-check-input" checked>
+                            <input type="checkbox" name="normalize_legacy" class="form-check-input" checked {% if not import_enabled %}disabled{% endif %}>
                             Convertir les anciens poids detectes en oz vers grammes
                         </label>
                     </div>
 
                     <div class="shop-filter-actions" style="margin-top: 18px;">
-                        <button type="submit" class="btn btn-primary">Lancer l'import</button>
+                        {% if import_enabled %}
+                            <button type="submit" class="btn btn-primary">Lancer l'import</button>
+                        {% else %}
+                            <button type="button" class="btn btn-secondary" disabled title="Import désactivé">🔒 Import désactivé</button>
+                        {% endif %}
                         <a href="{{ url_for('shop.racquets') }}"><button type="button" class="btn btn-secondary">Retour catalogue</button></a>
                     </div>
                 </form>

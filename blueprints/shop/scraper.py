@@ -247,28 +247,61 @@ def scrape_racquet_by_pcode(pcode: str) -> dict:
     img = soup.select_one('img.racimage')
     image_url = img.get('src', '') if img else ''
 
-    # Table principale (div.with_image ou div.with_image.cf)
-    container = soup.select_one('div.with_image')
-    table_data = _parse_table(container) if container else _parse_table(soup)
-
-    head_size = _parse_head_size(_find_value(table_data, 'Head Size', 'Headsize', 'head_size', 'Head size', 'hsMin', 'hsMax'))
-    length = _parse_length(table_data.get('Length', ''))
-    string_pattern = _parse_string_pattern(table_data.get('String Pattern', ''))
-    strung_weight = _parse_weight_oz_to_g(
-        table_data.get('Strung Weight') or table_data.get('Weight', '')
+    # Table principale — essayer plusieurs conteneurs possibles
+    container = (
+        soup.select_one('div.with_image')
+        or soup.select_one('div.racquet_detail')
+        or soup.select_one('div#racquet_specs')
+        or soup.select_one('table.specs')
+        or soup
     )
-    unstrung_weight = _parse_weight_oz_to_g(table_data.get('Unstrung Weight', ''))
-    balance = _parse_balance(table_data.get('Balance', ''))
-    swingweight_raw = table_data.get('Swingweight', '') or table_data.get('Swing Weight', '')
+    table_data = _parse_table(container)
+
+    # Si head_size absent du container principal, chercher dans toute la page
+    head_size_raw = _find_value(table_data, 'Head Size', 'Headsize', 'head_size', 'Head size', 'hsMin', 'hsMax')
+    if not head_size_raw:
+        full_table = _parse_table(soup)
+        head_size_raw = _find_value(full_table, 'Head Size', 'Headsize', 'head_size', 'Head size', 'hsMin', 'hsMax')
+        # Enrichir table_data avec les données manquantes
+        for k, v in full_table.items():
+            if k not in table_data:
+                table_data[k] = v
+
+    head_size = _parse_head_size(head_size_raw)
+
+    # Fallback head_size via spans/meta (certaines pages l'encodent différemment)
+    if head_size is None:
+        for tag in soup.find_all(string=re.compile(r'sq\.?\s*in', re.IGNORECASE)):
+            val = _parse_head_size(tag)
+            if val:
+                head_size = val
+                break
+
+    length = _parse_length(_find_value(table_data, 'Length', 'Longueur') or '')
+    string_pattern = _parse_string_pattern(_find_value(table_data, 'String Pattern', 'StringPattern', 'Stringing Pattern') or '')
+    strung_weight = _parse_weight_oz_to_g(
+        _find_value(table_data, 'Strung Weight', 'Weight', 'Strung') or ''
+    )
+    unstrung_weight = _parse_weight_oz_to_g(
+        _find_value(table_data, 'Unstrung Weight', 'Unstrung') or ''
+    )
+    balance = _parse_balance(_find_value(table_data, 'Balance') or '')
+    swingweight_raw = _find_value(table_data, 'Swingweight', 'Swing Weight', 'SwingWeight') or ''
     swingweight = int(re.search(r'\d+', swingweight_raw).group()) if re.search(r'\d+', swingweight_raw) else None
-    stiffness_raw = table_data.get('Stiffness', '') or table_data.get('Flex', '')
+    stiffness_raw = _find_value(table_data, 'Stiffness', 'Flex', 'RA') or ''
     stiffness = int(re.search(r'\d+', stiffness_raw).group()) if re.search(r'\d+', stiffness_raw) else None
+    beam_width = _find_value(table_data, 'Beam Width', 'BeamWidth', 'Beam') or None
+    string_tension = _find_value(table_data, 'String Tension', 'StringTension', 'Tension') or None
+    composition = _find_value(table_data, 'Composition', 'Material', 'Matière') or None
+    color = _find_value(table_data, 'Color', 'Colour', 'Couleur') or None
+    player_type = _find_value(table_data, 'Power Level', 'Player Type', 'PlayerType', 'Level') or None
 
     return {
         'pcode': pcode.upper(),
         'brand': brand,
         'name': name,
         'image_url': image_url,
+        'url': url,
         'head_size': head_size,
         'length': length,
         'string_pattern': string_pattern,
@@ -277,6 +310,11 @@ def scrape_racquet_by_pcode(pcode: str) -> dict:
         'balance': balance,
         'swingweight': swingweight,
         'stiffness': stiffness,
+        'beam_width': beam_width,
+        'string_tension': string_tension,
+        'composition': composition,
+        'color': color,
+        'player_type': player_type,
         'raw': table_data,
     }
 
@@ -387,6 +425,38 @@ def scrape_all(current_only=False, progress_callback=None) -> list[dict]:
             results.append(data)
 
     return results
+
+
+def diagnose_head_size(pcode: str) -> dict:
+    """Outil de diagnostic : retourne le HTML brut et les données parsées pour un pcode donné.
+    Utile pour comprendre pourquoi head_size n'est pas récupéré.
+    """
+    url = f'{BASE_URL}/racquet/{pcode.upper()}'
+    resp = requests.get(url, headers=HEADERS, timeout=15)
+    if resp.status_code != 200:
+        return {'error': f'HTTP {resp.status_code}', 'url': url}
+
+    soup = BeautifulSoup(resp.text, 'lxml')
+
+    # Chercher toutes les lignes contenant "sq"
+    sq_matches = []
+    for tag in soup.find_all(string=re.compile(r'sq', re.IGNORECASE)):
+        sq_matches.append(repr(str(tag.parent)[:200]))
+
+    container = soup.select_one('div.with_image')
+    table_data = _parse_table(container) if container else _parse_table(soup)
+
+    head_size_raw = _find_value(table_data, 'Head Size', 'Headsize', 'head_size', 'Head size', 'hsMin', 'hsMax')
+
+    return {
+        'url': url,
+        'container_found': container is not None,
+        'container_selector': 'div.with_image' if container else 'full page',
+        'table_data_keys': list(table_data.keys()),
+        'head_size_raw': head_size_raw,
+        'head_size_parsed': _parse_head_size(head_size_raw),
+        'sq_in_occurrences': sq_matches[:10],
+    }
 
 
 

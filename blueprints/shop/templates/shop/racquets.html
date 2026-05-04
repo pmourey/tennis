@@ -7,7 +7,10 @@
     <div class="shop-container">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <h2 style="margin:0; font-size:20px;">Catalogue raquettes</h2>
-            <a class="btn btn-info btn-sm" href="{{ url_for('shop.scrape') }}">Importer / Mettre a jour</a>
+            <div style="display:flex; gap:8px;">
+                <a class="btn btn-primary btn-sm" href="{{ url_for('shop.racquet_selector') }}" style="background:#0066cc; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:.85em; font-weight:600;">🧠 Sélecteur personnalisé</a>
+                <a class="btn btn-info btn-sm" href="{{ url_for('shop.scrape') }}">Importer / Mettre a jour</a>
+            </div>
         </div>
 
         <form method="GET" action="{{ url_for('shop.racquets') }}" class="shop-filters">

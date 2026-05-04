@@ -34,7 +34,50 @@ class Racquet(db.Model):
         if self.balance is None:
             return 'N/A'
         if self.balance < 0:
-            return f'{abs(self.balance):.1f} pts HL'
+            return f'{abs(self.balance):.0f} pts HL'
         if self.balance > 0:
-            return f'{self.balance:.1f} pts HH'
-        return '0 pts (Equilibrée)'
+            return f'{self.balance:.0f} pts HH'
+        return '0 pts (Équilibrée)'
+
+    @property
+    def balance_mm(self):
+        """Distance en mm depuis la base du manche jusqu'au point d'équilibre.
+        Une raquette standard mesure 27 pouces = 685.8 mm.
+        balance en pts (1 pt = 1/8 inch = 3.175 mm).
+        Point neutre = milieu = 685.8 / 2 = 342.9 mm.
+        HL = tête légère → balance < milieu.
+        """
+        if self.balance is None:
+            return None
+        length_mm = (self.length or 27.0) * 25.4
+        neutral_mm = length_mm / 2.0
+        # balance négatif = HL, positif = HH
+        return round(neutral_mm - self.balance * 3.175, 1)
+
+    @property
+    def head_size_cm2(self):
+        """Taille du tamis en cm²  (1 sq.in = 6.4516 cm²)."""
+        if self.head_size is None:
+            return None
+        return round(self.head_size * 6.4516, 0)
+
+    @property
+    def length_cm(self):
+        """Longueur en cm (1 inch = 2.54 cm)."""
+        if self.length is None:
+            return None
+        return round(self.length * 2.54, 2)
+
+    @property
+    def strung_weight_oz(self):
+        """Poids cordé en oz (1 g = 0.035274 oz)."""
+        if self.strung_weight is None:
+            return None
+        return round(self.strung_weight / 28.3495, 2)
+
+    @property
+    def unstrung_weight_oz(self):
+        """Poids non-cordé en oz."""
+        if self.unstrung_weight is None:
+            return None
+        return round(self.unstrung_weight / 28.3495, 2)
