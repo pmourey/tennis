@@ -48,6 +48,7 @@ class Config:
     PARIS = timezone('Europe/Paris')
     BASE_PATH = os.path.dirname(__file__)
     MAPBOX_API_KEY = 'REMOVED_MAPBOX_KEY'
+    SHOP_IMPORT_ENABLED = os.getenv('SHOP_IMPORT_ENABLED', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 
 
 class DevelopmentConfig(Config):
