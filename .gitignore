@@ -44,3 +44,10 @@ instance/
 *.tmp
 *.bak
 
+# Fichiers draft/brouillon non versionnés
+*_old.html
+*_old.py
+*.pages
+blueprints/club/templates/club/infos_club_gmap.html
+
+
