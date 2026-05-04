@@ -44,12 +44,39 @@ def _parse_string_pattern(raw: str) -> str | None:
 
 
 def _parse_head_size(raw: str) -> float | None:
-    """Extrait la taille du tamis en sq. in. depuis '95 sq. in.' ou '95 sq. in. / 613 sq. cm.'"""
+    """Extrait la taille du tamis en sq. in. depuis '95 sq. in.' ou '95 sq. in. / 613 sq. cm.'
+
+    Gère les variations:
+      - '80 sq. in. / 516 sq. cm.'
+      - '95 sq.in'
+      - '100 square inches'
+      - Espaces non-breaking et espaces réguliers
+    """
     if not raw:
         return None
-    m = re.search(r'([\d.]+)\s*sq\.?\s*in', raw, re.IGNORECASE)
+
+    # Normaliser: remplacer non-breaking spaces et autres variantes
+    raw = str(raw).strip()
+    raw = re.sub(r'[\s\xa0]+', ' ', raw)  # non-breaking spaces → espaces
+
+    # Regex plus flexible: match "sq. in.", "sq.in", "square inch", "square inches", etc.
+    # Capture le nombre qui précède
+    m = re.search(
+        r'([\d.]+)\s*(?:sq\.?|square)\s*(?:in|inch|in\.)',
+        raw,
+        re.IGNORECASE
+    )
     if m:
         return float(m.group(1))
+
+    # Fallback: si format est juste un nombre isolé (genre "80" en valeur brute)
+    m = re.search(r'^([\d.]+)$', raw.strip())
+    if m:
+        val = float(m.group(1))
+        # Vérifier que c'est une taille de raquette raisonnable (50-135 sq.in)
+        if 50 <= val <= 135:
+            return val
+
     return None
 
 
@@ -94,15 +121,66 @@ def _parse_balance(raw: str) -> float | None:
     return None
 
 
+def _normalize_key(key: str) -> str:
+    """Normalise une clé: lowercase, sans espaces, sans caractères spéciaux."""
+    return re.sub(r'[\s\W]+', '', key).lower()
+
+
+def _find_value(table_data: dict, *possible_keys) -> str | None:
+    """Cherche une valeur avec plusieurs clés alternatives.
+
+    Cherche d'abord exactement, puis avec normalisation.
+    Exemple: _find_value(table, 'Head Size', 'Headsize', 'hsMin')
+    """
+    # Recherche directe exacte
+    for key in possible_keys:
+        if key in table_data:
+            val = table_data[key]
+            if val:
+                return val
+
+    # Recherche avec normalisation
+    normalized_keys = [_normalize_key(k) for k in possible_keys]
+    normalized_table = {_normalize_key(k): v for k, v in table_data.items()}
+
+    for norm_key in normalized_keys:
+        if norm_key in normalized_table:
+            return normalized_table[norm_key]
+
+    return None
+
+
 def _parse_table(soup_context) -> dict:
-    """Parse toutes les lignes <tr><th>…</th><td>…</td></tr> en dict."""
+    """Parse toutes les lignes <tr><th>…</th><td>…</td></tr> en dict.
+
+    Supporte aussi:
+      - champs input (<input name="..." value="...">)
+      - listes de description (<dt>...</dt><dd>...</dd>)
+    """
     result = {}
+
+    # Parser les <tr><th>...<td>...</td></tr>
     for row in soup_context.select('tr'):
         th = row.find('th')
         td = row.find('td')
         if th and td:
             key = th.get_text(strip=True).rstrip(':').strip()
             result[key] = td.get_text(strip=True)
+
+    # Parser les champs input (hsMin, hsMax, etc.)
+    for inp in soup_context.find_all('input'):
+        name = inp.get('name', '').strip()
+        value = inp.get('value', '').strip()
+        if name and value:
+            result[name] = value
+
+    # Parser les <dt>/<dd>
+    for dt in soup_context.find_all('dt'):
+        dd = dt.find_next('dd')
+        if dd:
+            key = dt.get_text(strip=True).rstrip(':').strip()
+            result[key] = dd.get_text(strip=True)
+
     return result
 
 
@@ -131,7 +209,9 @@ def parse_product(product_div) -> dict:
         brand, name = extract_brand_and_name(full_name)
 
     # head_size depuis le tableau listing
-    head_size = _parse_head_size(table_data.get('Head Size', ''))
+    # Cherche avec clés alternatives: 'Head Size', 'Headsize', 'hsMin'/'hsMax' combo, etc.
+    head_size_raw = _find_value(table_data, 'Head Size', 'Headsize', 'head_size', 'Head size', 'hsMin', 'hsMax')
+    head_size = _parse_head_size(head_size_raw) if head_size_raw else None
 
     # string_pattern
     string_pattern = _parse_string_pattern(table_data.get('String Pattern', ''))
@@ -171,7 +251,7 @@ def scrape_racquet_by_pcode(pcode: str) -> dict:
     container = soup.select_one('div.with_image')
     table_data = _parse_table(container) if container else _parse_table(soup)
 
-    head_size = _parse_head_size(table_data.get('Head Size', ''))
+    head_size = _parse_head_size(_find_value(table_data, 'Head Size', 'Headsize', 'head_size', 'Head size', 'hsMin', 'hsMax'))
     length = _parse_length(table_data.get('Length', ''))
     string_pattern = _parse_string_pattern(table_data.get('String Pattern', ''))
     strung_weight = _parse_weight_oz_to_g(
@@ -307,5 +387,9 @@ def scrape_all(current_only=False, progress_callback=None) -> list[dict]:
             results.append(data)
 
     return results
+
+
+
+
 
 
