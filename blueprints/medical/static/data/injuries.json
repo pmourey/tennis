@@ -1,0 +1,102 @@
+[
+  {
+    "site": "Bone",
+    "Acute": [
+      "Fracture Periosteal",
+      "Contusion"
+    ],
+    "Overuse": [
+      "Stress fracture",
+      "Bone strain",
+      "Stress reaction",
+      "Osteitis",
+      "Periostitis",
+      "Apophysitis"
+    ]
+  },
+  {
+    "site": "Articular cartilage",
+    "Acute": [
+      "Osteochondral/chondral fracture",
+      "Minor osteochondral injury/lesion"
+    ],
+    "Overuse": [
+      "Chondropathy (e.g. chondromalacia)"
+    ]
+  },
+  {
+    "site": "Joint",
+    "Acute": [
+      "Dislocation",
+      "Subluxation"
+    ],
+    "Overuse": [
+      "Synovitis",
+      "Osteoarthritis"
+    ]
+  },
+  {
+    "site": "Ligament",
+    "Acute": [
+      "Sprain/tear (grades I - III)"
+    ],
+    "Overuse": [
+      "Inflammation"
+    ]
+  },
+  {
+    "site": "Muscle",
+    "Acute": [
+      "Strain/tear (grades I - III)",
+      "Contusion",
+      "Cramp",
+      "Compartment syndrome (acute)"
+    ],
+    "Overuse": [
+      "Compartment syndrome (chronic)",
+      "Delayed onset muscle soreness (DOMS)",
+      "Focal tissue thickening/fibrosis"
+    ]
+  },
+  {
+    "site": "Tendon",
+    "Acute": [
+      "Tear (complete or partial)"
+    ],
+    "Overuse": [
+      "Tendinopathy"
+    ]
+  },
+  {
+    "site": "Bursa",
+    "Acute": [
+      "Traumatic bursitis"
+    ],
+    "Overuse": [
+      "Bursitis"
+    ]
+  },
+  {
+    "site": "Nerve",
+    "Acute": [
+      "Neuropraxia"
+    ],
+    "Overuse": [
+      "Nerve entrapment",
+      "Minor nerve injury/irritation",
+      "Adverse neural tension"
+    ]
+  },
+  {
+    "site": "Skin",
+    "Acute": [
+      "Laceration",
+      "Abrasion",
+      "Puncture wound"
+    ],
+    "Overuse": [
+      "Blister",
+      "Callus"
+    ]
+  }
+]

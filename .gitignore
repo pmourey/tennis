@@ -1,0 +1,46 @@
+# Secrets - ne jamais commiter
+config_secret.py
+config.py
+.flaskenv
+mapbox_replace.txt
+
+# Bases de données SQLite
+*.sqlite3
+*.sqlite
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environnement virtuel
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Fichiers système macOS
+.DS_Store
+
+# Fichiers de log
+*.log
+
+# Instance Flask (données locales)
+instance/
+
+# Fichiers temporaires
+*.tmp
+*.bak
+

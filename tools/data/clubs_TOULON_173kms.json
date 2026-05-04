@@ -1,0 +1,7328 @@
+{
+  "gmap": {
+    "key": "AIzaSyCpt4mm_J-MDPF5fjldi54H_ZxzMa-gDZc"
+  },
+  "typeRecherche": "club",
+  "resultat": [
+    {
+      "nom": "A.I.L ROUSSET",
+      "clubId": "62130211",
+      "ville": "ROUSSET",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.47646,
+      "lng": 5.62553
+    },
+    {
+      "nom": "A.S. ANGLOISE TENNIS CLUB",
+      "clubId": "62840175",
+      "ville": "LES ANGLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.9465,
+      "lng": 4.7772
+    },
+    {
+      "nom": "A.S. AVIATION CIVILE AIX",
+      "clubId": "62130213",
+      "ville": "AIX-EN-PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.52819,
+      "lng": 5.43156
+    },
+    {
+      "nom": "A.S. BEDARRIDES",
+      "clubId": "62840069",
+      "ville": "BEDARRIDES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.040253,
+      "lng": 4.889698
+    },
+    {
+      "nom": "A.S. CARNOUX TENNIS",
+      "clubId": "62130102",
+      "ville": "CARNOUX-EN-PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.2583,
+      "lng": 5.565487
+    },
+    {
+      "nom": "A.S. CAROMBAISE",
+      "clubId": "62840366",
+      "ville": "CAROMB",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.05757,
+      "lng": 5.120476
+    },
+    {
+      "nom": "A.S. CHEMINOTS D\u0027AVIGNON",
+      "clubId": "62840161",
+      "ville": "AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.937237,
+      "lng": 4.826524
+    },
+    {
+      "nom": "A.S. REALTOR",
+      "clubId": "62130417",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.291252,
+      "lng": 5.434388
+    },
+    {
+      "nom": "A.S. ROGNAC TENNIS",
+      "clubId": "62130134",
+      "ville": "ROGNAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 6 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.477528,
+      "lng": 5.242273
+    },
+    {
+      "nom": "A.S. THOROISE",
+      "clubId": "62840294",
+      "ville": "LE THOR",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.93552,
+      "lng": 4.99082
+    },
+    {
+      "nom": "A.S. VILLENEUVOISE T.C",
+      "clubId": "62840154",
+      "ville": "VILLENEUVE-LES-AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.97048,
+      "lng": 4.799749
+    },
+    {
+      "nom": "A.S.C.E.E 13 EQUIPEMENT",
+      "clubId": "62130025",
+      "ville": "SEPTEMES-LES-VALLONS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.3901,
+      "lng": 5.349956
+    },
+    {
+      "nom": "A.S.P.T.T  AVIGNON",
+      "clubId": "62840116",
+      "ville": "LES ANGLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.941307,
+      "lng": 4.774799
+    },
+    {
+      "nom": "A.S.P.T.T CARPENTRAS",
+      "clubId": "62840496",
+      "ville": "CARPENTRAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.03965,
+      "lng": 5.055938
+    },
+    {
+      "nom": "ACE LINE TENNIS PADEL PEGOMAS",
+      "clubId": "62060461",
+      "ville": "PEGOMAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.598553,
+      "lng": 6.932742
+    },
+    {
+      "nom": "ACT BLAUSASC",
+      "clubId": "62060325",
+      "ville": "BLAUSASC",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.80532,
+      "lng": 7.36211
+    },
+    {
+      "nom": "AGASC TC MONTALEIGNE",
+      "clubId": "62060195",
+      "ville": "CAGNES SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 4, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.69302,
+      "lng": 7.17519
+    },
+    {
+      "nom": "AILES SPORTIVES AIRBUS HELICOPTERS",
+      "clubId": "62130336",
+      "ville": "MARIGNANE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.410652,
+      "lng": 5.242855
+    },
+    {
+      "nom": "AIX AUC TENNIS-PADEL",
+      "clubId": "62130600",
+      "ville": "AIX EN PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.510895,
+      "lng": 5.465583
+    },
+    {
+      "nom": "ALL IN C\u00d4TE D\u0027AZUR TENNIS CLUB ACADEMY",
+      "clubId": "62060003",
+      "ville": "VILLENEUVE LOUBET",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 16 terrains, Padel : 4, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.65965,
+      "lng": 7.096732
+    },
+    {
+      "nom": "ALL IN TENNIS PADEL COUNTRY CLUB DE GRASSE",
+      "clubId": "62060023",
+      "ville": "GRASSE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 15 terrains, Padel : 6",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.632412,
+      "lng": 6.953832
+    },
+    {
+      "nom": "ALLAUDIEN TENNIS CLUB",
+      "clubId": "62130504",
+      "ville": "ALLAUCH",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.341743,
+      "lng": 5.477817
+    },
+    {
+      "nom": "AMADEUS ATHLETIC ASSOCIATION",
+      "clubId": "62060446",
+      "ville": "VILLENEUVE LOUBET",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.64382,
+      "lng": 7.124484
+    },
+    {
+      "nom": "AMPUS TC",
+      "clubId": "62830377",
+      "ville": "AMPUS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.60664,
+      "lng": 6.386326
+    },
+    {
+      "nom": "AMSLF TC GALLIENI",
+      "clubId": "62830091",
+      "ville": "FREJUS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.443073,
+      "lng": 6.751267
+    },
+    {
+      "nom": "AS AIGUIER TENNIS",
+      "clubId": "62130584",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.250645,
+      "lng": 5.410542
+    },
+    {
+      "nom": "AS BAS RHONE LANGUEDOC-NIMES",
+      "clubId": "60300004",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "12 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.819912,
+      "lng": 4.388618
+    },
+    {
+      "nom": "AS BOUILLARGUES",
+      "clubId": "60300318",
+      "ville": "BOUILLARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.799294,
+      "lng": 4.41709
+    },
+    {
+      "nom": "AS CAISSARGUES",
+      "clubId": "60300188",
+      "ville": "CAISSARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.788918,
+      "lng": 4.382475
+    },
+    {
+      "nom": "AS CASTAGNIERS",
+      "clubId": "62060403",
+      "ville": "CASTAGNIERS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.789665,
+      "lng": 7.235535
+    },
+    {
+      "nom": "AS DES CHEMINOTS DE MIRAMAS",
+      "clubId": "62130418",
+      "ville": "MIRAMAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.58445,
+      "lng": 4.997865
+    },
+    {
+      "nom": "AS DES SALARIES DE L\u0027ENERGIE",
+      "clubId": "62130100",
+      "ville": "ALLAUCH",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.336147,
+      "lng": 5.482574
+    },
+    {
+      "nom": "AS FETE LE MUR ARLES\/SALON",
+      "clubId": "62130599",
+      "ville": "SALON DE PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.649105,
+      "lng": 5.101589
+    },
+    {
+      "nom": "AS MOURATOGLOU CC",
+      "clubId": "62060295",
+      "ville": "Biot",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 34 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.620922,
+      "lng": 7.06106
+    },
+    {
+      "nom": "AS SENAS TENNIS",
+      "clubId": "62130591",
+      "ville": "SENAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.74363,
+      "lng": 5.084681
+    },
+    {
+      "nom": "AS TENNIS CLUB ALLAUCH FONTVIEILLE",
+      "clubId": "62130558",
+      "ville": "ALLAUCH",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.323086,
+      "lng": 5.4907
+    },
+    {
+      "nom": "AS TENNIS LA CIOTAT\/CEYRESTE",
+      "clubId": "62130564",
+      "ville": "CEYRESTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 6 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.2215,
+      "lng": 5.634811
+    },
+    {
+      "nom": "AS TENNIS PADEL LUCOIS",
+      "clubId": "62830443",
+      "ville": "LE LUC",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.3865,
+      "lng": 6.30617
+    },
+    {
+      "nom": "AS VARS",
+      "clubId": "62050532",
+      "ville": "VARS",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.572662,
+      "lng": 6.679992
+    },
+    {
+      "nom": "ASCE 13 CEREMA",
+      "clubId": "62130147",
+      "ville": "AIX EN PROVENCE Cedex 3",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.48923,
+      "lng": 5.377833
+    },
+    {
+      "nom": "ASCM SAINT JUST",
+      "clubId": "60340519",
+      "ville": "SAINT JUST",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.65764,
+      "lng": 4.117361
+    },
+    {
+      "nom": "ASGTCS VAUBAN",
+      "clubId": "62060198",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.71165,
+      "lng": 7.285455
+    },
+    {
+      "nom": "ASLM TENNIS CANNES",
+      "clubId": "62060137",
+      "ville": "CANNES LA BOCCA",
+      "distance": "",
+      "terrainPratiqueLibelle": "16 terrains dont 4 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.560284,
+      "lng": 6.961751
+    },
+    {
+      "nom": "ASOA TENNIS",
+      "clubId": "62060401",
+      "ville": "ANTIBES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.594627,
+      "lng": 7.072007
+    },
+    {
+      "nom": "ASPREMONT TENNIS CLUB",
+      "clubId": "62060453",
+      "ville": "ASPREMONT",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.782516,
+      "lng": 7.25148
+    },
+    {
+      "nom": "ASPTT CANNES",
+      "clubId": "62060090",
+      "ville": "LE CANNET",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.565308,
+      "lng": 6.978652
+    },
+    {
+      "nom": "ASPTT DRAGUIGNAN - section",
+      "clubId": "62830063",
+      "ville": "DRAGUIGNAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.52331,
+      "lng": 6.464822
+    },
+    {
+      "nom": "ASPTT GAP",
+      "clubId": "62050276",
+      "ville": "GAP",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.548077,
+      "lng": 6.060106
+    },
+    {
+      "nom": "ASPTT HYERES - Section",
+      "clubId": "62830064",
+      "ville": "HYERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.10974,
+      "lng": 6.180045
+    },
+    {
+      "nom": "ASPTT MANOSQUE",
+      "clubId": "62040350",
+      "ville": "MANOSQUE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.84165,
+      "lng": 5.776381
+    },
+    {
+      "nom": "ASPTT MONTPELLIER",
+      "clubId": "60340009",
+      "ville": "MONTPELLIER",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 19 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.61228,
+      "lng": 3.92343
+    },
+    {
+      "nom": "ASPTT NICE",
+      "clubId": "62060007",
+      "ville": "ST LAURENT DU VAR",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 7 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.679604,
+      "lng": 7.189563
+    },
+    {
+      "nom": "ASPTT NIMES",
+      "clubId": "60300140",
+      "ville": "N\u00ceMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.856102,
+      "lng": 4.397462
+    },
+    {
+      "nom": "ASPTT TOULON - section",
+      "clubId": "62830052",
+      "ville": "LA VALETTE DU VAR",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.126213,
+      "lng": 5.986719
+    },
+    {
+      "nom": "ASS ROURETOISE DE TENNIS",
+      "clubId": "62060379",
+      "ville": "LE ROURET",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.67053,
+      "lng": 7.016556
+    },
+    {
+      "nom": "ASS TC DE L ARA",
+      "clubId": "62060432",
+      "ville": "VENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.719124,
+      "lng": 7.104206
+    },
+    {
+      "nom": "ASS.SPORTS ET LOISIRS ST JACQUES",
+      "clubId": "62060442",
+      "ville": "GRASSE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.639156,
+      "lng": 6.911146
+    },
+    {
+      "nom": "ASSA TENNIS",
+      "clubId": "62060383",
+      "ville": "ANTIBES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.599014,
+      "lng": 7.10364
+    },
+    {
+      "nom": "ASSO CALMETTOISE DE TENNIS",
+      "clubId": "60300683",
+      "ville": "LA CALMETTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.918407,
+      "lng": 4.265031
+    },
+    {
+      "nom": "ASSOCIATION ALTHENOISE DE TENNIS",
+      "clubId": "62840441",
+      "ville": "ALTHEN-DES-PALUDS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.004993,
+      "lng": 4.956936
+    },
+    {
+      "nom": "ASSOCIATION DU TENNIS A CRILLON",
+      "clubId": "62840551",
+      "ville": "CRILLON LE BRAVE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.121414,
+      "lng": 5.17285
+    },
+    {
+      "nom": "ASSOCIATION SPORTIVE DE GORBIO",
+      "clubId": "62060240",
+      "ville": "GORBIO",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.780746,
+      "lng": 7.450268
+    },
+    {
+      "nom": "ASSOCIATION TCP PADEL",
+      "clubId": "62130609",
+      "ville": "CASSIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.21143,
+      "lng": 5.516852
+    },
+    {
+      "nom": "ASTL ST CEZAIRE",
+      "clubId": "62060287",
+      "ville": "ST CEZAIRE SUR SIAGNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.651985,
+      "lng": 6.793687
+    },
+    {
+      "nom": "AT GRIMAUD",
+      "clubId": "62830400",
+      "ville": "GRIMAUD",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.2732,
+      "lng": 6.520008
+    },
+    {
+      "nom": "AT MONTAUROUX",
+      "clubId": "62830437",
+      "ville": "MONTAUROUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.617897,
+      "lng": 6.771936
+    },
+    {
+      "nom": "AT MONTFAUCON",
+      "clubId": "60300655",
+      "ville": "MONTFAUCON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.073692,
+      "lng": 4.750945
+    },
+    {
+      "nom": "AT SAINT PAULOISE",
+      "clubId": "62830175",
+      "ville": "ST PAUL EN FORET",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Pickleball : 3",
+      "pratiques": [
+        "TENNIS",
+        "PICKLE"
+      ],
+      "lat": 43.56463,
+      "lng": 6.69795
+    },
+    {
+      "nom": "AVT ASSOCIATION VENELLOISE DE TENNIS",
+      "clubId": "62130153",
+      "ville": "VENELLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.596275,
+      "lng": 5.499524
+    },
+    {
+      "nom": "AZUR TENNIS SPORTS VALROSE",
+      "clubId": "62060444",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.71772,
+      "lng": 7.265223
+    },
+    {
+      "nom": "BAGNOLS TENNIS GARD RHODANIEN",
+      "clubId": "60300702",
+      "ville": "BAGNOLS-SUR-CEZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.13914,
+      "lng": 4.62909
+    },
+    {
+      "nom": "BARGEMON TENNIS CLUB",
+      "clubId": "62830450",
+      "ville": "BARGEMON",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.61939,
+      "lng": 6.554897
+    },
+    {
+      "nom": "BERRE TENNIS CLUB",
+      "clubId": "62130520",
+      "ville": "BERRE L\u0027ETANG",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.485607,
+      "lng": 5.161836
+    },
+    {
+      "nom": "BORMES MIMOSAS TC",
+      "clubId": "62830290",
+      "ville": "BORMES LES MIMOSAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.143986,
+      "lng": 6.332917
+    },
+    {
+      "nom": "BOXELAND CLUB ISLOIS",
+      "clubId": "62840089",
+      "ville": "L ISLE SUR LA SORGUE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.924187,
+      "lng": 5.051204
+    },
+    {
+      "nom": "C.S. BOUILLADISSE",
+      "clubId": "62130210",
+      "ville": "LA BOUILLADISSE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.393627,
+      "lng": 5.597005
+    },
+    {
+      "nom": "C.S.A.M. AUDEOUD",
+      "clubId": "62130195",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.274513,
+      "lng": 5.401662
+    },
+    {
+      "nom": "CAMARET TENNIS CLUB",
+      "clubId": "62840247",
+      "ville": "CAMARET",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.165028,
+      "lng": 4.8786
+    },
+    {
+      "nom": "CAMARG\u0027ANIM",
+      "clubId": "62138011",
+      "ville": "ARLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 10 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.65078,
+      "lng": 4.64229
+    },
+    {
+      "nom": "CAMARGUE TENNIS CLUB",
+      "clubId": "62130610",
+      "ville": "SAINTES MARIES DE LA MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.45394,
+      "lng": 4.43312
+    },
+    {
+      "nom": "CANNES TENNIS LACOUR",
+      "clubId": "62060454",
+      "ville": "CANNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.54927,
+      "lng": 7.032461
+    },
+    {
+      "nom": "CENTRE DE LIGUE MEDITERRANEE",
+      "clubId": "60L00005",
+      "ville": "LA GRANDE MOTTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.560703,
+      "lng": 4.086072
+    },
+    {
+      "nom": "CERCLE SPORTIF MARSEILLE TENNIS",
+      "clubId": "62130005",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "14 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.266,
+      "lng": 5.39103
+    },
+    {
+      "nom": "CLARENSAC TENNIS CLUB",
+      "clubId": "60300276",
+      "ville": "CLARENSAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.824646,
+      "lng": 4.232585
+    },
+    {
+      "nom": "CLUB DE TENNIS SAINT DREZERY",
+      "clubId": "60340496",
+      "ville": "ST DREZERY",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.733433,
+      "lng": 3.97806
+    },
+    {
+      "nom": "CLUB OMNISPORTS EZE",
+      "clubId": "62060089",
+      "ville": "EZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.723206,
+      "lng": 7.352823
+    },
+    {
+      "nom": "CLUB PORT ST LOUIS DU RHONE",
+      "clubId": "62130171",
+      "ville": "PORT-ST-LOUIS-DU-RHONE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.393936,
+      "lng": 4.802245
+    },
+    {
+      "nom": "CLUB TENNIS BASKET BALL",
+      "clubId": "62060124",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.705475,
+      "lng": 7.252746
+    },
+    {
+      "nom": "CMT CONTES",
+      "clubId": "62060247",
+      "ville": "CONTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.815407,
+      "lng": 7.315597
+    },
+    {
+      "nom": "CMTVSA",
+      "clubId": "62060293",
+      "ville": "VALBONNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.620472,
+      "lng": 7.045078
+    },
+    {
+      "nom": "CO CARNON",
+      "clubId": "60340234",
+      "ville": "CARNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.545982,
+      "lng": 3.979898
+    },
+    {
+      "nom": "COMITE BOUCHES DU RHONE TENNIS",
+      "clubId": "62L00130",
+      "ville": "CABRIES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.426937,
+      "lng": 5.367676
+    },
+    {
+      "nom": "COMITE HAUTES ALPES TENNIS",
+      "clubId": "62L00050",
+      "ville": "GAP",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.54008,
+      "lng": 6.058688
+    },
+    {
+      "nom": "COMITE VAR TENNIS",
+      "clubId": "62L00830",
+      "ville": "LA GARDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Beach Tennis : 2",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.148,
+      "lng": 6.044
+    },
+    {
+      "nom": "COMITE VAUCLUSE TENNIS",
+      "clubId": "62L00840",
+      "ville": "LE PONTET",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.958374,
+      "lng": 4.856947
+    },
+    {
+      "nom": "COTIGNAC TC",
+      "clubId": "62830433",
+      "ville": "COTIGNAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.52917,
+      "lng": 6.148583
+    },
+    {
+      "nom": "COUNTRY CLUB AIXOIS",
+      "clubId": "62130030",
+      "ville": "AIX-EN-PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "18 terrains dont 5 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.568306,
+      "lng": 5.417343
+    },
+    {
+      "nom": "COURTH\u0027TENNIS CLUB",
+      "clubId": "62840579",
+      "ville": "courth\u00e9zon",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.09354,
+      "lng": 4.882917
+    },
+    {
+      "nom": "CS CAVALAIROIS TENNIS",
+      "clubId": "62830066",
+      "ville": "CAVALAIRE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.19106,
+      "lng": 6.532248
+    },
+    {
+      "nom": "CS CHEMINOTS NIMES",
+      "clubId": "60300158",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.84872,
+      "lng": 4.396541
+    },
+    {
+      "nom": "CSA 21\u00b0 RIMA FREJUS - section",
+      "clubId": "62830405",
+      "ville": "FREJUS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.477806,
+      "lng": 6.718378
+    },
+    {
+      "nom": "CSA MEDITERRANEE - Tennis",
+      "clubId": "62830028",
+      "ville": "TOULON",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.129807,
+      "lng": 5.922518
+    },
+    {
+      "nom": "CSL CORNE OR",
+      "clubId": "62060371",
+      "ville": "Villefranche sur Mer",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.705845,
+      "lng": 7.30392
+    },
+    {
+      "nom": "CSMT LA COUDOULIERE",
+      "clubId": "62830116",
+      "ville": "SIX FOURS LES PLAGES",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.101143,
+      "lng": 5.823404
+    },
+    {
+      "nom": "CST TENNIS",
+      "clubId": "62830180",
+      "ville": "LA GARDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Padel : 1, Beach Tennis : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.14868,
+      "lng": 6.045505
+    },
+    {
+      "nom": "CSU TENNIS AIX EN PROVENCE",
+      "clubId": "62130608",
+      "ville": "AIX EN PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Padel : 3, Beach Tennis : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.51734,
+      "lng": 5.45239
+    },
+    {
+      "nom": "CT DE SEILLANS",
+      "clubId": "62830212",
+      "ville": "SEILLANS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.63571,
+      "lng": 6.64844
+    },
+    {
+      "nom": "DASSAULT ISTRES SPORTS",
+      "clubId": "62130141",
+      "ville": "ST-CHAMAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.55067,
+      "lng": 5.034508
+    },
+    {
+      "nom": "DIEULEFIT .U.S.",
+      "clubId": "50260494",
+      "ville": "DIEULEFIT",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.522636,
+      "lng": 5.061207
+    },
+    {
+      "nom": "DIEULEFIT T.C.JABRON",
+      "clubId": "50260255",
+      "ville": "DIEULEFIT",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.520584,
+      "lng": 5.061671
+    },
+    {
+      "nom": "DYNAMIC\u0027SPORT",
+      "clubId": "62060460",
+      "ville": "Tourrettes-Levens",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Padel : 1, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.80081,
+      "lng": 7.27126
+    },
+    {
+      "nom": "EGUILLES TENNIS CLUB",
+      "clubId": "62138008",
+      "ville": "EGUILLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.57417,
+      "lng": 5.343355
+    },
+    {
+      "nom": "ENERGIE SPORTIVE AVIGNONNAISE",
+      "clubId": "62840332",
+      "ville": "AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.972298,
+      "lng": 4.831694
+    },
+    {
+      "nom": "ENTRE VIGNES TENNIS CLUB",
+      "clubId": "60340677",
+      "ville": "ST CHRISTOL",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.7251,
+      "lng": 4.08256
+    },
+    {
+      "nom": "FETE LE MUR AIX EN PROVENCE",
+      "clubId": "62130595",
+      "ville": "AIX EN PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.526646,
+      "lng": 5.422151
+    },
+    {
+      "nom": "GALLIA TENNIS CLUB",
+      "clubId": "62130244",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.300755,
+      "lng": 5.450183
+    },
+    {
+      "nom": "GRANGES GONTARDES TENNIS CLUB",
+      "clubId": "50260516",
+      "ville": "LES GRANGES GONTARDES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.416454,
+      "lng": 4.766985
+    },
+    {
+      "nom": "GRIGNAN TENNIS CLUB",
+      "clubId": "50260212",
+      "ville": "GRIGNAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.419502,
+      "lng": 4.909444
+    },
+    {
+      "nom": "GSEM TENNIS",
+      "clubId": "62060068",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.74443,
+      "lng": 7.302997
+    },
+    {
+      "nom": "GTC VALESCURE - section",
+      "clubId": "62830034",
+      "ville": "SAINT RAPHAEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.451736,
+      "lng": 6.806893
+    },
+    {
+      "nom": "HANDISPORT ANTIBES MEDITERRANEE",
+      "clubId": "62060459",
+      "ville": "ANTIBES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.59074,
+      "lng": 7.1186
+    },
+    {
+      "nom": "IBS SPORTS",
+      "clubId": "62130594",
+      "ville": "LUYNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.486317,
+      "lng": 5.418159
+    },
+    {
+      "nom": "ISTRES SPORTS TENNIS",
+      "clubId": "62130133",
+      "ville": "ISTRES",
+      "distance": "",
+      "terrainPratiqueLibelle": "11 terrains dont 4 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.475998,
+      "lng": 4.993344
+    },
+    {
+      "nom": "LA CIOTAT TENNIS CLUB",
+      "clubId": "62130105",
+      "ville": "LA CIOTAT",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 5",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.1958,
+      "lng": 5.631207
+    },
+    {
+      "nom": "LA MOTTE TC",
+      "clubId": "62830422",
+      "ville": "LA MOTTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.48805,
+      "lng": 6.545721
+    },
+    {
+      "nom": "LA RAQUETTE D\u0027EYGUIERES",
+      "clubId": "62130229",
+      "ville": "EYGUIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.68642,
+      "lng": 5.03158
+    },
+    {
+      "nom": "LA RAQUETTE ROQUEFORTOISE",
+      "clubId": "62060418",
+      "ville": "ROQUEFORT LES PINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.661472,
+      "lng": 7.035343
+    },
+    {
+      "nom": "LA TURBIE TENNIS CLUB",
+      "clubId": "62060452",
+      "ville": "LA TURBIE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.736767,
+      "lng": 7.399896
+    },
+    {
+      "nom": "LA VILLA TENNIS CLUB",
+      "clubId": "62068004",
+      "ville": "LE CANNET",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.563274,
+      "lng": 6.968321
+    },
+    {
+      "nom": "LAPALUD TENNIS CLUB",
+      "clubId": "62840106",
+      "ville": "LAPALUD",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.30412,
+      "lng": 4.688778
+    },
+    {
+      "nom": "LB13 PADEL TENNIS CLUB",
+      "clubId": "62138019",
+      "ville": "ALLAUCH",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.333946,
+      "lng": 5.480464
+    },
+    {
+      "nom": "LES TENNIS DU GRAND PRE",
+      "clubId": "62830444",
+      "ville": "ENTRECASTEAUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.518063,
+      "lng": 6.240792
+    },
+    {
+      "nom": "LIGUE PROVENCE-ALPES-COTE D\u0027AZUR",
+      "clubId": "62L01000",
+      "ville": "AIX EN PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 25 terrains, Padel : 4, Beach Tennis : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.568703,
+      "lng": 5.418492
+    },
+    {
+      "nom": "LUC EN DIOIS TENNIS CLUB",
+      "clubId": "50260275",
+      "ville": "LUC EN DIOIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.614647,
+      "lng": 5.444586
+    },
+    {
+      "nom": "MAGNAC ASPTT MARSEILLE",
+      "clubId": "62130592",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "12 terrains dont 4 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.265797,
+      "lng": 5.391035
+    },
+    {
+      "nom": "MALLEMORT TENNIS CLUB",
+      "clubId": "62130159",
+      "ville": "MALLEMORT",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.724792,
+      "lng": 5.179409
+    },
+    {
+      "nom": "MEYRARGUES TENNIS CLUB",
+      "clubId": "62130588",
+      "ville": "MEYRARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.635254,
+      "lng": 5.521677
+    },
+    {
+      "nom": "MIRABEL PIEGON TENNIS CLUB",
+      "clubId": "50260615",
+      "ville": "MIRABEL AUX BARONNIES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.30345,
+      "lng": 5.056585
+    },
+    {
+      "nom": "MONTE CARLO COUNTRY CLUB",
+      "clubId": "62060004",
+      "ville": "ROQUEBRUNE CAP MARTIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "23 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.751644,
+      "lng": 7.439524
+    },
+    {
+      "nom": "MONTFLEURY CANNES TENNIS CLUB",
+      "clubId": "62060449",
+      "ville": "CANNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.553738,
+      "lng": 7.03335
+    },
+    {
+      "nom": "MONTSEGUR TENNIS CLUB",
+      "clubId": "50260291",
+      "ville": "MONTSEGUR SUR LAUZON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.360348,
+      "lng": 4.860267
+    },
+    {
+      "nom": "MY CENTER CLUB COGOLIN",
+      "clubId": "62830117",
+      "ville": "COGOLIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.24397,
+      "lng": 6.551006
+    },
+    {
+      "nom": "NICE  LAWN TENNIS CLUB",
+      "clubId": "62060001",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 22 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.704556,
+      "lng": 7.252538
+    },
+    {
+      "nom": "NOSTRA TENNIS CLUB",
+      "clubId": "62130033",
+      "ville": "SALON-DE-PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.637676,
+      "lng": 5.091985
+    },
+    {
+      "nom": "NYONS TC",
+      "clubId": "50260234",
+      "ville": "NYONS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.35565,
+      "lng": 5.134126
+    },
+    {
+      "nom": "OLYMPIQUE CABRIES CALAS",
+      "clubId": "62130119",
+      "ville": "CABRIES",
+      "distance": "",
+      "terrainPratiqueLibelle": "14 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.446938,
+      "lng": 5.352782
+    },
+    {
+      "nom": "OMJS TC MEYREUIL",
+      "clubId": "62130606",
+      "ville": "MEYREUIL",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 6 terrains, Pickleball : 1, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PICKLE",
+        "PADEL"
+      ],
+      "lat": 43.471565,
+      "lng": 5.497285
+    },
+    {
+      "nom": "ORANGE RAQUETTES CLUB",
+      "clubId": "62840062",
+      "ville": "ORANGE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.130672,
+      "lng": 4.831888
+    },
+    {
+      "nom": "PADEL TENNIS CLUB DES ADRETS",
+      "clubId": "62830347",
+      "ville": "LES ADRETS DE L\u0027ESTEREL",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.529137,
+      "lng": 6.826979
+    },
+    {
+      "nom": "PIERRELATTE TC",
+      "clubId": "50260009",
+      "ville": "PIERRELATTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 7 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.365055,
+      "lng": 4.698593
+    },
+    {
+      "nom": "PUYMERAS TENNIS CLUB",
+      "clubId": "62840582",
+      "ville": "PUYMERAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.269657,
+      "lng": 5.126224
+    },
+    {
+      "nom": "RAQUETTE BERNISSOISE",
+      "clubId": "60300528",
+      "ville": "BERNIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.76328,
+      "lng": 4.284822
+    },
+    {
+      "nom": "RAQUETTE CECILIENNE",
+      "clubId": "62840335",
+      "ville": "STE-CECILE-LES-VIGNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.234062,
+      "lng": 4.884623
+    },
+    {
+      "nom": "RAQUETTE CLUB PORT CAMARGUE",
+      "clubId": "60300341",
+      "ville": "PORT CAMARGUE",
+      "distance": "",
+      "terrainPratiqueLibelle": "15 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.520325,
+      "lng": 4.139561
+    },
+    {
+      "nom": "RAQUETTE STEPHANOISE",
+      "clubId": "62040545",
+      "ville": "ST ETIENNE LES ORGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.045673,
+      "lng": 5.778438
+    },
+    {
+      "nom": "RC CANNETOIS",
+      "clubId": "62830251",
+      "ville": "LE CANNET DES MAURES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.38997,
+      "lng": 6.344493
+    },
+    {
+      "nom": "REAL TENNIS CLUB",
+      "clubId": "62130565",
+      "ville": "JOUQUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.63595,
+      "lng": 5.636486
+    },
+    {
+      "nom": "REMOULINS SPORT TENNIS",
+      "clubId": "60300297",
+      "ville": "REMOULINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.936787,
+      "lng": 4.560749
+    },
+    {
+      "nom": "RIANS TC",
+      "clubId": "62830425",
+      "ville": "RIANS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.604294,
+      "lng": 5.755355
+    },
+    {
+      "nom": "ROBION LAGNES TENNIS CLUB",
+      "clubId": "62840334",
+      "ville": "ROBION",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.85316,
+      "lng": 5.108999
+    },
+    {
+      "nom": "S.C. MONTREDON BONNEVEINE",
+      "clubId": "62130340",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.25374,
+      "lng": 5.384074
+    },
+    {
+      "nom": "SAINT MARTIN D\u0027ARDECHE T.C.",
+      "clubId": "50070540",
+      "ville": "ST MARTIN D ARDECHE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.303795,
+      "lng": 4.561687
+    },
+    {
+      "nom": "SAINT PAUL 3 CHATEAUX T.C.",
+      "clubId": "50260014",
+      "ville": "ST PAUL TROIS CHATEAUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.351192,
+      "lng": 4.7793
+    },
+    {
+      "nom": "SAINT RAPHAEL CC",
+      "clubId": "62830130",
+      "ville": "ST RAPHAEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "24 terrains dont 6 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.433308,
+      "lng": 6.807242
+    },
+    {
+      "nom": "SAINTE MAXIME TENNIS",
+      "clubId": "62830436",
+      "ville": "SAINTE MAXIME",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.300518,
+      "lng": 6.624778
+    },
+    {
+      "nom": "SARL LES HAUTS DE NIMES TENNIS",
+      "clubId": "60308002",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains dont 5 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.862396,
+      "lng": 4.292405
+    },
+    {
+      "nom": "SCO STE MARGUERITE TENNIS",
+      "clubId": "62130547",
+      "ville": "MARSEILLE 09",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.26393,
+      "lng": 5.420702
+    },
+    {
+      "nom": "SERIGNAN TENNIS CLUB 84",
+      "clubId": "62840373",
+      "ville": "SERIGNAN DU COMTAT",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.190815,
+      "lng": 4.848335
+    },
+    {
+      "nom": "SMASH CLUB",
+      "clubId": "62830417",
+      "ville": "LE LAVANDOU",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.158558,
+      "lng": 6.425488
+    },
+    {
+      "nom": "SMUC",
+      "clubId": "62130008",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.259037,
+      "lng": 5.385557
+    },
+    {
+      "nom": "SPORT ET LEISURE FRANCE",
+      "clubId": "62068002",
+      "ville": "CHATEAUNEUF GRASSE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.657257,
+      "lng": 6.975524
+    },
+    {
+      "nom": "SPORTING CLUB DES CREISSAUDS",
+      "clubId": "62130538",
+      "ville": "AUBAGNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.29268,
+      "lng": 5.567643
+    },
+    {
+      "nom": "SPORTING CLUB MAZANAIS",
+      "clubId": "62840344",
+      "ville": "MAZAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.05499,
+      "lng": 5.122365
+    },
+    {
+      "nom": "ST SAVOURNIN TENNIS CLUB",
+      "clubId": "62130480",
+      "ville": "ST-SAVOURNIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.413532,
+      "lng": 5.525762
+    },
+    {
+      "nom": "T POPULAIRE WEISWEILLER",
+      "clubId": "62060421",
+      "ville": "ANTIBES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.597633,
+      "lng": 7.085106
+    },
+    {
+      "nom": "T.C CADEROUSSIEN",
+      "clubId": "62840207",
+      "ville": "CADEROUSSE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.13799,
+      "lng": 4.792414
+    },
+    {
+      "nom": "T.C CARRY-LE-ROUET",
+      "clubId": "62130041",
+      "ville": "CARRY-LE-ROUET",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.33881,
+      "lng": 5.156755
+    },
+    {
+      "nom": "T.C CAVAILLON",
+      "clubId": "62840096",
+      "ville": "CAVAILLON",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.836605,
+      "lng": 5.040781
+    },
+    {
+      "nom": "T.C CHATEAU-GOMBERT",
+      "clubId": "62130369",
+      "ville": "MARSEILLE 13",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.344334,
+      "lng": 5.428262
+    },
+    {
+      "nom": "T.C CHATEAUNEUF LES MARTIGUES",
+      "clubId": "62130272",
+      "ville": "CHATEAUNEUF-LES-MARTIGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.396038,
+      "lng": 5.14075
+    },
+    {
+      "nom": "T.C CHEVALBLANAIS",
+      "clubId": "62840484",
+      "ville": "CHEVAL-BLANC",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.836376,
+      "lng": 5.095726
+    },
+    {
+      "nom": "T.C CIMENT LAFARGE",
+      "clubId": "62130138",
+      "ville": "BOUC-BEL-AIR",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.451153,
+      "lng": 5.413875
+    },
+    {
+      "nom": "T.C EYRAGUAIS",
+      "clubId": "62130386",
+      "ville": "EYRAGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.84158,
+      "lng": 4.841977
+    },
+    {
+      "nom": "T.C GOULTOIS",
+      "clubId": "62840515",
+      "ville": "GOULT",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.863674,
+      "lng": 5.242289
+    },
+    {
+      "nom": "T.C GRANS",
+      "clubId": "62130384",
+      "ville": "GRANS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.60389,
+      "lng": 5.079206
+    },
+    {
+      "nom": "T.C GREASQUE",
+      "clubId": "62130351",
+      "ville": "GREASQUE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.431686,
+      "lng": 5.547981
+    },
+    {
+      "nom": "T.C JONQUIEROIS",
+      "clubId": "62840114",
+      "ville": "JONQUIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.113644,
+      "lng": 4.903519
+    },
+    {
+      "nom": "T.C LORIOLAIS",
+      "clubId": "62840451",
+      "ville": "LORIOL DU COMTAT",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.076656,
+      "lng": 5.006242
+    },
+    {
+      "nom": "T.C MAILLANAIS",
+      "clubId": "62130461",
+      "ville": "MAILLANE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.818836,
+      "lng": 4.786661
+    },
+    {
+      "nom": "T.C MAUSSANE LES ALPILLES",
+      "clubId": "62130143",
+      "ville": "MAUSSANE-LES-ALPILLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.723347,
+      "lng": 4.803595
+    },
+    {
+      "nom": "T.C MONTFAVET",
+      "clubId": "62840539",
+      "ville": "MONTFAVET",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.9315,
+      "lng": 4.883669
+    },
+    {
+      "nom": "T.C MORIERES-LES-AVIGNON",
+      "clubId": "62840235",
+      "ville": "MORIERES-LES-AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.933826,
+      "lng": 4.905552
+    },
+    {
+      "nom": "T.C MOULIN",
+      "clubId": "62840427",
+      "ville": "ST-SATURNIN-LES-AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.959335,
+      "lng": 4.926153
+    },
+    {
+      "nom": "T.C NOVAIS",
+      "clubId": "62130039",
+      "ville": "NOVES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.876793,
+      "lng": 4.904478
+    },
+    {
+      "nom": "T.C PELISSANNAIS",
+      "clubId": "62130283",
+      "ville": "PELISSANNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.632378,
+      "lng": 5.149982
+    },
+    {
+      "nom": "T.C PIOLENC",
+      "clubId": "62840248",
+      "ville": "PIOLENC",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.173225,
+      "lng": 4.763244
+    },
+    {
+      "nom": "T.C PUY-STE-REPARADE",
+      "clubId": "62130139",
+      "ville": "LE PUY-STE-REPARADE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.660366,
+      "lng": 5.425094
+    },
+    {
+      "nom": "T.C PUYLOUBIER",
+      "clubId": "62130382",
+      "ville": "PUYLOUBIER",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.527054,
+      "lng": 5.68225
+    },
+    {
+      "nom": "T.C QUEIREL ST-LOUP",
+      "clubId": "62130318",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.28035,
+      "lng": 5.435051
+    },
+    {
+      "nom": "T.C RAPHELOIS",
+      "clubId": "62130410",
+      "ville": "RAPHELE-LES-ARLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.65157,
+      "lng": 4.721416
+    },
+    {
+      "nom": "T.C ROGNONAIS",
+      "clubId": "62130185",
+      "ville": "ROGNONAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.89798,
+      "lng": 4.807255
+    },
+    {
+      "nom": "T.C ROQUEFORT-LA-BEDOULE",
+      "clubId": "62130381",
+      "ville": "ROQUEFORT-LA-BEDOULE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.248363,
+      "lng": 5.585647
+    },
+    {
+      "nom": "T.C RUISSATEL",
+      "clubId": "62130501",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.303562,
+      "lng": 5.512767
+    },
+    {
+      "nom": "T.C SABLET",
+      "clubId": "62840436",
+      "ville": "SABLET",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.192425,
+      "lng": 5.006335
+    },
+    {
+      "nom": "T.C SAINT-JULIEN",
+      "clubId": "62130226",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.31301,
+      "lng": 5.457581
+    },
+    {
+      "nom": "T.C SAUSSET-LES-PINS",
+      "clubId": "62130137",
+      "ville": "SAUSSET LES PINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.331524,
+      "lng": 5.099421
+    },
+    {
+      "nom": "T.C ST-CHAMAS",
+      "clubId": "62130320",
+      "ville": "ST-CHAMAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.543694,
+      "lng": 5.045769
+    },
+    {
+      "nom": "T.C ST-MARTINOIS",
+      "clubId": "62130146",
+      "ville": "ST-MARTIN-DE-CRAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.63914,
+      "lng": 4.818991
+    },
+    {
+      "nom": "T.C ST-SATURNIN-D\u0027APT",
+      "clubId": "62840271",
+      "ville": "ST-SATURNIN-D\u0027APT",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.939884,
+      "lng": 5.366666
+    },
+    {
+      "nom": "T.C VACQUEYRASSIEN",
+      "clubId": "62840426",
+      "ville": "VACQUEYRAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.13977,
+      "lng": 4.985501
+    },
+    {
+      "nom": "T.C VALREAS",
+      "clubId": "62840060",
+      "ville": "VALREAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.368313,
+      "lng": 4.981259
+    },
+    {
+      "nom": "T.C VELAUX",
+      "clubId": "62130246",
+      "ville": "VELAUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.53594,
+      "lng": 5.247669
+    },
+    {
+      "nom": "T.C VELLERONNAIS",
+      "clubId": "62840311",
+      "ville": "VELLERON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.958477,
+      "lng": 5.030762
+    },
+    {
+      "nom": "T.C VENASQUE",
+      "clubId": "62840312",
+      "ville": "VENASQUE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.988148,
+      "lng": 5.150353
+    },
+    {
+      "nom": "T.C VENTABREN",
+      "clubId": "62130239",
+      "ville": "VENTABREN",
+      "distance": "",
+      "terrainPratiqueLibelle": "9 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.53506,
+      "lng": 5.296039
+    },
+    {
+      "nom": "T.C. CHATEAURENARDAIS",
+      "clubId": "62130124",
+      "ville": "CHATEAURENARD",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.880836,
+      "lng": 4.869396
+    },
+    {
+      "nom": "T.C.M. COUDOUX",
+      "clubId": "62130379",
+      "ville": "COUDOUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.553654,
+      "lng": 5.24032
+    },
+    {
+      "nom": "TALLARD TENNIS CLUB",
+      "clubId": "62050535",
+      "ville": "TALLARD",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.45564,
+      "lng": 6.048419
+    },
+    {
+      "nom": "TARADEAU TENNIS CLUB",
+      "clubId": "62830453",
+      "ville": "TARADEAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Pickleball : 4",
+      "pratiques": [
+        "TENNIS",
+        "PICKLE"
+      ],
+      "lat": 43.451252,
+      "lng": 6.431372
+    },
+    {
+      "nom": "TAULIGNAN TENNIS CLUB",
+      "clubId": "50260414",
+      "ville": "TAULIGNAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.385612,
+      "lng": 4.99283
+    },
+    {
+      "nom": "TC ACACIAS",
+      "clubId": "62060315",
+      "ville": "CAGNES SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 5",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.696804,
+      "lng": 7.158551
+    },
+    {
+      "nom": "TC AIGUES MORTES",
+      "clubId": "60300385",
+      "ville": "AIGUES MORTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.570507,
+      "lng": 4.194838
+    },
+    {
+      "nom": "TC AIGUES VIVES",
+      "clubId": "60300325",
+      "ville": "AIGUES VIVES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.732098,
+      "lng": 4.18767
+    },
+    {
+      "nom": "TC AIMARGUES",
+      "clubId": "60300191",
+      "ville": "AIMARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.68591,
+      "lng": 4.210358
+    },
+    {
+      "nom": "TC ANTIBES JUAN LES PINS",
+      "clubId": "62060016",
+      "ville": "ANTIBES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 17 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.59048,
+      "lng": 7.117095
+    },
+    {
+      "nom": "TC ARAMON",
+      "clubId": "60300351",
+      "ville": "ARAMON",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.889503,
+      "lng": 4.682956
+    },
+    {
+      "nom": "TC ARCOIS",
+      "clubId": "62830220",
+      "ville": "LES ARCS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.453663,
+      "lng": 6.483779
+    },
+    {
+      "nom": "TC ASPRES SUR BUECH",
+      "clubId": "62050507",
+      "ville": "ASPRES SUR BUECH",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.523132,
+      "lng": 5.749486
+    },
+    {
+      "nom": "TC AUBORD",
+      "clubId": "60300483",
+      "ville": "AUBORD",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.76033,
+      "lng": 4.315767
+    },
+    {
+      "nom": "TC AVIGNON BARTHELASSE",
+      "clubId": "62840583",
+      "ville": "AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Beach Tennis : 3",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.96849,
+      "lng": 4.83315
+    },
+    {
+      "nom": "TC BAGNOLS EN FORET",
+      "clubId": "62830340",
+      "ville": "BAGNOLS EN FORET",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.53488,
+      "lng": 6.681202
+    },
+    {
+      "nom": "TC BAGNOLS MARCOULE",
+      "clubId": "60300006",
+      "ville": "BAGNOLS SUR CEZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.138504,
+      "lng": 4.629107
+    },
+    {
+      "nom": "TC BAILLARGUES",
+      "clubId": "60340270",
+      "ville": "BAILLARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 5",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.6675,
+      "lng": 4.0192
+    },
+    {
+      "nom": "TC BARCELONNETTE",
+      "clubId": "62040098",
+      "ville": "BARCELONNETTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.385113,
+      "lng": 6.658783
+    },
+    {
+      "nom": "TC BASTIDES DE GATTIERES",
+      "clubId": "62060238",
+      "ville": "GATTIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.7673,
+      "lng": 7.18538
+    },
+    {
+      "nom": "TC BATIE-NEUVE",
+      "clubId": "62050257",
+      "ville": "LA BATIE NEUVE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.566574,
+      "lng": 6.194355
+    },
+    {
+      "nom": "TC BEAUCAIROIS",
+      "clubId": "60300034",
+      "ville": "BEAUCAIRE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.802086,
+      "lng": 4.645849
+    },
+    {
+      "nom": "TC BEAULIEU",
+      "clubId": "62060005",
+      "ville": "BEAULIEU SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.70772,
+      "lng": 7.33437
+    },
+    {
+      "nom": "TC BEAUSOLEIL",
+      "clubId": "62060433",
+      "ville": "BEAUSOLEIL",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 7 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.745598,
+      "lng": 7.416432
+    },
+    {
+      "nom": "TC BEAUVOISIN",
+      "clubId": "60300491",
+      "ville": "BEAUVOISIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.721508,
+      "lng": 4.32749
+    },
+    {
+      "nom": "TC BELGENTIEROIS",
+      "clubId": "62830445",
+      "ville": "BELGENTIER",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.245106,
+      "lng": 5.999776
+    },
+    {
+      "nom": "TC BELLEGARDE",
+      "clubId": "60300160",
+      "ville": "BELLEGARDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.757824,
+      "lng": 4.511579
+    },
+    {
+      "nom": "TC BENDEJUN LES SOURCES",
+      "clubId": "62060393",
+      "ville": "BENDEJUN",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.83218,
+      "lng": 7.297998
+    },
+    {
+      "nom": "TC BESSOIS",
+      "clubId": "62830316",
+      "ville": "BESSE SUR ISSOLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.3496,
+      "lng": 6.1776
+    },
+    {
+      "nom": "TC BLAUZACOIS",
+      "clubId": "60300699",
+      "ville": "BLAUZAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.96603,
+      "lng": 4.36464
+    },
+    {
+      "nom": "TC BOISSERON",
+      "clubId": "60340492",
+      "ville": "BOISSERON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.75387,
+      "lng": 4.085267
+    },
+    {
+      "nom": "TC BREIL SUR ROYA",
+      "clubId": "62060110",
+      "ville": "BREIL SUR ROYA",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.94074,
+      "lng": 7.517084
+    },
+    {
+      "nom": "TC BRIGNON",
+      "clubId": "60300518",
+      "ville": "BRIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.987762,
+      "lng": 4.210696
+    },
+    {
+      "nom": "TC BRILLANNE",
+      "clubId": "62040549",
+      "ville": "LA BRILLANNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.928047,
+      "lng": 5.887633
+    },
+    {
+      "nom": "TC CADIERE",
+      "clubId": "62830313",
+      "ville": "La Cadi\u00e8re d\u0027Azur",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.196217,
+      "lng": 5.755173
+    },
+    {
+      "nom": "TC CAILAREN",
+      "clubId": "60300316",
+      "ville": "LE CAILAR",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.67144,
+      "lng": 4.234493
+    },
+    {
+      "nom": "TC CALVISSON",
+      "clubId": "60300242",
+      "ville": "CALVISSON",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.781624,
+      "lng": 4.193223
+    },
+    {
+      "nom": "TC CAP D\u0027AIL MARQUET",
+      "clubId": "62060402",
+      "ville": "CAP D AIL",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.72508,
+      "lng": 7.411506
+    },
+    {
+      "nom": "TC CARQUEIRANNE",
+      "clubId": "62830165",
+      "ville": "CARQUEIRANNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.094185,
+      "lng": 6.080233
+    },
+    {
+      "nom": "TC CARROS",
+      "clubId": "62060305",
+      "ville": "CARROS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.76677,
+      "lng": 7.201972
+    },
+    {
+      "nom": "TC CASTELNAUVIEN",
+      "clubId": "60340658",
+      "ville": "CASTELNAU LE LEZ",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.629257,
+      "lng": 3.904894
+    },
+    {
+      "nom": "TC CAVEIRAC",
+      "clubId": "60300378",
+      "ville": "CAVEIRAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.823647,
+      "lng": 4.275222
+    },
+    {
+      "nom": "TC CHATEAU-ARNOUX \/ ST AUBAN",
+      "clubId": "62040077",
+      "ville": "ST AUBAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.066525,
+      "lng": 5.990336
+    },
+    {
+      "nom": "TC CHATEAUNEUF",
+      "clubId": "62060436",
+      "ville": "CHATEAUNEUF",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.6786,
+      "lng": 6.97284
+    },
+    {
+      "nom": "TC CHEMINOTS ARLESIEN",
+      "clubId": "62130055",
+      "ville": "ARLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.68361,
+      "lng": 4.634673
+    },
+    {
+      "nom": "TC CODOGNAN",
+      "clubId": "60300564",
+      "ville": "CODOGNAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.73397,
+      "lng": 4.228501
+    },
+    {
+      "nom": "TC COLLOBRIERES",
+      "clubId": "62830448",
+      "ville": "collobrieres",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.23735,
+      "lng": 6.30875
+    },
+    {
+      "nom": "TC COMPS",
+      "clubId": "60300426",
+      "ville": "COMPS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.850124,
+      "lng": 4.604317
+    },
+    {
+      "nom": "TC CONGENIES",
+      "clubId": "60300266",
+      "ville": "CONGENIES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.782257,
+      "lng": 4.148735
+    },
+    {
+      "nom": "TC CRESSOIS",
+      "clubId": "60340162",
+      "ville": "LE CRES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.643944,
+      "lng": 3.933716
+    },
+    {
+      "nom": "TC CUERSOIS",
+      "clubId": "62830176",
+      "ville": "CUERS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.237877,
+      "lng": 6.0722
+    },
+    {
+      "nom": "TC D\u0027AGAY",
+      "clubId": "62830412",
+      "ville": "AGAY",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.43297,
+      "lng": 6.877199
+    },
+    {
+      "nom": "TC D\u0027AUPS",
+      "clubId": "62830427",
+      "ville": "AUPS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.627365,
+      "lng": 6.22354
+    },
+    {
+      "nom": "TC DAUPHIN",
+      "clubId": "62040550",
+      "ville": "DAUPHIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.899597,
+      "lng": 5.787513
+    },
+    {
+      "nom": "TC DE BANDOL",
+      "clubId": "62830032",
+      "ville": "BANDOL",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 7 terrains, Padel : 7",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.136417,
+      "lng": 5.754186
+    },
+    {
+      "nom": "TC DE BRIGNOLES",
+      "clubId": "62830033",
+      "ville": "BRIGNOLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.40655,
+      "lng": 6.061187
+    },
+    {
+      "nom": "TC DE CARNOULES",
+      "clubId": "62830344",
+      "ville": "CARNOULES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.294907,
+      "lng": 6.18014
+    },
+    {
+      "nom": "TC DE FAYENCE",
+      "clubId": "62830318",
+      "ville": "FAYENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.623425,
+      "lng": 6.689287
+    },
+    {
+      "nom": "TC DE FORCALQUEIRET",
+      "clubId": "62830327",
+      "ville": "FORCALQUEIRET",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.335075,
+      "lng": 6.080943
+    },
+    {
+      "nom": "TC DE LA CELLE",
+      "clubId": "62830216",
+      "ville": "LA CELLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.393993,
+      "lng": 6.041015
+    },
+    {
+      "nom": "TC DE RESTINCLIERES BEAULIEU",
+      "clubId": "60340586",
+      "ville": "RESTINCLIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.72463,
+      "lng": 4.033998
+    },
+    {
+      "nom": "TC DE SIGNES",
+      "clubId": "62830242",
+      "ville": "SIGNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.290936,
+      "lng": 5.863162
+    },
+    {
+      "nom": "TC DE ST GENIES",
+      "clubId": "60300622",
+      "ville": "SAINT GENIES DE MALGOIRES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.944946,
+      "lng": 4.224263
+    },
+    {
+      "nom": "TC DE ST MANDRIER",
+      "clubId": "62830102",
+      "ville": "SAINT MANDRIER",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.077747,
+      "lng": 5.906078
+    },
+    {
+      "nom": "TC DE ST VICTOR LA COSTE",
+      "clubId": "60300679",
+      "ville": "ST VICTOR LA COSTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.063023,
+      "lng": 4.649793
+    },
+    {
+      "nom": "TC DIGNE",
+      "clubId": "62040544",
+      "ville": "DIGNE LES BAINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.099373,
+      "lng": 6.249153
+    },
+    {
+      "nom": "TC DRACENOIS",
+      "clubId": "62830035",
+      "ville": "DRAGUIGNAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 14 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.520237,
+      "lng": 6.484345
+    },
+    {
+      "nom": "TC DU CAP SICIE",
+      "clubId": "62830088",
+      "ville": "LA SEYNE SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.08626,
+      "lng": 5.885514
+    },
+    {
+      "nom": "TC DU DUCHE-UZES",
+      "clubId": "60300513",
+      "ville": "UZES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.00242,
+      "lng": 4.406446
+    },
+    {
+      "nom": "TC DU LITTORAL TOULON",
+      "clubId": "62830029",
+      "ville": "TOULON",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.114468,
+      "lng": 5.941695
+    },
+    {
+      "nom": "TC DU PARC-JONQUIERES ST VINCENT",
+      "clubId": "60300578",
+      "ville": "JONQUIERES ST VINCENT",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.827225,
+      "lng": 4.563317
+    },
+    {
+      "nom": "TC DU REVEST",
+      "clubId": "62830269",
+      "ville": "LE REVEST LES EAUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.1693,
+      "lng": 5.92343
+    },
+    {
+      "nom": "TC DU ROSAIRE",
+      "clubId": "62830049",
+      "ville": "SANARY SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.118095,
+      "lng": 5.789576
+    },
+    {
+      "nom": "TC DU VAL D\u0027ISSOLE",
+      "clubId": "62830438",
+      "ville": "LA ROQUEBRUSSANNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.335342,
+      "lng": 5.984157
+    },
+    {
+      "nom": "TC EMBRUN",
+      "clubId": "62050088",
+      "ville": "EMBRUN",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.551308,
+      "lng": 6.480457
+    },
+    {
+      "nom": "TC EZE",
+      "clubId": "62060372",
+      "ville": "EZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.73364,
+      "lng": 7.353052
+    },
+    {
+      "nom": "TC FIGANIERES CALLAS",
+      "clubId": "62830404",
+      "ville": "FIGANIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.569405,
+      "lng": 6.496756
+    },
+    {
+      "nom": "TC FLASSANNAIS",
+      "clubId": "62830435",
+      "ville": "FLASSANS SUR ISSOLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.36739,
+      "lng": 6.21852
+    },
+    {
+      "nom": "TC FORCALQUIER",
+      "clubId": "62040115",
+      "ville": "FORCALQUIER",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.963207,
+      "lng": 5.786675
+    },
+    {
+      "nom": "TC FOURQUES",
+      "clubId": "60300443",
+      "ville": "FOURQUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.69805,
+      "lng": 4.609543
+    },
+    {
+      "nom": "TC GAP",
+      "clubId": "62050084",
+      "ville": "GAP",
+      "distance": "",
+      "terrainPratiqueLibelle": "9 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.54206,
+      "lng": 6.061819
+    },
+    {
+      "nom": "TC GENERAC",
+      "clubId": "60300488",
+      "ville": "GENERAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.72686,
+      "lng": 4.341356
+    },
+    {
+      "nom": "TC GONFARONNAIS",
+      "clubId": "62830187",
+      "ville": "GONFARON",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.3236,
+      "lng": 6.294388
+    },
+    {
+      "nom": "TC GORBELLA",
+      "clubId": "62060274",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.718204,
+      "lng": 7.256904
+    },
+    {
+      "nom": "TC GRAU DU ROI",
+      "clubId": "60300167",
+      "ville": "GRAU DU ROI",
+      "distance": "",
+      "terrainPratiqueLibelle": "15 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.53571,
+      "lng": 4.142254
+    },
+    {
+      "nom": "TC GREOUX LES BAINS",
+      "clubId": "62040487",
+      "ville": "GREOUX LES BAINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.755985,
+      "lng": 5.889322
+    },
+    {
+      "nom": "TC HYEROIS",
+      "clubId": "62830031",
+      "ville": "HYERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "11 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.109924,
+      "lng": 6.137571
+    },
+    {
+      "nom": "TC JACOU",
+      "clubId": "60340647",
+      "ville": "JACOU",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.659096,
+      "lng": 3.92097
+    },
+    {
+      "nom": "TC L\u0027ARDOISE LAUDUN",
+      "clubId": "60300258",
+      "ville": "LAUDUN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.09882,
+      "lng": 4.680241
+    },
+    {
+      "nom": "TC L\u0027ESCALE",
+      "clubId": "62040498",
+      "ville": "L ESCALE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.080025,
+      "lng": 6.022052
+    },
+    {
+      "nom": "TC LA COLLE",
+      "clubId": "62060025",
+      "ville": "LA COLLE SUR LOUP",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.68505,
+      "lng": 7.101266
+    },
+    {
+      "nom": "TC LA CROIX VALMER",
+      "clubId": "62830178",
+      "ville": "LA CROIX VALMER",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.21105,
+      "lng": 6.565784
+    },
+    {
+      "nom": "TC LA GARDE",
+      "clubId": "62830065",
+      "ville": "LA GARDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.132217,
+      "lng": 6.023776
+    },
+    {
+      "nom": "TC LA GRANDE MOTTE",
+      "clubId": "60340141",
+      "ville": "LA GRANDE MOTTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "29 terrains dont 8 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.560574,
+      "lng": 4.099944
+    },
+    {
+      "nom": "TC LA ROSERAIE FONTMERLE",
+      "clubId": "62060407",
+      "ville": "ANTIBES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.581863,
+      "lng": 7.095361
+    },
+    {
+      "nom": "TC LANGLADE",
+      "clubId": "60300340",
+      "ville": "LANGLADE",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.79807,
+      "lng": 4.239977
+    },
+    {
+      "nom": "TC LANSARGUES",
+      "clubId": "60340217",
+      "ville": "LANSARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.653538,
+      "lng": 4.078508
+    },
+    {
+      "nom": "TC LARAGNE",
+      "clubId": "62050188",
+      "ville": "LARAGNE MONTEGLIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.318005,
+      "lng": 5.827265
+    },
+    {
+      "nom": "TC LATTES",
+      "clubId": "60340475",
+      "ville": "LATTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.565025,
+      "lng": 3.917829
+    },
+    {
+      "nom": "TC LE LAVANDOU",
+      "clubId": "62830074",
+      "ville": "LE LAVANDOU",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 6 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.133293,
+      "lng": 6.36378
+    },
+    {
+      "nom": "TC LES COURBIERS",
+      "clubId": "60300284",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.83459,
+      "lng": 4.404281
+    },
+    {
+      "nom": "TC LES MEES",
+      "clubId": "62040200",
+      "ville": "LES MEES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.023987,
+      "lng": 5.958023
+    },
+    {
+      "nom": "TC LES ROQUETTES-BAGNOLS",
+      "clubId": "60300091",
+      "ville": "BAGNOLS SUR CEZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.141884,
+      "lng": 4.636368
+    },
+    {
+      "nom": "TC LONDAIS",
+      "clubId": "62830101",
+      "ville": "LA LONDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.14229,
+      "lng": 6.232505
+    },
+    {
+      "nom": "TC LUNEL",
+      "clubId": "60340043",
+      "ville": "LUNEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.674206,
+      "lng": 4.123219
+    },
+    {
+      "nom": "TC LUNEL VIEL",
+      "clubId": "60340512",
+      "ville": "LUNEL VIEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.67522,
+      "lng": 4.089554
+    },
+    {
+      "nom": "TC MALEMORT DU COMTAT",
+      "clubId": "62840574",
+      "ville": "MALEMORT DU COMTAT",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.02094,
+      "lng": 5.159771
+    },
+    {
+      "nom": "TC MALIJAI",
+      "clubId": "62040260",
+      "ville": "MALIJAI",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.044888,
+      "lng": 6.03593
+    },
+    {
+      "nom": "TC MANDUEL",
+      "clubId": "60300337",
+      "ville": "MANDUEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.80856,
+      "lng": 4.473362
+    },
+    {
+      "nom": "TC MANOSQUE",
+      "clubId": "62040078",
+      "ville": "MANOSQUE",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.825466,
+      "lng": 5.793375
+    },
+    {
+      "nom": "TC MARSILLARGUES",
+      "clubId": "60340335",
+      "ville": "MARSILLARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.664814,
+      "lng": 4.174043
+    },
+    {
+      "nom": "TC MAURIN",
+      "clubId": "60340096",
+      "ville": "LATTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.56027,
+      "lng": 3.879559
+    },
+    {
+      "nom": "TC MENTON",
+      "clubId": "62060008",
+      "ville": "MENTON",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.774315,
+      "lng": 7.493853
+    },
+    {
+      "nom": "TC MEYNOIS",
+      "clubId": "60300541",
+      "ville": "MEYNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.877155,
+      "lng": 4.555005
+    },
+    {
+      "nom": "TC MILHAUD",
+      "clubId": "60300220",
+      "ville": "MILHAUD",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.782684,
+      "lng": 4.308257
+    },
+    {
+      "nom": "TC MONACO",
+      "clubId": "62060060",
+      "ville": "CAP D AIL",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.73381,
+      "lng": 7.411889
+    },
+    {
+      "nom": "TC MONTFRIN",
+      "clubId": "60300560",
+      "ville": "MONTFRIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.879597,
+      "lng": 4.592441
+    },
+    {
+      "nom": "TC MOUGINS",
+      "clubId": "62060207",
+      "ville": "MOUGINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.590652,
+      "lng": 7.004231
+    },
+    {
+      "nom": "TC MUNICIPAL KENNEDY",
+      "clubId": "60300696",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.82814,
+      "lng": 4.347312
+    },
+    {
+      "nom": "TC MUYOIS",
+      "clubId": "62830140",
+      "ville": "LE MUY",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.469868,
+      "lng": 6.554569
+    },
+    {
+      "nom": "TC M\u00c9DITERRANEE",
+      "clubId": "62060002",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.722466,
+      "lng": 7.25919
+    },
+    {
+      "nom": "TC NANS LES PINS",
+      "clubId": "62830352",
+      "ville": "NANS LES PINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.37469,
+      "lng": 5.77788
+    },
+    {
+      "nom": "TC NICE GIORDAN",
+      "clubId": "62060022",
+      "ville": "Nice",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 49 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.74541,
+      "lng": 7.187392
+    },
+    {
+      "nom": "TC NIMES",
+      "clubId": "60300049",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "9 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.8448,
+      "lng": 4.375261
+    },
+    {
+      "nom": "TC OPPIDUM-NAGES \u0026 SOLORGUES",
+      "clubId": "60300304",
+      "ville": "NAGES \u0026 SOLORGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.789368,
+      "lng": 4.232788
+    },
+    {
+      "nom": "TC ORAISON",
+      "clubId": "62040240",
+      "ville": "ORAISON",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.925087,
+      "lng": 5.920299
+    },
+    {
+      "nom": "TC PEYMEINADE",
+      "clubId": "62060106",
+      "ville": "PEYMEINADE",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.63833,
+      "lng": 6.873604
+    },
+    {
+      "nom": "TC PEYRUIS",
+      "clubId": "62040268",
+      "ville": "PEYRUIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.02632,
+      "lng": 5.938589
+    },
+    {
+      "nom": "TC PIERREFEUCAIN",
+      "clubId": "62830186",
+      "ville": "PIERREFEU DU VAR",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.22595,
+      "lng": 6.143766
+    },
+    {
+      "nom": "TC PIERREVERT",
+      "clubId": "62040254",
+      "ville": "PIERREVERT",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.811375,
+      "lng": 5.749294
+    },
+    {
+      "nom": "TC PLAN DE LA TOUR",
+      "clubId": "62830253",
+      "ville": "PLAN DE LA TOUR",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.33532,
+      "lng": 6.566796
+    },
+    {
+      "nom": "TC POULX AVENIR",
+      "clubId": "60300406",
+      "ville": "POULX",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.911438,
+      "lng": 4.418529
+    },
+    {
+      "nom": "TC PRADETAN",
+      "clubId": "62830126",
+      "ville": "LE PRADET",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.105457,
+      "lng": 6.014675
+    },
+    {
+      "nom": "TC PRALOUP - MOLANES",
+      "clubId": "62040537",
+      "ville": "PRA LOUP",
+      "distance": "",
+      "terrainPratiqueLibelle": "9 terrains dont 4 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.36958,
+      "lng": 6.602466
+    },
+    {
+      "nom": "TC PUGETOIS",
+      "clubId": "62830111",
+      "ville": "PUGET SUR ARGENS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.45533,
+      "lng": 6.68408
+    },
+    {
+      "nom": "TC RAMATUELLOIS - section",
+      "clubId": "62830183",
+      "ville": "RAMATUELLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.21523,
+      "lng": 6.616336
+    },
+    {
+      "nom": "TC REDESSAN",
+      "clubId": "60300387",
+      "ville": "REDESSAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.8346,
+      "lng": 4.502139
+    },
+    {
+      "nom": "TC REILLANNE",
+      "clubId": "62040471",
+      "ville": "REILLANNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.880016,
+      "lng": 5.658066
+    },
+    {
+      "nom": "TC RIBIERS",
+      "clubId": "62050456",
+      "ville": "RIBIERS",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.230053,
+      "lng": 5.857631
+    },
+    {
+      "nom": "TC RIEZ",
+      "clubId": "62040389",
+      "ville": "RIEZ",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.811493,
+      "lng": 6.105368
+    },
+    {
+      "nom": "TC ROCHEFORT",
+      "clubId": "60300362",
+      "ville": "ROCHEFORT DU GARD",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.97932,
+      "lng": 4.684873
+    },
+    {
+      "nom": "TC RODILHAN",
+      "clubId": "60300133",
+      "ville": "RODILHAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.823433,
+      "lng": 4.432797
+    },
+    {
+      "nom": "TC ROQUEBRUNE",
+      "clubId": "62830204",
+      "ville": "ROQUEBRUNE SUR ARGENS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 13 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.443207,
+      "lng": 6.646973
+    },
+    {
+      "nom": "TC ROQUEBRUNE CAP MARTIN",
+      "clubId": "62060333",
+      "ville": "ROQUEBRUNE CAP MARTIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.77273,
+      "lng": 7.469468
+    },
+    {
+      "nom": "TC ROQUEMAURE",
+      "clubId": "60300177",
+      "ville": "ROQUEMAURE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.04542,
+      "lng": 4.77252
+    },
+    {
+      "nom": "TC ROQUETTAN",
+      "clubId": "62060303",
+      "ville": "LA ROQUETTE SUR SIAGNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.58484,
+      "lng": 6.941669
+    },
+    {
+      "nom": "TC ROUGIEROIS",
+      "clubId": "62830381",
+      "ville": "ROUGIERS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.393158,
+      "lng": 5.845116
+    },
+    {
+      "nom": "TC SAINT AUNES",
+      "clubId": "60340212",
+      "ville": "SAINT AUNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.64156,
+      "lng": 3.965854
+    },
+    {
+      "nom": "TC SAINT CYRIEN",
+      "clubId": "62830050",
+      "ville": "SAINT CYR SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 16 terrains, Pickleball : 3, Padel : 6",
+      "pratiques": [
+        "TENNIS",
+        "PICKLE",
+        "PADEL"
+      ],
+      "lat": 43.184322,
+      "lng": 5.683193
+    },
+    {
+      "nom": "TC SAINT GEORGES",
+      "clubId": "60340054",
+      "ville": "CASTELNAU LE LEZ",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.632847,
+      "lng": 3.920398
+    },
+    {
+      "nom": "TC SAINT GILLES",
+      "clubId": "60300138",
+      "ville": "SAINT GILLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.671078,
+      "lng": 4.403593
+    },
+    {
+      "nom": "TC SAINT LAURENT DES ARBRES",
+      "clubId": "60300470",
+      "ville": "SAINT LAURENT DES ARBRES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.057922,
+      "lng": 4.708184
+    },
+    {
+      "nom": "TC SAINT LAURENTAIS",
+      "clubId": "60300190",
+      "ville": "SAINT LAURENT D\u0027AIGOUZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.63677,
+      "lng": 4.193545
+    },
+    {
+      "nom": "TC SAINT PAULETOIS",
+      "clubId": "60300326",
+      "ville": "SAINT PAULET DE CAISSON",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.263252,
+      "lng": 4.597773
+    },
+    {
+      "nom": "TC SAINTE ANASTASIE",
+      "clubId": "62830455",
+      "ville": "STE ANASTASIE SUR ISSOLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.33921,
+      "lng": 6.11987
+    },
+    {
+      "nom": "TC SALERNOIS",
+      "clubId": "62830136",
+      "ville": "SALERNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.56012,
+      "lng": 6.242027
+    },
+    {
+      "nom": "TC SAUVETERRE",
+      "clubId": "60300697",
+      "ville": "SAUVETERRE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.077248,
+      "lng": 4.799485
+    },
+    {
+      "nom": "TC SISTERON",
+      "clubId": "62040117",
+      "ville": "SISTERON",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.19312,
+      "lng": 5.951478
+    },
+    {
+      "nom": "TC SOLLIES PONT",
+      "clubId": "62830230",
+      "ville": "SOLLIES PONT",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 10 terrains, Beach Tennis : 2",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.193947,
+      "lng": 6.040149
+    },
+    {
+      "nom": "TC SOMMIERES",
+      "clubId": "60300203",
+      "ville": "SOMMIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.78764,
+      "lng": 4.086916
+    },
+    {
+      "nom": "TC SOSPEL",
+      "clubId": "62060103",
+      "ville": "SOSPEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.879723,
+      "lng": 7.44158
+    },
+    {
+      "nom": "TC SPIRIPONTAIN",
+      "clubId": "60300057",
+      "ville": "PONT SAINT ESPRIT",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.25409,
+      "lng": 4.63692
+    },
+    {
+      "nom": "TC ST ANDRE DE LA ROCHE L\u0027ABADIE",
+      "clubId": "62060261",
+      "ville": "ST ANDRE DE LA ROCHE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.743057,
+      "lng": 7.284776
+    },
+    {
+      "nom": "TC ST BONNET",
+      "clubId": "62050194",
+      "ville": "ST BONNET EN CHAMPSAUR",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.676853,
+      "lng": 6.082794
+    },
+    {
+      "nom": "TC ST GENIES DES MOURGUES",
+      "clubId": "60340679",
+      "ville": "ST GENIES DES MOURGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.694115,
+      "lng": 4.02543
+    },
+    {
+      "nom": "TC ST MARC JAUMEGARDE",
+      "clubId": "62130587",
+      "ville": "ST MARC JAUMEGARDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.547466,
+      "lng": 5.52278
+    },
+    {
+      "nom": "TC ST QUENTIN LA POTERIE",
+      "clubId": "60300425",
+      "ville": "SAINT QUENTIN LA POTERIE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.038757,
+      "lng": 4.447254
+    },
+    {
+      "nom": "TC ST SIFFRET LA PINEDE",
+      "clubId": "60300553",
+      "ville": "SAINT SIFFRET",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.009445,
+      "lng": 4.469789
+    },
+    {
+      "nom": "TC SUSSARGUOIS",
+      "clubId": "60340616",
+      "ville": "SUSSARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.71641,
+      "lng": 4.005188
+    },
+    {
+      "nom": "TC TAVEL",
+      "clubId": "60300695",
+      "ville": "TAVEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.009785,
+      "lng": 4.693565
+    },
+    {
+      "nom": "TC TEYRAN",
+      "clubId": "60340358",
+      "ville": "TEYRAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.68146,
+      "lng": 3.932396
+    },
+    {
+      "nom": "TC TIGNET",
+      "clubId": "62060271",
+      "ville": "LE TIGNET",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.632298,
+      "lng": 6.850025
+    },
+    {
+      "nom": "TC TOULONNAIS",
+      "clubId": "62830081",
+      "ville": "LA VALETTE DU VAR",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Padel : 10",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.13403,
+      "lng": 6.000001
+    },
+    {
+      "nom": "TC TOURVAIN",
+      "clubId": "62830345",
+      "ville": "TOURVES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.407932,
+      "lng": 5.923409
+    },
+    {
+      "nom": "TC UCHAUDOIS",
+      "clubId": "60300642",
+      "ville": "UCHAUD",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.750122,
+      "lng": 4.273454
+    },
+    {
+      "nom": "TC US TROPEZIENNE",
+      "clubId": "62830054",
+      "ville": "SAINT TROPEZ",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 7 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.259277,
+      "lng": 6.632035
+    },
+    {
+      "nom": "TC UZES",
+      "clubId": "60300020",
+      "ville": "UZES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.01211,
+      "lng": 4.419946
+    },
+    {
+      "nom": "TC VAL DE CAGNES",
+      "clubId": "62060419",
+      "ville": "CAGNES SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.68268,
+      "lng": 7.147717
+    },
+    {
+      "nom": "TC VALENSOLE",
+      "clubId": "62040535",
+      "ville": "VALENSOLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.838116,
+      "lng": 5.994209
+    },
+    {
+      "nom": "TC VALLAURIS GOLFE JUAN",
+      "clubId": "62060243",
+      "ville": "VALLAURIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.57206,
+      "lng": 7.0795
+    },
+    {
+      "nom": "TC VALLEES D\u0027AZUR",
+      "clubId": "62060431",
+      "ville": "PUGET THENIERS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.95274,
+      "lng": 6.900063
+    },
+    {
+      "nom": "TC VALOIS",
+      "clubId": "62830382",
+      "ville": "LE VAL",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.440994,
+      "lng": 6.074629
+    },
+    {
+      "nom": "TC VAUVERT",
+      "clubId": "60300106",
+      "ville": "VAUVERT",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.69999,
+      "lng": 4.270877
+    },
+    {
+      "nom": "TC VENDARGUES",
+      "clubId": "60340324",
+      "ville": "VENDARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.659058,
+      "lng": 3.973728
+    },
+    {
+      "nom": "TC VERDON",
+      "clubId": "62040183",
+      "ville": "ST ANDRE LES ALPES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.964027,
+      "lng": 6.512895
+    },
+    {
+      "nom": "TC VERGEZE",
+      "clubId": "60300232",
+      "ville": "VERGEZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.748173,
+      "lng": 4.223596
+    },
+    {
+      "nom": "TC VERS PONT DU GARD",
+      "clubId": "60300223",
+      "ville": "VERS PONT DU GARD",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.967087,
+      "lng": 4.52405
+    },
+    {
+      "nom": "TC VESPINS",
+      "clubId": "62060406",
+      "ville": "ST LAURENT DU VAR",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Beach Tennis : 2",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.6595,
+      "lng": 7.17987
+    },
+    {
+      "nom": "TC VEYNES",
+      "clubId": "62050152",
+      "ville": "VEYNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.53348,
+      "lng": 5.814432
+    },
+    {
+      "nom": "TC VIDAUBANNAIS",
+      "clubId": "62830047",
+      "ville": "VIDAUBAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.43123,
+      "lng": 6.428032
+    },
+    {
+      "nom": "TC VILLENEUVE",
+      "clubId": "62040414",
+      "ville": "VILLENEUVE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.89022,
+      "lng": 5.869858
+    },
+    {
+      "nom": "TC VINON\/VERDON",
+      "clubId": "62040144",
+      "ville": "VINON SUR VERDON",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.727417,
+      "lng": 5.823082
+    },
+    {
+      "nom": "TC VISAN-TULETTE",
+      "clubId": "50260470",
+      "ville": "TULETTE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.286026,
+      "lng": 4.949255
+    },
+    {
+      "nom": "TC VOLX",
+      "clubId": "62040252",
+      "ville": "VOLX",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.870872,
+      "lng": 5.837774
+    },
+    {
+      "nom": "TCM BIOT",
+      "clubId": "62060100",
+      "ville": "BIOT",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.628147,
+      "lng": 7.101395
+    },
+    {
+      "nom": "TCM CABRIS",
+      "clubId": "62060304",
+      "ville": "CABRIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.65609,
+      "lng": 6.876883
+    },
+    {
+      "nom": "TCM COLOMARS",
+      "clubId": "62060296",
+      "ville": "COLOMARS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.76603,
+      "lng": 7.222433
+    },
+    {
+      "nom": "TCM CONNAUX",
+      "clubId": "60300291",
+      "ville": "CONNAUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.084,
+      "lng": 4.589946
+    },
+    {
+      "nom": "TCM DE CALLIAN",
+      "clubId": "62830354",
+      "ville": "CALLIAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.629864,
+      "lng": 6.753793
+    },
+    {
+      "nom": "TCM DE PIGNANS",
+      "clubId": "62830294",
+      "ville": "PIGNANS",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.30077,
+      "lng": 6.2205
+    },
+    {
+      "nom": "TCM DE PUGET VILLE",
+      "clubId": "62830257",
+      "ville": "PUGET VILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.289207,
+      "lng": 6.135894
+    },
+    {
+      "nom": "TCM DE SAINT MAXIMIN",
+      "clubId": "62830281",
+      "ville": "ST MAXIMIN LA STE BAUME",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.458378,
+      "lng": 5.883922
+    },
+    {
+      "nom": "TCM DE SIX FOURS",
+      "clubId": "62830030",
+      "ville": "SIX FOURS LES PLAGES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.108894,
+      "lng": 5.819612
+    },
+    {
+      "nom": "TCM DU CASTELLET",
+      "clubId": "62830260",
+      "ville": "LE CASTELLET",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.177174,
+      "lng": 5.773678
+    },
+    {
+      "nom": "TCM FALICON",
+      "clubId": "62060396",
+      "ville": "FALICON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.75889,
+      "lng": 7.260628
+    },
+    {
+      "nom": "TCM LA CIGALE-NIMES",
+      "clubId": "60300472",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.840977,
+      "lng": 4.339152
+    },
+    {
+      "nom": "TCM MOUANS SARTOUX",
+      "clubId": "62060144",
+      "ville": "MOUANS SARTOUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 10 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.62626,
+      "lng": 6.954861
+    },
+    {
+      "nom": "TCM OPIO",
+      "clubId": "62060408",
+      "ville": "OPIO",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.660038,
+      "lng": 6.986985
+    },
+    {
+      "nom": "TCM ST VALLIER DE THIEY",
+      "clubId": "62060350",
+      "ville": "ST VALLIER DE THIEY",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.69852,
+      "lng": 6.847956
+    },
+    {
+      "nom": "TCM VENCOIS",
+      "clubId": "62060427",
+      "ville": "VENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.706573,
+      "lng": 7.130392
+    },
+    {
+      "nom": "TCP DE VILLECROZE",
+      "clubId": "62830334",
+      "ville": "VILLECROZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.583855,
+      "lng": 6.277665
+    },
+    {
+      "nom": "TENNIS \u0026 PADEL CLUB DE CASTRIES",
+      "clubId": "60340463",
+      "ville": "CASTRIES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 6 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.693874,
+      "lng": 3.993845
+    },
+    {
+      "nom": "TENNIS ACADEMY DE LUMINY",
+      "clubId": "62130601",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 12 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.238117,
+      "lng": 5.43006
+    },
+    {
+      "nom": "TENNIS ALTITUDE 500 GRASSE",
+      "clubId": "62060270",
+      "ville": "GRASSE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.668457,
+      "lng": 6.922974
+    },
+    {
+      "nom": "TENNIS ARENES DE CIMIEZ",
+      "clubId": "62060024",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.71524,
+      "lng": 7.277517
+    },
+    {
+      "nom": "TENNIS C.B PLAN DE CUQUES",
+      "clubId": "62130193",
+      "ville": "PLAN DE CUQUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.339745,
+      "lng": 5.458509
+    },
+    {
+      "nom": "TENNIS CLUB  MONTEUX",
+      "clubId": "62840228",
+      "ville": "MONTEUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.028538,
+      "lng": 5.006686
+    },
+    {
+      "nom": "TENNIS CLUB AIX AYGOSI",
+      "clubId": "62130038",
+      "ville": "AIX-EN-PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.51929,
+      "lng": 5.463495
+    },
+    {
+      "nom": "TENNIS CLUB ALLEINS",
+      "clubId": "62130263",
+      "ville": "ALLEINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.703712,
+      "lng": 5.161234
+    },
+    {
+      "nom": "TENNIS CLUB APTESIEN",
+      "clubId": "62840061",
+      "ville": "APT",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 7 terrains, Padel : 2, Beach Tennis : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.892708,
+      "lng": 5.378423
+    },
+    {
+      "nom": "TENNIS CLUB ARGELAS-FUVEAU",
+      "clubId": "62130476",
+      "ville": "FUVEAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.45332,
+      "lng": 5.544457
+    },
+    {
+      "nom": "TENNIS CLUB ASPTT AIX EN PROVENCE",
+      "clubId": "62130357",
+      "ville": "LES MILLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.505848,
+      "lng": 5.407743
+    },
+    {
+      "nom": "TENNIS CLUB AUBAGNAIS",
+      "clubId": "62130031",
+      "ville": "AUBAGNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 13 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.314407,
+      "lng": 5.594872
+    },
+    {
+      "nom": "TENNIS CLUB AUREILLOIS",
+      "clubId": "62130443",
+      "ville": "AUREILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.707188,
+      "lng": 4.947103
+    },
+    {
+      "nom": "TENNIS CLUB AURIOL",
+      "clubId": "62130346",
+      "ville": "AURIOL",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.369884,
+      "lng": 5.646721
+    },
+    {
+      "nom": "TENNIS CLUB AVIGNON",
+      "clubId": "62840059",
+      "ville": "VILLENEUVE LES AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "11 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.96331,
+      "lng": 4.79194
+    },
+    {
+      "nom": "TENNIS CLUB BARBENTANE",
+      "clubId": "62130330",
+      "ville": "BARBENTANE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.893234,
+      "lng": 4.746047
+    },
+    {
+      "nom": "TENNIS CLUB BEAUMONTAIS",
+      "clubId": "62840568",
+      "ville": "BEAUMONT DE PERTUIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.73765,
+      "lng": 5.688886
+    },
+    {
+      "nom": "TENNIS CLUB BEDOIN",
+      "clubId": "62840280",
+      "ville": "BEDOIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.1232,
+      "lng": 5.176516
+    },
+    {
+      "nom": "TENNIS CLUB BELCODENE",
+      "clubId": "62130561",
+      "ville": "BELCODENE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.421734,
+      "lng": 5.598495
+    },
+    {
+      "nom": "TENNIS CLUB BOIS-LUZY",
+      "clubId": "62130016",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.313087,
+      "lng": 5.427709
+    },
+    {
+      "nom": "TENNIS CLUB BONNIEUX",
+      "clubId": "62840491",
+      "ville": "BONNIEUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.82717,
+      "lng": 5.306994
+    },
+    {
+      "nom": "TENNIS CLUB BOUC-BEL-AIR",
+      "clubId": "62130177",
+      "ville": "BOUC-BEL-AIR",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.44667,
+      "lng": 5.421287
+    },
+    {
+      "nom": "TENNIS CLUB CADENET",
+      "clubId": "62840189",
+      "ville": "CADENET",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.734142,
+      "lng": 5.377208
+    },
+    {
+      "nom": "TENNIS CLUB CADOLIVE",
+      "clubId": "62130297",
+      "ville": "CADOLIVE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.402454,
+      "lng": 5.550859
+    },
+    {
+      "nom": "TENNIS CLUB CAMPUS ETOILE",
+      "clubId": "62130251",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.336983,
+      "lng": 5.41085
+    },
+    {
+      "nom": "TENNIS CLUB CANDILLARGUES",
+      "clubId": "60340709",
+      "ville": "CANDILLARGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.622784,
+      "lng": 4.074947
+    },
+    {
+      "nom": "TENNIS CLUB CARPENTRAS",
+      "clubId": "62840063",
+      "ville": "CARPENTRAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 6 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 44.052883,
+      "lng": 5.050495
+    },
+    {
+      "nom": "TENNIS CLUB CARREAU DE LANES",
+      "clubId": "60300415",
+      "ville": "NIMES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.826103,
+      "lng": 4.305136
+    },
+    {
+      "nom": "TENNIS CLUB CAUMONTOIS",
+      "clubId": "62840380",
+      "ville": "Caumont sur Durance",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.893257,
+      "lng": 4.944208
+    },
+    {
+      "nom": "TENNIS CLUB CHARLEVAL",
+      "clubId": "62130481",
+      "ville": "CHARLEVAL",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Padel : 2, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.71403,
+      "lng": 5.247163
+    },
+    {
+      "nom": "TENNIS CLUB CHATEAUNEUVOIS",
+      "clubId": "62840070",
+      "ville": "CHATEAUNEUF-DU-PAPE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.042145,
+      "lng": 4.82181
+    },
+    {
+      "nom": "TENNIS CLUB CHUSCLAN",
+      "clubId": "60300343",
+      "ville": "CHUSCLAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.14899,
+      "lng": 4.682918
+    },
+    {
+      "nom": "TENNIS CLUB CORNILLON",
+      "clubId": "62130262",
+      "ville": "CORNILLON-CONFOUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.567127,
+      "lng": 5.071474
+    },
+    {
+      "nom": "TENNIS CLUB CUCURON VAUGINES",
+      "clubId": "62840571",
+      "ville": "CUCURON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.773075,
+      "lng": 5.438812
+    },
+    {
+      "nom": "TENNIS CLUB CUGES LES PINS",
+      "clubId": "62130503",
+      "ville": "CUGES-LES-PINS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.273617,
+      "lng": 5.694521
+    },
+    {
+      "nom": "TENNIS CLUB Car\u00e7ois",
+      "clubId": "62830449",
+      "ville": "CARCES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.479015,
+      "lng": 6.181627
+    },
+    {
+      "nom": "TENNIS CLUB DE BOLLENE",
+      "clubId": "62840074",
+      "ville": "BOLLENE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.29225,
+      "lng": 4.758191
+    },
+    {
+      "nom": "TENNIS CLUB DE CASTILLON",
+      "clubId": "60300689",
+      "ville": "CASTILLON DU GARD",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.963284,
+      "lng": 4.553752
+    },
+    {
+      "nom": "TENNIS CLUB DE GALLARGUES",
+      "clubId": "60300682",
+      "ville": "GALLARGUES LE MONTUEUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.721684,
+      "lng": 4.173218
+    },
+    {
+      "nom": "TENNIS CLUB DE GARONS",
+      "clubId": "60300373",
+      "ville": "GARONS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.775936,
+      "lng": 4.43008
+    },
+    {
+      "nom": "TENNIS CLUB DE GEMENOS",
+      "clubId": "62130274",
+      "ville": "GEMENOS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.28804,
+      "lng": 5.617297
+    },
+    {
+      "nom": "TENNIS CLUB DE LA BARBEN",
+      "clubId": "62130586",
+      "ville": "LA BARBEN",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.630207,
+      "lng": 5.175757
+    },
+    {
+      "nom": "TENNIS CLUB DE LA VOILERIE",
+      "clubId": "62130409",
+      "ville": "LES PENNES-MIRABEAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.41027,
+      "lng": 5.308922
+    },
+    {
+      "nom": "TENNIS CLUB DE MONDRAGON",
+      "clubId": "62840203",
+      "ville": "MONDRAGON",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.241364,
+      "lng": 4.719693
+    },
+    {
+      "nom": "TENNIS CLUB DE MOUSSAC",
+      "clubId": "60300680",
+      "ville": "MOUSSAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.980267,
+      "lng": 4.229984
+    },
+    {
+      "nom": "TENNIS CLUB DE PEROLS",
+      "clubId": "60340414",
+      "ville": "LATTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.559334,
+      "lng": 3.935923
+    },
+    {
+      "nom": "TENNIS CLUB DE ST ETIENNE DU GRES",
+      "clubId": "62130462",
+      "ville": "ST ETIENNE DU GRES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.783855,
+      "lng": 4.736425
+    },
+    {
+      "nom": "TENNIS CLUB DE TRINQUETAILLE",
+      "clubId": "62130577",
+      "ville": "ARLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.684982,
+      "lng": 4.609788
+    },
+    {
+      "nom": "TENNIS CLUB DE VITROLLES",
+      "clubId": "62130140",
+      "ville": "VITROLLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.43012,
+      "lng": 5.27824
+    },
+    {
+      "nom": "TENNIS CLUB DES BARONNIES",
+      "clubId": "50260619",
+      "ville": "BUIS LES BARONNIES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.270477,
+      "lng": 5.269593
+    },
+    {
+      "nom": "TENNIS CLUB DU BARROUX",
+      "clubId": "62840546",
+      "ville": "LE BARROUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.150024,
+      "lng": 5.088983
+    },
+    {
+      "nom": "TENNIS CLUB DU BREGOUX",
+      "clubId": "62840567",
+      "ville": "AUBIGNAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.09865,
+      "lng": 5.04308
+    },
+    {
+      "nom": "TENNIS CLUB DU JAS DE BOUFFAN",
+      "clubId": "62130522",
+      "ville": "AIX EN PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.527317,
+      "lng": 5.419769
+    },
+    {
+      "nom": "TENNIS CLUB DU PARADOU",
+      "clubId": "62130596",
+      "ville": "LE PARADOU",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.720573,
+      "lng": 4.78698
+    },
+    {
+      "nom": "TENNIS CLUB DU ROVE ",
+      "clubId": "62130612",
+      "ville": "LE ROVE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.37296,
+      "lng": 5.26155
+    },
+    {
+      "nom": "TENNIS CLUB ENSUES-LA-REDONNE",
+      "clubId": "62130327",
+      "ville": "ENSUES-LA-REDONNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.35561,
+      "lng": 5.195955
+    },
+    {
+      "nom": "TENNIS CLUB ENTRESSEN ISTRES",
+      "clubId": "62130242",
+      "ville": "ENTRESSEN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.591305,
+      "lng": 4.935356
+    },
+    {
+      "nom": "TENNIS CLUB EYGALIERES",
+      "clubId": "62130607",
+      "ville": "EYGALIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.76154,
+      "lng": 4.944526
+    },
+    {
+      "nom": "TENNIS CLUB FETE LE MUR MARSEILLE",
+      "clubId": "62130237",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.344604,
+      "lng": 5.354051
+    },
+    {
+      "nom": "TENNIS CLUB FIELDING",
+      "clubId": "62060441",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.69412,
+      "lng": 7.236584
+    },
+    {
+      "nom": "TENNIS CLUB FONTVIEILLE",
+      "clubId": "62130232",
+      "ville": "FONTVIEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.720882,
+      "lng": 4.701986
+    },
+    {
+      "nom": "TENNIS CLUB FOS-SUR-MER",
+      "clubId": "62130145",
+      "ville": "FOS SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.44033,
+      "lng": 4.946944
+    },
+    {
+      "nom": "TENNIS CLUB FUVEAU",
+      "clubId": "62130234",
+      "ville": "FUVEAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.452583,
+      "lng": 5.553219
+    },
+    {
+      "nom": "TENNIS CLUB GARDANNAIS",
+      "clubId": "62130163",
+      "ville": "GARDANNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.462864,
+      "lng": 5.480601
+    },
+    {
+      "nom": "TENNIS CLUB GARGAS",
+      "clubId": "62840550",
+      "ville": "GARGAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.90322,
+      "lng": 5.357388
+    },
+    {
+      "nom": "TENNIS CLUB GIGNACAIS",
+      "clubId": "62130201",
+      "ville": "GIGNAC-LA-NERTHE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.393112,
+      "lng": 5.237164
+    },
+    {
+      "nom": "TENNIS CLUB JONQUERETTES",
+      "clubId": "62840354",
+      "ville": "JONQUERETTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.948856,
+      "lng": 4.9361
+    },
+    {
+      "nom": "TENNIS CLUB LA DORGALE",
+      "clubId": "62130301",
+      "ville": "ROQUEVAIRE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.349537,
+      "lng": 5.603996
+    },
+    {
+      "nom": "TENNIS CLUB LA FARE",
+      "clubId": "62130192",
+      "ville": "LA FARE-LES-OLIVIERS",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.556587,
+      "lng": 5.19323
+    },
+    {
+      "nom": "TENNIS CLUB LA FOURRAGERE ASPTT",
+      "clubId": "62130007",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 2, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL",
+        "BEACH"
+      ],
+      "lat": 43.307163,
+      "lng": 5.425376
+    },
+    {
+      "nom": "TENNIS CLUB LA ROSE",
+      "clubId": "62130009",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.3274,
+      "lng": 5.422257
+    },
+    {
+      "nom": "TENNIS CLUB LAMANON",
+      "clubId": "62130184",
+      "ville": "LAMANON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.701366,
+      "lng": 5.084911
+    },
+    {
+      "nom": "TENNIS CLUB LAMBESCAIN",
+      "clubId": "62130149",
+      "ville": "LAMBESC",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.64828,
+      "lng": 5.267498
+    },
+    {
+      "nom": "TENNIS CLUB LANCON PROVENCE",
+      "clubId": "62130241",
+      "ville": "LANCON PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.591633,
+      "lng": 5.122729
+    },
+    {
+      "nom": "TENNIS CLUB LAURIS",
+      "clubId": "62840273",
+      "ville": "LAURIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.74833,
+      "lng": 5.32049
+    },
+    {
+      "nom": "TENNIS CLUB LE PALOU",
+      "clubId": "60340719",
+      "ville": "LATTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.57853,
+      "lng": 3.897032
+    },
+    {
+      "nom": "TENNIS CLUB LOURMARIN",
+      "clubId": "62840282",
+      "ville": "LOURMARIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.763477,
+      "lng": 5.362582
+    },
+    {
+      "nom": "TENNIS CLUB MALAUCENE",
+      "clubId": "62840284",
+      "ville": "MALAUCENE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.176964,
+      "lng": 5.132563
+    },
+    {
+      "nom": "TENNIS CLUB MARGUERITTES",
+      "clubId": "60300313",
+      "ville": "MARGUERITTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.86271,
+      "lng": 4.44198
+    },
+    {
+      "nom": "TENNIS CLUB MARIGNANAIS",
+      "clubId": "62130036",
+      "ville": "MARIGNANE",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.419605,
+      "lng": 5.20562
+    },
+    {
+      "nom": "TENNIS CLUB MARSEILLE",
+      "clubId": "62130002",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "9 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.268215,
+      "lng": 5.380573
+    },
+    {
+      "nom": "TENNIS CLUB MARTIGUES",
+      "clubId": "62130167",
+      "ville": "MARTIGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 10 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.429665,
+      "lng": 5.050938
+    },
+    {
+      "nom": "TENNIS CLUB MERINDOL",
+      "clubId": "62840432",
+      "ville": "MERINDOL",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.75327,
+      "lng": 5.205538
+    },
+    {
+      "nom": "TENNIS CLUB MIMET",
+      "clubId": "62130269",
+      "ville": "MIMET",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.42658,
+      "lng": 5.487111
+    },
+    {
+      "nom": "TENNIS CLUB MIRAMAS",
+      "clubId": "62130051",
+      "ville": "MIRAMAS",
+      "distance": "",
+      "terrainPratiqueLibelle": "9 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.595478,
+      "lng": 5.001742
+    },
+    {
+      "nom": "TENNIS CLUB MONTFORTAIS",
+      "clubId": "62830447",
+      "ville": "MONTFORT SUR ARGENS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.473312,
+      "lng": 6.127325
+    },
+    {
+      "nom": "TENNIS CLUB MOURIESEN",
+      "clubId": "62130322",
+      "ville": "MOURIES",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.69389,
+      "lng": 4.875273
+    },
+    {
+      "nom": "TENNIS CLUB MUN.THOLONET",
+      "clubId": "62130219",
+      "ville": "LE THOLONET",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.516865,
+      "lng": 5.502212
+    },
+    {
+      "nom": "TENNIS CLUB MUNICIPAL SEYNOIS",
+      "clubId": "62838001",
+      "ville": "LA SEYNE SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.09547,
+      "lng": 5.85783
+    },
+    {
+      "nom": "TENNIS CLUB NEGRELIEN",
+      "clubId": "62130571",
+      "ville": "CHATEAUNEUF LE ROUGE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.487732,
+      "lng": 5.592618
+    },
+    {
+      "nom": "TENNIS CLUB OPPEDE MENERBES",
+      "clubId": "62840497",
+      "ville": "OPPEDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.844936,
+      "lng": 5.168695
+    },
+    {
+      "nom": "TENNIS CLUB PENNES-MIRABEAU",
+      "clubId": "62130136",
+      "ville": "LES PENNES MIRABEAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "9 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.38545,
+      "lng": 5.343804
+    },
+    {
+      "nom": "TENNIS CLUB PENNOIS",
+      "clubId": "62130107",
+      "ville": "LA PENNE-SUR-HUVEAUNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.282143,
+      "lng": 5.512198
+    },
+    {
+      "nom": "TENNIS CLUB PERNES",
+      "clubId": "62840250",
+      "ville": "PERNES LES FONTAINES",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.99847,
+      "lng": 5.067573
+    },
+    {
+      "nom": "TENNIS CLUB PERTUIS",
+      "clubId": "62840072",
+      "ville": "PERTUIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.694275,
+      "lng": 5.501843
+    },
+    {
+      "nom": "TENNIS CLUB PEYPIN",
+      "clubId": "62130391",
+      "ville": "PEYPIN",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Beach Tennis : 4",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.38408,
+      "lng": 5.580274
+    },
+    {
+      "nom": "TENNIS CLUB PEYROLLAIS",
+      "clubId": "62130191",
+      "ville": "PEYROLLES-EN-PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.64297,
+      "lng": 5.572122
+    },
+    {
+      "nom": "TENNIS CLUB PIJORET",
+      "clubId": "62130120",
+      "ville": "LA ROQUE D\u0027ANTHERON",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.71531,
+      "lng": 5.307009
+    },
+    {
+      "nom": "TENNIS CLUB PORT-DE-BOUC",
+      "clubId": "62130054",
+      "ville": "PORT-DE-BOUC",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.419277,
+      "lng": 4.992602
+    },
+    {
+      "nom": "TENNIS CLUB PUYRICARD",
+      "clubId": "62130568",
+      "ville": "PUYRICARD",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.588303,
+      "lng": 5.417282
+    },
+    {
+      "nom": "TENNIS CLUB ROGNES",
+      "clubId": "62130469",
+      "ville": "ROGNES",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.654182,
+      "lng": 5.325953
+    },
+    {
+      "nom": "TENNIS CLUB ROUVIERE",
+      "clubId": "62130567",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.25252,
+      "lng": 5.422254
+    },
+    {
+      "nom": "TENNIS CLUB ROY D\u0027ESPAGNE",
+      "clubId": "62130023",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.237362,
+      "lng": 5.389725
+    },
+    {
+      "nom": "TENNIS CLUB SAINT ANDIOL",
+      "clubId": "62130225",
+      "ville": "ST-ANDIOL",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.835464,
+      "lng": 4.944566
+    },
+    {
+      "nom": "TENNIS CLUB SAINT MITRE LES REMPARTS",
+      "clubId": "62130288",
+      "ville": "ST-MITRE-LES-REMPARTS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.453537,
+      "lng": 5.020641
+    },
+    {
+      "nom": "TENNIS CLUB SAINT-CANNAT",
+      "clubId": "62130222",
+      "ville": "ST-CANNAT",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.62035,
+      "lng": 5.295476
+    },
+    {
+      "nom": "TENNIS CLUB SAINT-ZACHARIE",
+      "clubId": "62830451",
+      "ville": "ST ZACHARIE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.38238,
+      "lng": 5.702949
+    },
+    {
+      "nom": "TENNIS CLUB SARRIANS",
+      "clubId": "62840317",
+      "ville": "SARRIANS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.079815,
+      "lng": 4.976696
+    },
+    {
+      "nom": "TENNIS CLUB SAZE",
+      "clubId": "60300688",
+      "ville": "SAZE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.945866,
+      "lng": 4.680009
+    },
+    {
+      "nom": "TENNIS CLUB SEILLONNAIS",
+      "clubId": "62830457",
+      "ville": "SEILLONS SOURCE D\u0027ARGENS",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.49867,
+      "lng": 5.881698
+    },
+    {
+      "nom": "TENNIS CLUB SEPTEMOIS",
+      "clubId": "62130387",
+      "ville": "SEPTEMES LES VALLONS",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.406445,
+      "lng": 5.371789
+    },
+    {
+      "nom": "TENNIS CLUB SORGUAIS",
+      "clubId": "62840068",
+      "ville": "SORGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "8 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.001625,
+      "lng": 4.906319
+    },
+    {
+      "nom": "TENNIS CLUB ST BRUNO",
+      "clubId": "62840557",
+      "ville": "PUJAUT",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.985794,
+      "lng": 4.773506
+    },
+    {
+      "nom": "TENNIS CLUB ST CHAPTES",
+      "clubId": "60300596",
+      "ville": "SAINT CHAPTES",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.972454,
+      "lng": 4.273951
+    },
+    {
+      "nom": "TENNIS CLUB ST-DIDIER",
+      "clubId": "62840199",
+      "ville": "ST DIDIER",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.00911,
+      "lng": 5.109394
+    },
+    {
+      "nom": "TENNIS CLUB ST-REMY DE PROVENCE",
+      "clubId": "62130168",
+      "ville": "ST REMY DE PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.79116,
+      "lng": 4.836776
+    },
+    {
+      "nom": "TENNIS CLUB SUD LUBERON",
+      "clubId": "62840524",
+      "ville": "MIRABEAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.706497,
+      "lng": 5.657285
+    },
+    {
+      "nom": "TENNIS CLUB TARASCON",
+      "clubId": "62130037",
+      "ville": "TARASCON",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.80996,
+      "lng": 4.673903
+    },
+    {
+      "nom": "TENNIS CLUB TOURAIN",
+      "clubId": "62840437",
+      "ville": "LA TOUR-D\u0027AIGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.728622,
+      "lng": 5.552042
+    },
+    {
+      "nom": "TENNIS CLUB VAISON",
+      "clubId": "62840073",
+      "ville": "VAISON-LA-ROMAINE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.24407,
+      "lng": 5.073993
+    },
+    {
+      "nom": "TENNIS CLUB VAL DE CEZE",
+      "clubId": "60300704",
+      "ville": "ST ANDRE DE ROQUEPERTUIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.24759,
+      "lng": 4.44656
+    },
+    {
+      "nom": "TENNIS CLUB VESTRICOIS",
+      "clubId": "60300692",
+      "ville": "VESTRIC ET CANDIAC",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.74142,
+      "lng": 4.26108
+    },
+    {
+      "nom": "TENNIS CLUB VILLEDIEU",
+      "clubId": "62840581",
+      "ville": "VILLEDIEU",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.288593,
+      "lng": 5.036455
+    },
+    {
+      "nom": "TENNIS CLUB VILLELAURIEN",
+      "clubId": "62840258",
+      "ville": "VILLELAURE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.710793,
+      "lng": 5.436364
+    },
+    {
+      "nom": "TENNIS CLUB de CAMPBEAU",
+      "clubId": "62840155",
+      "ville": "CHATEAUNEUF-DE-GADAGNE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.93395,
+      "lng": 4.937262
+    },
+    {
+      "nom": "TENNIS DE BARJOLS",
+      "clubId": "62830288",
+      "ville": "BARJOLS",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.561474,
+      "lng": 6.004947
+    },
+    {
+      "nom": "TENNIS DE BEAUVALLON",
+      "clubId": "62830069",
+      "ville": "GRIMAUD",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 5 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.29148,
+      "lng": 6.601365
+    },
+    {
+      "nom": "TENNIS DES BAOUS",
+      "clubId": "62060302",
+      "ville": "ST JEANNET",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.74421,
+      "lng": 7.155827
+    },
+    {
+      "nom": "TENNIS DES SOURCES",
+      "clubId": "62830399",
+      "ville": "GAREOULT",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.335506,
+      "lng": 6.047871
+    },
+    {
+      "nom": "TENNIS DU PHARO MAIRIE DU 1\/7",
+      "clubId": "62138013",
+      "ville": "MARSEILLE 07",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.29169,
+      "lng": 5.35993
+    },
+    {
+      "nom": "TENNIS ET GLISSE",
+      "clubId": "62060437",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "1 terrain",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.6709,
+      "lng": 7.208445
+    },
+    {
+      "nom": "TENNIS ET PADEL CLUB BARBOSSI",
+      "clubId": "62060384",
+      "ville": "MANDELIEU LA NAPOULE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.525154,
+      "lng": 6.91483
+    },
+    {
+      "nom": "TENNIS GRAVESON",
+      "clubId": "62130494",
+      "ville": "GRAVESON",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.855106,
+      "lng": 4.762245
+    },
+    {
+      "nom": "TENNIS LA CRAU",
+      "clubId": "62830157",
+      "ville": "LA CRAU",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.14642,
+      "lng": 6.083311
+    },
+    {
+      "nom": "TENNIS LA DESTROUSSE",
+      "clubId": "62130287",
+      "ville": "LA DESTROUSSE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.38285,
+      "lng": 5.599903
+    },
+    {
+      "nom": "TENNIS LOISIRS LEVENS",
+      "clubId": "62060411",
+      "ville": "LEVENS",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.862198,
+      "lng": 7.227691
+    },
+    {
+      "nom": "TENNIS LOISIRS MUDAISON",
+      "clubId": "60340678",
+      "ville": "MUDAISON",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.642033,
+      "lng": 4.040945
+    },
+    {
+      "nom": "TENNIS LOISIRS TOURSAINTE",
+      "clubId": "62130574",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.348564,
+      "lng": 5.391941
+    },
+    {
+      "nom": "TENNIS PADEL CLUB PALAVAS",
+      "clubId": "60340729",
+      "ville": "PALAVAS LES FLOTS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 8 terrains, Padel : 8",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.532177,
+      "lng": 3.930054
+    },
+    {
+      "nom": "TENNIS PADEL CLUB PEYNIER",
+      "clubId": "62130347",
+      "ville": "PEYNIER",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.447826,
+      "lng": 5.641302
+    },
+    {
+      "nom": "TENNIS PADEL MAUGUIO",
+      "clubId": "60340023",
+      "ville": "MAUGUIO",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 5",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.61184,
+      "lng": 4.012602
+    },
+    {
+      "nom": "TENNIS PADEL ST CHARLES",
+      "clubId": "62830456",
+      "ville": "LA GARDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 3 terrains, Padel : 4",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.11655,
+      "lng": 6.011189
+    },
+    {
+      "nom": "TENNIS PARC ARLESIEN",
+      "clubId": "62130049",
+      "ville": "ARLES",
+      "distance": "",
+      "terrainPratiqueLibelle": "10 terrains dont 3 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.670876,
+      "lng": 4.631449
+    },
+    {
+      "nom": "TENNIS PARC LE CANNET",
+      "clubId": "62060450",
+      "ville": "LE CANNET",
+      "distance": "",
+      "terrainPratiqueLibelle": "11 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.5777,
+      "lng": 7.0058
+    },
+    {
+      "nom": "TENNIS PARC SALTESIEN",
+      "clubId": "62840570",
+      "ville": "SAULT",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.10248,
+      "lng": 5.424911
+    },
+    {
+      "nom": "TENNIS PARK AVIGNON",
+      "clubId": "62840577",
+      "ville": "AVIGNON",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.93032,
+      "lng": 4.845511
+    },
+    {
+      "nom": "TENNIS PARK MARSEILLE",
+      "clubId": "62130004",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 11 terrains, Beach Tennis : 1",
+      "pratiques": [
+        "TENNIS",
+        "BEACH"
+      ],
+      "lat": 43.300587,
+      "lng": 5.49311
+    },
+    {
+      "nom": "TENNIS SAINT BRES",
+      "clubId": "60340604",
+      "ville": "SAINT BRES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.671837,
+      "lng": 4.033133
+    },
+    {
+      "nom": "TENNIS SPORTING CLUB DE CASSIS",
+      "clubId": "62130180",
+      "ville": "CASSIS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.231106,
+      "lng": 5.533148
+    },
+    {
+      "nom": "TENNIS et PADEL MUNICIPAUX ST VICTORET",
+      "clubId": "62138016",
+      "ville": "ST VICTORET",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 6 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.41452,
+      "lng": 5.24325
+    },
+    {
+      "nom": "TENNIS-PADEL De LORGUES",
+      "clubId": "62830152",
+      "ville": "LORGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 4 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.49509,
+      "lng": 6.367272
+    },
+    {
+      "nom": "TM DRAP",
+      "clubId": "62060319",
+      "ville": "DRAP",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.75424,
+      "lng": 7.337248
+    },
+    {
+      "nom": "TM OLLIOULAIS",
+      "clubId": "62830115",
+      "ville": "OLLIOULES",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 9 terrains, Padel : 1",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.12383,
+      "lng": 5.831264
+    },
+    {
+      "nom": "TO POURRIERES",
+      "clubId": "62830337",
+      "ville": "POURRIERES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.501125,
+      "lng": 5.739466
+    },
+    {
+      "nom": "TOTAL PROVENCE SPORTS",
+      "clubId": "62130052",
+      "ville": "LA MEDE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.39923,
+      "lng": 5.111521
+    },
+    {
+      "nom": "TOURRETTES TC",
+      "clubId": "62060224",
+      "ville": "TOURRETTES SUR LOUP",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.71644,
+      "lng": 7.062292
+    },
+    {
+      "nom": "TRANS TC",
+      "clubId": "62830289",
+      "ville": "TRANS EN PROVENCE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.50638,
+      "lng": 6.48334
+    },
+    {
+      "nom": "TRETS TENNIS CLUB",
+      "clubId": "62130559",
+      "ville": "TRETS",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 10 terrains, Padel : 2",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.445164,
+      "lng": 5.700552
+    },
+    {
+      "nom": "TS FLAYOSCAIS",
+      "clubId": "62830429",
+      "ville": "DRAGUIGNAN",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.540264,
+      "lng": 6.407142
+    },
+    {
+      "nom": "U.S. PONTET TENNIS",
+      "clubId": "62840065",
+      "ville": "LE PONTET",
+      "distance": "",
+      "terrainPratiqueLibelle": "14 terrains dont 4 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.95867,
+      "lng": 4.855891
+    },
+    {
+      "nom": "UCHAUX TENNIS CLUB",
+      "clubId": "62840324",
+      "ville": "UCHAUX",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.20899,
+      "lng": 4.799808
+    },
+    {
+      "nom": "UCS DOUANES PEYSSONNEL TENNIS",
+      "clubId": "62130401",
+      "ville": "MARSEILLE 03",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.310814,
+      "lng": 5.37775
+    },
+    {
+      "nom": "ULTRA CAP ESTEREL COUNTRY CLUB",
+      "clubId": "62830454",
+      "ville": "ST RAPHAEL",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 10 terrains, Padel : 7",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.425587,
+      "lng": 6.85676
+    },
+    {
+      "nom": "ULTRA COUNTRY CLUB",
+      "clubId": "62060456",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 2 terrains, Padel : 5",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.726013,
+      "lng": 7.269478
+    },
+    {
+      "nom": "US CAGNES TENNIS",
+      "clubId": "62060107",
+      "ville": "CAGNES SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "Tennis : 15 terrains, Padel : 3",
+      "pratiques": [
+        "TENNIS",
+        "PADEL"
+      ],
+      "lat": 43.67284,
+      "lng": 7.149736
+    },
+    {
+      "nom": "US SMASH CLUB ENTRAIGUES",
+      "clubId": "62840355",
+      "ville": "ENTRAIGUES",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains dont 2 couverts",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.000423,
+      "lng": 4.912244
+    },
+    {
+      "nom": "US STE TULLE TENNIS",
+      "clubId": "62040079",
+      "ville": "STE TULLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "5 terrains dont 1 couvert",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.78605,
+      "lng": 5.765478
+    },
+    {
+      "nom": "USB SEYNE TENNIS",
+      "clubId": "62040277",
+      "ville": "SELONNET",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.350285,
+      "lng": 6.354495
+    },
+    {
+      "nom": "USCCA TENNIS",
+      "clubId": "62060147",
+      "ville": "NICE",
+      "distance": "",
+      "terrainPratiqueLibelle": "2 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.71845,
+      "lng": 7.291287
+    },
+    {
+      "nom": "VALAURIE TENNIS CLUB",
+      "clubId": "50260517",
+      "ville": "VALAURIE",
+      "distance": "",
+      "terrainPratiqueLibelle": "3 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 44.42888,
+      "lng": 4.821288
+    },
+    {
+      "nom": "VEDENE TENNIS CLUB",
+      "clubId": "62840313",
+      "ville": "VEDENE",
+      "distance": "",
+      "terrainPratiqueLibelle": "4 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.978138,
+      "lng": 4.909164
+    },
+    {
+      "nom": "VILLEFRANCHE TENNIS CLUB",
+      "clubId": "62060197",
+      "ville": "VILLEFRANCHE SUR MER",
+      "distance": "",
+      "terrainPratiqueLibelle": "7 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.702354,
+      "lng": 7.324217
+    },
+    {
+      "nom": "WILLIAM TENNIS CLUB",
+      "clubId": "62130006",
+      "ville": "MARSEILLE",
+      "distance": "",
+      "terrainPratiqueLibelle": "6 terrains",
+      "pratiques": [
+        "TENNIS"
+      ],
+      "lat": 43.273182,
+      "lng": 5.380015
+    }
+  ],
+  "total": 599,
+  "returnUrl": "\/recherche\/clubs",
+  "userPosition": {
+    "lat": "43.136385",
+    "lng": "5.933457",
+    "showDistance": true
+  },
+  "rechercheData": "Toulon \/ 173 Km  \/ Tennis",
+  "map_active": 1,
+  "nb_cartes_map_max": "20",
+  "nb_cartes_list_max": "30",
+  "tagcommander_click": "\n    tc_events_19(this,\u0027clic\u0027,{\n    \u0027event_type\u0027:\u0027navigation\u0027,\n    \u0027level2\u0027:\u002722\u0027,\n    \u0027event_chapter1\u0027:\u0027recherche_Club\u0027,\n    \u0027event_chapter2\u0027:\u0027infrastructure\u0027,\n    \u0027event_name\u0027:\u0027fiche_club\u0027})"
+}
