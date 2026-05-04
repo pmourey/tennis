@@ -49,5 +49,7 @@ instance/
 *_old.py
 *.pages
 blueprints/club/templates/club/infos_club_gmap.html
+debugging/
+test/
 
 
