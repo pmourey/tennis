@@ -27,6 +27,7 @@ def test_parse_product_uses_manufacturer_for_brand():
     assert data['brand'] == 'Wilson'
     assert data['name'] == 'Hyper ProStaff 7.1 Zone'
     assert data['pcode'] == 'H71'
+    assert data['head_size'] == 95.0
     assert data['string_pattern'] == '16x19'
 
 
@@ -79,7 +80,18 @@ def test_scrape_racquet_by_pcode(monkeypatch):
     assert data['pcode'] == 'H71'
     assert data['brand'] == 'Wilson'
     assert data['name'] == 'Hyper ProStaff 7.1 Zone'
+    assert data['head_size'] == 95.0
+    assert data['length'] == 27.0
     assert data['string_pattern'] == '16x19'
+
+
+def test_parse_weight_ounces_to_grams():
+    # 11.5 oz ~= 326.0 g
+    assert scraper._parse_weight_oz_to_g('11.5 oz / 326 g') == 326.0
+
+
+def test_parse_weight_grams_when_no_oz():
+    assert scraper._parse_weight_oz_to_g('300 g') == 300.0
 
 
 def test_build_params_with_stiffness_range():

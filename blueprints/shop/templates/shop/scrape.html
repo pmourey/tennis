@@ -4,26 +4,46 @@
 {% block main %}
 {% include 'partials/_menu.html' %}
 <main>
-    <table class="update-form">
-        <caption class="table-caption">Import / Mise à jour des raquettes</caption>
-        <tr>
-            <td colspan="2">
-                <p>Cet outil permet d'importer ou de mettre à jour le catalogue de raquettes depuis une source externe.</p>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
+    <div class="shop-container">
+        <div class="shop-scrape-card">
+            <div class="shop-scrape-header">
+                <h2>Import / mise a jour RacquetFinder</h2>
+            </div>
+            <div class="shop-scrape-body">
+                <p>Cet outil importe les raquettes depuis <code>racquetfinder.com</code> et met a jour la base locale.</p>
                 <form method="POST" action="{{ url_for('shop.scrape') }}">
-                    <input type="submit" value="🔄 Lancer l'import">
+                    <div class="form-group">
+                        <label for="manufacturer">Fabricant cible</label>
+                        <select id="manufacturer" name="manufacturer" class="form-control">
+                            <option value="">Tous les fabricants</option>
+                            {% for m in manufacturers %}
+                                <option value="{{ m.value }}">{{ m.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-check">
+                        <label>
+                            <input type="checkbox" name="current_only" class="form-check-input">
+                            Importer seulement les modeles actuels
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <label>
+                            <input type="checkbox" name="normalize_legacy" class="form-check-input" checked>
+                            Convertir les anciens poids detectes en oz vers grammes
+                        </label>
+                    </div>
+
+                    <div class="shop-filter-actions" style="margin-top: 18px;">
+                        <button type="submit" class="btn btn-primary">Lancer l'import</button>
+                        <a href="{{ url_for('shop.racquets') }}"><button type="button" class="btn btn-secondary">Retour catalogue</button></a>
+                    </div>
                 </form>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <a href="{{ url_for('shop.racquets') }}"><button type="button">← Retour catalogue</button></a>
-            </td>
-        </tr>
-    </table>
+            </div>
+        </div>
+    </div>
 </main>
 {% endblock main %}
 

@@ -4,50 +4,57 @@
 {% block main %}
 {% include 'partials/_menu.html' %}
 <main>
-    <table class="pool">
-        <caption class="table-caption">{{ racquet.brand }} – {{ racquet.name }}</caption>
-        <tbody>
-            <tr>
-                <td colspan="2" style="text-align:center">
+    <div class="shop-container">
+        <div class="shop-detail">
+            <div class="shop-detail-header">
+                <h2>{{ racquet.brand }} - {{ racquet.name }}</h2>
+            </div>
+
+            <div class="shop-detail-body">
+                <div class="shop-detail-image">
                     {% if racquet.image_local %}
-                        <img src="{{ url_for('static', filename='shop/images/' + racquet.image_local) }}" alt="{{ racquet.name }}" style="max-height:200px">
+                        <img src="{{ url_for('static', filename='shop/images/' + racquet.image_local) }}" alt="{{ racquet.name }}">
                     {% elif racquet.image_url %}
-                        <img src="{{ racquet.image_url }}" alt="{{ racquet.name }}" style="max-height:200px">
+                        <img src="{{ racquet.image_url }}" alt="{{ racquet.name }}">
                     {% else %}
-                        🎾
+                        <span class="no-image" style="font-size:64px; opacity:.3;">🎾</span>
                     {% endif %}
-                </td>
-            </tr>
-            <tr><td><strong>Marque</strong></td><td>{{ racquet.brand }}</td></tr>
-            <tr><td><strong>Modèle</strong></td><td>{{ racquet.name }}</td></tr>
-            <tr><td><strong>Type joueur</strong></td><td>{{ racquet.player_type or '-' }}</td></tr>
-            <tr><td><strong>Poids cordée</strong></td><td>{{ racquet.strung_weight or '-' }} g</td></tr>
-            <tr><td><strong>Poids non cordée</strong></td><td>{{ racquet.unstrung_weight or '-' }} g</td></tr>
-            <tr><td><strong>Taille tamis</strong></td><td>{{ racquet.head_size or '-' }} cm²</td></tr>
-            <tr><td><strong>Longueur</strong></td><td>{{ racquet.length or '-' }} cm</td></tr>
-            <tr><td><strong>Balance</strong></td><td>{{ racquet.balance_label }}</td></tr>
-            <tr><td><strong>Swingweight</strong></td><td>{{ racquet.swingweight or '-' }}</td></tr>
-            <tr><td><strong>Rigidité</strong></td><td>{{ racquet.stiffness or '-' }}</td></tr>
-            <tr><td><strong>Largeur cadre</strong></td><td>{{ racquet.beam_width or '-' }}</td></tr>
-            <tr><td><strong>Cordage</strong></td><td>{{ racquet.string_pattern or '-' }}</td></tr>
-            <tr><td><strong>Tension recommandée</strong></td><td>{{ racquet.string_tension or '-' }}</td></tr>
-            <tr><td><strong>Composition</strong></td><td>{{ racquet.composition or '-' }}</td></tr>
-            <tr><td><strong>Couleur</strong></td><td>{{ racquet.color or '-' }}</td></tr>
-            <tr><td><strong>Prix</strong></td><td>{{ '%.0f €' % racquet.price if racquet.price else '-' }}</td></tr>
-            <tr><td><strong>Modèle actuel</strong></td><td>{{ '✅' if racquet.is_current else '❌ (ancien modèle)' }}</td></tr>
-            {% if racquet.url %}
-            <tr><td><strong>Lien</strong></td><td><a href="{{ racquet.url }}" target="_blank">Voir sur le site</a></td></tr>
-            {% endif %}
-            <tr>
-                <td colspan="2">
-                    <a href="{{ url_for('shop.racquets') }}"><button>← Retour catalogue</button></a>
-                    <form method="POST" action="{{ url_for('shop.delete_racquet', racquet_id=racquet.id) }}" style="display:inline" onsubmit="return confirm('Supprimer cette raquette ?')">
-                        <button type="submit">🗑️ Supprimer</button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                </div>
+
+                <div class="shop-detail-specs">
+                    <table class="shop-spec-table">
+                        <tr><td>Marque</td><td>{{ racquet.brand }}</td></tr>
+                        <tr><td>Modele</td><td>{{ racquet.name }}</td></tr>
+                        <tr><td>Type joueur</td><td>{{ racquet.player_type or '-' }}</td></tr>
+                        <tr><td>Poids corde</td><td>{{ racquet.strung_weight or '-' }} g</td></tr>
+                        <tr><td>Poids non corde</td><td>{{ racquet.unstrung_weight or '-' }} g</td></tr>
+                        <tr><td>Tamis</td><td>{{ racquet.head_size or '-' }} sq.in</td></tr>
+                        <tr><td>Longueur</td><td>{{ racquet.length or '-' }} in</td></tr>
+                        <tr><td>Balance</td><td>{{ racquet.balance_label }}</td></tr>
+                        <tr><td>Swingweight</td><td>{{ racquet.swingweight or '-' }}</td></tr>
+                        <tr><td>Rigidite</td><td>{{ racquet.stiffness or '-' }}</td></tr>
+                        <tr><td>Largeur cadre</td><td>{{ racquet.beam_width or '-' }}</td></tr>
+                        <tr><td>Cordage</td><td>{{ racquet.string_pattern or '-' }}</td></tr>
+                        <tr><td>Tension</td><td>{{ racquet.string_tension or '-' }}</td></tr>
+                        <tr><td>Composition</td><td>{{ racquet.composition or '-' }}</td></tr>
+                        <tr><td>Couleur</td><td>{{ racquet.color or '-' }}</td></tr>
+                        <tr><td>Prix</td><td>{{ '%.0f EUR' % racquet.price if racquet.price else '-' }}</td></tr>
+                        <tr><td>Statut</td><td>{{ 'Actuel' if racquet.is_current else 'Archive' }}</td></tr>
+                        {% if racquet.url %}
+                            <tr><td>Lien</td><td><a href="{{ racquet.url }}" target="_blank">Voir la fiche source</a></td></tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <div class="shop-detail-actions">
+                <a href="{{ url_for('shop.racquets') }}"><button type="button" class="btn btn-secondary">Retour catalogue</button></a>
+                <form method="POST" action="{{ url_for('shop.delete_racquet', racquet_id=racquet.id) }}" onsubmit="return confirm('Supprimer cette raquette ?')">
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </main>
 {% endblock main %}
 

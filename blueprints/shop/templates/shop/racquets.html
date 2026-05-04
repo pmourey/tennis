@@ -4,152 +4,152 @@
 {% block main %}
 {% include 'partials/_menu.html' %}
 <main>
-    <table class="welcome">
-        <caption class="table-caption">Catalogue Raquettes</caption>
-        <tr>
-            <td><a href="{{ url_for('shop.scrape') }}">&#x1F504; Importer / Mettre à jour</a></td>
-        </tr>
-    </table>
+    <div class="shop-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h2 style="margin:0; font-size:20px;">Catalogue raquettes</h2>
+            <a class="btn btn-info btn-sm" href="{{ url_for('shop.scrape') }}">Importer / Mettre a jour</a>
+        </div>
 
-    <!-- Filtres -->
-    <form method="GET" action="{{ url_for('shop.racquets') }}">
-        <table class="update-form">
-            <caption class="table-caption">Filtres</caption>
-            <tr>
-                <td><label>Marque :</label></td>
-                <td>
+        <form method="GET" action="{{ url_for('shop.racquets') }}" class="shop-filters">
+            <h3>Filtres</h3>
+            <div class="shop-filter-grid">
+                <div class="shop-filter-group">
+                    <label>Marque</label>
                     <select name="brand">
                         <option value="">Toutes</option>
                         {% for b in brands %}
                             <option value="{{ b }}" {% if filters.get('brand') == b %}selected{% endif %}>{{ b }}</option>
                         {% endfor %}
                     </select>
-                </td>
-                <td><label>Recherche nom :</label></td>
-                <td><input type="text" name="name_search" value="{{ filters.get('name_search', '') }}"></td>
-                <td><label>Cordage :</label></td>
-                <td>
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Nom</label>
+                    <input type="text" name="name_search" value="{{ filters.get('name_search', '') }}" placeholder="ex: Pure Aero">
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Cordage</label>
                     <select name="string_pattern">
                         <option value="">Tous</option>
                         {% for p in patterns %}
                             <option value="{{ p }}" {% if filters.get('string_pattern') == p %}selected{% endif %}>{{ p }}</option>
                         {% endfor %}
                     </select>
-                </td>
-            </tr>
-            <tr>
-                <td><label>Poids cordée (g) :</label></td>
-                <td>
-                    <input type="number" name="min_weight" placeholder="min" value="{{ filters.get('min_weight', '') }}" style="width:60px">
-                    –
-                    <input type="number" name="max_weight" placeholder="max" value="{{ filters.get('max_weight', '') }}" style="width:60px">
-                </td>
-                <td><label>Taille tamis (cm²) :</label></td>
-                <td>
-                    <input type="number" name="min_head" placeholder="min" value="{{ filters.get('min_head', '') }}" style="width:60px">
-                    –
-                    <input type="number" name="max_head" placeholder="max" value="{{ filters.get('max_head', '') }}" style="width:60px">
-                </td>
-                <td><label>Balance (pts) :</label></td>
-                <td>
-                    <input type="number" name="min_balance" placeholder="min" value="{{ filters.get('min_balance', '') }}" style="width:60px">
-                    –
-                    <input type="number" name="max_balance" placeholder="max" value="{{ filters.get('max_balance', '') }}" style="width:60px">
-                </td>
-            </tr>
-            <tr>
-                <td><label>Swingweight :</label></td>
-                <td>
-                    <input type="number" name="min_swingweight" placeholder="min" value="{{ filters.get('min_swingweight', '') }}" style="width:60px">
-                    –
-                    <input type="number" name="max_swingweight" placeholder="max" value="{{ filters.get('max_swingweight', '') }}" style="width:60px">
-                </td>
-                <td><label>Rigidité :</label></td>
-                <td>
-                    <input type="number" name="min_stiffness" placeholder="min" value="{{ filters.get('min_stiffness', '') }}" style="width:60px">
-                    –
-                    <input type="number" name="max_stiffness" placeholder="max" value="{{ filters.get('max_stiffness', '') }}" style="width:60px">
-                </td>
-                <td><label>Trier par :</label></td>
-                <td>
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Poids corde (g)</label>
+                    <div class="shop-filter-range">
+                        <input type="number" name="min_weight" value="{{ filters.get('min_weight', '') }}" placeholder="min">
+                        <span>-</span>
+                        <input type="number" name="max_weight" value="{{ filters.get('max_weight', '') }}" placeholder="max">
+                    </div>
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Tamis (sq. in.)</label>
+                    <div class="shop-filter-range">
+                        <input type="number" name="min_head" value="{{ filters.get('min_head', '') }}" placeholder="min" step="0.5">
+                        <span>-</span>
+                        <input type="number" name="max_head" value="{{ filters.get('max_head', '') }}" placeholder="max" step="0.5">
+                    </div>
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Balance (pts)</label>
+                    <div class="shop-filter-range">
+                        <input type="number" name="min_balance" value="{{ filters.get('min_balance', '') }}" placeholder="min">
+                        <span>-</span>
+                        <input type="number" name="max_balance" value="{{ filters.get('max_balance', '') }}" placeholder="max">
+                    </div>
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Swingweight</label>
+                    <div class="shop-filter-range">
+                        <input type="number" name="min_swingweight" value="{{ filters.get('min_swingweight', '') }}" placeholder="min">
+                        <span>-</span>
+                        <input type="number" name="max_swingweight" value="{{ filters.get('max_swingweight', '') }}" placeholder="max">
+                    </div>
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Rigidite</label>
+                    <div class="shop-filter-range">
+                        <input type="number" name="min_stiffness" value="{{ filters.get('min_stiffness', '') }}" placeholder="min">
+                        <span>-</span>
+                        <input type="number" name="max_stiffness" value="{{ filters.get('max_stiffness', '') }}" placeholder="max">
+                    </div>
+                </div>
+
+                <div class="shop-filter-group">
+                    <label>Trier par</label>
                     <select name="sort_by">
                         <option value="brand" {% if filters.get('sort_by','brand') == 'brand' %}selected{% endif %}>Marque</option>
                         <option value="name" {% if filters.get('sort_by') == 'name' %}selected{% endif %}>Nom</option>
                         <option value="weight" {% if filters.get('sort_by') == 'weight' %}selected{% endif %}>Poids</option>
-                        <option value="head_size" {% if filters.get('sort_by') == 'head_size' %}selected{% endif %}>Taille tamis</option>
+                        <option value="head_size" {% if filters.get('sort_by') == 'head_size' %}selected{% endif %}>Tamis</option>
                         <option value="swingweight" {% if filters.get('sort_by') == 'swingweight' %}selected{% endif %}>Swingweight</option>
                         <option value="price" {% if filters.get('sort_by') == 'price' %}selected{% endif %}>Prix</option>
                     </select>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <label><input type="checkbox" name="current_only" {% if filters.get('current_only') == 'on' %}checked{% endif %}> Modèles actuels uniquement</label>
-                </td>
-                <td colspan="4">
-                    <input type="submit" value="Filtrer">
-                    <a href="{{ url_for('shop.racquets') }}"><button type="button">Réinitialiser</button></a>
-                </td>
-            </tr>
-        </table>
-    </form>
+                </div>
 
-    <!-- Liste des raquettes -->
-    <p><strong>{{ racquets|length }} raquette(s) trouvée(s)</strong></p>
+                <div class="shop-filter-group" style="justify-content:end;">
+                    <label>&nbsp;</label>
+                    <label style="font-weight:normal; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" name="current_only" {% if filters.get('current_only') == 'on' %}checked{% endif %}>
+                        Modeles actuels uniquement
+                    </label>
+                </div>
 
-    {% if racquets %}
-    <table class="pool">
-        <thead>
-            <tr>
-                <th>Image</th>
-                <th>Marque</th>
-                <th>Nom</th>
-                <th>Poids (g)</th>
-                <th>Tamis (cm²)</th>
-                <th>Balance</th>
-                <th>Swingweight</th>
-                <th>Rigidité</th>
-                <th>Cordage</th>
-                <th>Prix (€)</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for racquet in racquets %}
-            <tr>
-                <td>
-                    {% if racquet.image_local %}
-                        <img src="{{ url_for('static', filename='shop/images/' + racquet.image_local) }}" alt="{{ racquet.name }}" style="height:50px">
-                    {% elif racquet.image_url %}
-                        <img src="{{ racquet.image_url }}" alt="{{ racquet.name }}" style="height:50px">
-                    {% else %}
-                        🎾
-                    {% endif %}
-                </td>
-                <td>{{ racquet.brand }}</td>
-                <td>
-                    <a href="{{ url_for('shop.racquet_detail', racquet_id=racquet.id) }}">{{ racquet.name }}</a>
-                    {% if not racquet.is_current %}<small style="color:grey">(ancien)</small>{% endif %}
-                </td>
-                <td>{{ racquet.strung_weight | none_to_zero }}</td>
-                <td>{{ racquet.head_size | none_to_zero }}</td>
-                <td>{{ racquet.balance_label }}</td>
-                <td>{{ racquet.swingweight | none_to_zero }}</td>
-                <td>{{ racquet.stiffness | none_to_zero }}</td>
-                <td>{{ racquet.string_pattern or '-' }}</td>
-                <td>{{ '%.0f' % racquet.price if racquet.price else '-' }}</td>
-                <td>
-                    <form method="POST" action="{{ url_for('shop.delete_racquet', racquet_id=racquet.id) }}" onsubmit="return confirm('Supprimer cette raquette ?')">
-                        <button type="submit">🗑️</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>Aucune raquette trouvée. <a href="{{ url_for('shop.scrape') }}">Importer des raquettes</a>.</p>
-    {% endif %}
+                <div class="shop-filter-actions" style="grid-column:1/-1; justify-content:flex-end;">
+                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                    <a href="{{ url_for('shop.racquets') }}"><button type="button" class="btn btn-secondary">Reinitialiser</button></a>
+                </div>
+            </div>
+        </form>
+
+        <div class="shop-result-count"><strong>{{ racquets|length }}</strong> raquette(s) trouvee(s)</div>
+
+        {% if racquets %}
+            <div class="shop-racquet-grid">
+                {% for racquet in racquets %}
+                    <article class="shop-card">
+                        <div class="shop-card-image">
+                            {% if racquet.image_local %}
+                                <img src="{{ url_for('static', filename='shop/images/' + racquet.image_local) }}" alt="{{ racquet.name }}">
+                            {% elif racquet.image_url %}
+                                <img src="{{ racquet.image_url }}" alt="{{ racquet.name }}" loading="lazy">
+                            {% else %}
+                                <span class="no-image">🎾</span>
+                            {% endif %}
+                        </div>
+                        <div class="shop-card-body">
+                            <div class="shop-card-brand">{{ racquet.brand }}</div>
+                            <div class="shop-card-name">
+                                <a href="{{ url_for('shop.racquet_detail', racquet_id=racquet.id) }}">{{ racquet.name }}</a>
+                            </div>
+                            <div class="shop-card-specs">
+                                {% if racquet.strung_weight %}<span class="shop-card-spec">{{ '%.0f'|format(racquet.strung_weight) }} g</span>{% endif %}
+                                {% if racquet.head_size %}<span class="shop-card-spec">{{ racquet.head_size }} sq.in</span>{% endif %}
+                                {% if racquet.swingweight %}<span class="shop-card-spec">SW {{ racquet.swingweight }}</span>{% endif %}
+                                {% if racquet.string_pattern %}<span class="shop-card-spec">{{ racquet.string_pattern }}</span>{% endif %}
+                            </div>
+                        </div>
+                        <div class="shop-card-footer">
+                            <span class="{{ 'shop-badge-current' if racquet.is_current else 'shop-badge-old' }}">
+                                {{ 'Actuel' if racquet.is_current else 'Archive' }}
+                            </span>
+                            {% if racquet.price %}<span class="shop-card-price">{{ '%.0f'|format(racquet.price) }} EUR</span>{% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Aucune raquette trouvee. <a href="{{ url_for('shop.scrape') }}">Importer des raquettes</a>.</p>
+        {% endif %}
+    </div>
 </main>
 {% endblock main %}
 

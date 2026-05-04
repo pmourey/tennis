@@ -319,3 +319,366 @@ th {
 
 .actions { margin-bottom: 15px; }
 .draw-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── MODULE SHOP ──────────────────────────────────────────────────────────── */
+.shop-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Carte de filtres */
+.shop-filters {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.shop-filters h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    color: #343a40;
+}
+
+.shop-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px 16px;
+    align-items: end;
+}
+
+.shop-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shop-filter-group label {
+    font-size: 12px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.shop-filter-group input,
+.shop-filter-group select {
+    padding: 6px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    background: white;
+}
+
+.shop-filter-range {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.shop-filter-range input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.shop-filter-range span {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.shop-filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    padding-top: 4px;
+}
+
+.shop-filter-actions button,
+.shop-filter-actions a button {
+    padding: 7px 16px;
+    font-size: 13px;
+}
+
+/* Grille de raquettes (cards) */
+.shop-racquet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.shop-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.15s;
+}
+
+.shop-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.shop-card-image {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    overflow: hidden;
+}
+
+.shop-card-image img {
+    max-height: 150px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.shop-card-image .no-image {
+    font-size: 48px;
+    opacity: 0.3;
+}
+
+.shop-card-body {
+    padding: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shop-card-brand {
+    font-size: 11px;
+    font-weight: bold;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.shop-card-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #212529;
+    line-height: 1.3;
+}
+
+.shop-card-name a {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.shop-card-specs {
+    font-size: 12px;
+    color: #495057;
+    margin-top: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.shop-card-spec {
+    background: #e9ecef;
+    border-radius: 3px;
+    padding: 2px 6px;
+    white-space: nowrap;
+}
+
+.shop-card-footer {
+    padding: 8px 12px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.shop-card-price {
+    font-weight: bold;
+    color: #28a745;
+    font-size: 14px;
+}
+
+.shop-badge-current {
+    background: #d4edda;
+    color: #155724;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+.shop-badge-old {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+/* Page détail */
+.shop-detail {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.shop-detail-header {
+    background: #343a40;
+    color: white;
+    padding: 16px 20px;
+}
+
+.shop-detail-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.shop-detail-body {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+}
+
+.shop-detail-image {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.shop-detail-image img {
+    max-width: 100%;
+    max-height: 280px;
+    object-fit: contain;
+}
+
+.shop-detail-specs {
+    padding: 20px;
+}
+
+.shop-spec-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.shop-spec-table tr:nth-child(even) td {
+    background: #f8f9fa;
+}
+
+.shop-spec-table td {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.shop-spec-table td:first-child {
+    font-weight: bold;
+    color: #495057;
+    width: 40%;
+}
+
+.shop-detail-actions {
+    padding: 16px 20px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Page scrape */
+.shop-scrape-card {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.shop-scrape-header {
+    background: #17a2b8;
+    color: white;
+    padding: 16px 20px;
+}
+
+.shop-scrape-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.shop-scrape-body {
+    padding: 24px;
+}
+
+.shop-scrape-body .form-group {
+    margin-bottom: 16px;
+}
+
+.shop-scrape-body label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.shop-scrape-body select,
+.shop-scrape-body input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.shop-result-count {
+    font-size: 14px;
+    color: #495057;
+    padding: 8px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .shop-filter-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .shop-racquet-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px;
+    }
+
+    .shop-detail-body {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-detail-image {
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .shop-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-racquet-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
