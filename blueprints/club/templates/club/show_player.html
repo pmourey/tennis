@@ -45,21 +45,6 @@
                 <td><label for="is_active">Disponible</label></td>
                 <td>{% if player.isActive %}&#x2611;{%else%}&#129969;{% endif %}</td>
             </tr>
-            <tr>
-                <td><label>Raquette actuelle</label></td>
-                <td>
-                    {% if player.racquet %}
-                        <a href="{{ url_for('shop.racquet_detail', racquet_id=player.racquet.id) }}" target="_blank">
-                            🎾 {{ player.racquet.brand }} {{ player.racquet.name }}
-                        </a>
-                        {% if player.racquet.is_current %}
-                            <span style="font-size:.75em; background:#28a745; color:#fff; padding:2px 7px; border-radius:8px; margin-left:4px;">Actuel</span>
-                        {% endif %}
-                    {% else %}
-                        <span style="color:#aaa;">Non renseignée</span>
-                    {% endif %}
-                </td>
-            </tr>
             {% for injury in player.injuries %}
                 <tr>
                     <td><label for="injuries">Blessure n°{{ loop.index }} </label></td>
@@ -113,7 +98,8 @@
                           action="{{ url_for('club.delete_player_racquet', entry_id=entry.id) }}"
                           style="display:inline;"
                           onsubmit="return confirm('Supprimer cette entrée ?');">
-                        <input type="hidden" name="back" value="{{ back_url }}">                        <button type="submit" style="background:none;border:none;cursor:pointer;padding:0;" title="Supprimer">🗑️</button>
+                        <input type="hidden" name="back" value="{{ back_url }}">
+                        <button type="submit" style="background:none;border:none;cursor:pointer;padding:0;" title="Supprimer">🗑️</button>
                     </form>
                 </td>
             </tr>

@@ -1488,4 +1488,3 @@ class PlayerRacquet(db.Model):
     def __repr__(self):
         raquette = self.racquet.name if self.racquet else 'Inconnue'
         return f'PlayerRacquet({self.player_id} – {raquette})'
-

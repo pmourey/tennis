@@ -1033,49 +1033,28 @@ def simulate_score(app, db, home_players: List[Player], visitor_players: List[Pl
                    home_doubles_players: List[Player] = None, visitor_doubles_players: List[Player] = None):
     """Simulate the score of a match.
 
-    :param home_players:            joueurs domicile pour les simples (et doubles si non fournis séparément)
-    :param visitor_players:         joueurs visiteurs pour les simples (et doubles si non fournis séparément)
-    :param home_doubles_players:    joueurs domicile pour les doubles (None = utiliser home_players)
+    :param home_players:          joueurs domicile pour les simples (et doubles si non fournis séparément)
+    :param visitor_players:       joueurs visiteurs pour les simples (et doubles si non fournis séparément)
+    :param home_doubles_players:  joueurs domicile pour les doubles (None = utiliser home_players)
     :param visitor_doubles_players: joueurs visiteurs pour les doubles (None = utiliser visitor_players)
     """
     pool = match.homeTeam.pool
-    singles_count = pool.championship.singlesCount
-    doubles_count = pool.championship.doublesCount
     home_score = visitor_score = 0
 
-    # SIMPLES — trier et compléter si nécessaire par fallback sur tous les joueurs de l'équipe
-    home_singles_players    = sorted(home_players,    key=lambda p: p.current_elo, reverse=True)
+    # SIMPLES
+    home_singles_players   = sorted(home_players,    key=lambda p: p.current_elo, reverse=True)
     visitor_singles_players = sorted(visitor_players, key=lambda p: p.current_elo, reverse=True)
-
-    # Fallback : si trop peu de joueurs sélectionnés, compléter avec les joueurs de l'équipe triés par ELO
-    def _pad_with_team(players: List[Player], team, needed: int) -> List[Player]:
-        if len(players) >= needed:
-            return players
-        existing_ids = {p.id for p in players}
-        extras = sorted(
-            [p for p in team.players if p.id not in existing_ids and p.isActive],
-            key=lambda p: p.current_elo, reverse=True
-        )
-        return players + extras
-
-    home_singles_players    = _pad_with_team(home_singles_players,    match.homeTeam,    singles_count)
-    visitor_singles_players = _pad_with_team(visitor_singles_players, match.visitorTeam, singles_count)
-
-    for i in range(singles_count):
-        if i >= len(home_singles_players) or i >= len(visitor_singles_players):
-            app.logger.warning(f"Match {match.id} simple {i+1} ignoré : pas assez de joueurs "
-                               f"(home={len(home_singles_players)} visitor={len(visitor_singles_players)})")
-            break
+    for i in range(pool.championship.singlesCount):
         player1, player2 = home_singles_players[i], visitor_singles_players[i]
         result = play_game(app, home_players=[player1], visitor_players=[player2], home_team=match.homeTeam, visitor_team=match.visitorTeam)
         winning_team = result[0]
-        final_score  = result[1]
-        first_set  = final_score[0]
+        final_score = result[1]
+        first_set = final_score[0]
         second_set = final_score[1]
-        third_set  = final_score[2] if len(final_score) == 3 else (None, None, False)
-        firstSetP1,  firstSetP2,  firstTieBreak  = first_set
+        third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
+        firstSetP1, firstSetP2, firstTieBreak = first_set
         secondSetP1, secondSetP2, secondTieBreak = second_set
-        thirdSetP1,  thirdSetP2,  superTieBreak  = third_set
+        thirdSetP1, thirdSetP2, superTieBreak = third_set
         score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak,
                       secondSetP1=secondSetP1, secondSetP2=secondSetP2, secondTieBreak=secondTieBreak,
                       thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
@@ -1093,27 +1072,18 @@ def simulate_score(app, db, home_players: List[Player], visitor_players: List[Pl
     # DOUBLES — utiliser les listes spécifiques si fournies, sinon home/visitor_players
     home_doublers_candidates    = sorted(home_doubles_players    or home_players,    key=lambda p: p.refined_elo, reverse=True)
     visitor_doublers_candidates = sorted(visitor_doubles_players or visitor_players, key=lambda p: p.refined_elo, reverse=True)
-
-    # Compléter si besoin
-    home_doublers_candidates    = _pad_with_team(home_doublers_candidates,    match.homeTeam,    doubles_count * 2)
-    visitor_doublers_candidates = _pad_with_team(visitor_doublers_candidates, match.visitorTeam, doubles_count * 2)
-
-    for i in range(doubles_count):
+    for i in range(pool.championship.doublesCount):
         home_doublers    = home_doublers_candidates[2 * i:2 * i + 2]
         visitor_doublers = visitor_doublers_candidates[2 * i:2 * i + 2]
-        if len(home_doublers) < 2 or len(visitor_doublers) < 2:
-            app.logger.warning(f"Match {match.id} double {i+1} ignoré : pas assez de joueurs "
-                               f"(home={len(home_doublers_candidates)} visitor={len(visitor_doublers_candidates)})")
-            break
         result = play_game(app, home_doublers, visitor_doublers, match.homeTeam, match.visitorTeam)
         winning_team = result[0]
-        final_score  = result[1]
-        first_set  = final_score[0]
+        final_score = result[1]
+        first_set = final_score[0]
         second_set = final_score[1]
-        third_set  = final_score[2] if len(final_score) == 3 else (None, None, False)
-        firstSetP1,  firstSetP2,  firstTieBreak  = first_set
+        third_set = final_score[2] if len(final_score) == 3 else (None, None, False)
+        firstSetP1, firstSetP2, firstTieBreak = first_set
         secondSetP1, secondSetP2, secondTieBreak = second_set
-        thirdSetP1,  thirdSetP2,  superTieBreak  = third_set
+        thirdSetP1, thirdSetP2, superTieBreak = third_set
         score = Score(firstSetP1=firstSetP1, firstSetP2=firstSetP2, firstTieBreak=firstTieBreak,
                       secondSetP1=secondSetP1, secondSetP2=secondSetP2, secondTieBreak=secondTieBreak,
                       thirdSetP1=thirdSetP1, thirdSetP2=thirdSetP2, superTieBreak=superTieBreak)
@@ -1125,8 +1095,7 @@ def simulate_score(app, db, home_players: List[Player], visitor_players: List[Pl
             visitor_score += 1
         player1, player2 = home_doublers
         player3, player4 = visitor_doublers
-        double = Double(player1Id=player1.id, player2Id=player2.id, player3Id=player3.id, player4Id=player4.id,
-                        scoreId=score.id, matchId=match.id)
+        double = Double(player1Id=player1.id, player2Id=player2.id, player3Id=player3.id, player4Id=player4.id, scoreId=score.id, matchId=match.id)
         db.session.add(double)
         match.doubles += [double]
     match.homeScore, match.visitorScore = home_score, visitor_score
@@ -1197,31 +1166,20 @@ def simulate_match_scores(app, db, pool: Pool):
                     continue
 
                 # Récupérer les joueurs selon la sélection du capitaine (ou tous si pas de sélection)
-                try:
-                    home_singles, home_doubles = match.homeTeam.get_players_for_simulation(
-                        matchday, singles_count, doubles_count)
-                    visitor_singles, visitor_doubles = match.visitorTeam.get_players_for_simulation(
-                        matchday, singles_count, doubles_count)
-                    app.logger.debug(
-                        f"Match {match.id} [{match.homeTeam} vs {match.visitorTeam}] J{matchday.id} : "
-                        f"home S={len(home_singles)} D={len(home_doubles)} | "
-                        f"visitor S={len(visitor_singles)} D={len(visitor_doubles)}"
-                    )
-                    simulate_score(
-                        app=app, db=db,
-                        home_players=home_singles, visitor_players=visitor_singles,
-                        home_doubles_players=home_doubles, visitor_doubles_players=visitor_doubles,
-                        match=match
-                    )
-                except Exception as match_err:
-                    app.logger.warning(
-                        f"Erreur match {match.id} [{match.homeTeam} vs {match.visitorTeam}] J{matchday.id} : {match_err}"
-                    )
-                    continue
+                home_singles, home_doubles = match.homeTeam.get_players_for_simulation(
+                    matchday, singles_count, doubles_count)
+                visitor_singles, visitor_doubles = match.visitorTeam.get_players_for_simulation(
+                    matchday, singles_count, doubles_count)
+
+                simulate_score(
+                    app=app, db=db,
+                    home_players=home_singles, visitor_players=visitor_singles,
+                    home_doubles_players=home_doubles, visitor_doubles_players=visitor_doubles,
+                    match=match
+                )
                 match = Match.query.get(match.id)
     except Exception as e:
-        import traceback
-        app.logger.debug(f"Error in simulate_match_scores function!\n{e}\n{traceback.format_exc()}")
+        app.logger.debug(f"Error in simulate_match_scores function!\n{e}")
 
 def play(app, db, pool: Pool):
     schedule_matches(app, db, pool)

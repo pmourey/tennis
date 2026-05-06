@@ -388,6 +388,7 @@ def show_team(id: int):
 
     # Tooltip raquette/cordage pour affichage au survol du nom joueur
     racquet_tooltips = {}
+    current_racquets = {}
     for player in sorted_team_players:
         playing_entry = next(
             (
@@ -415,6 +416,10 @@ def show_team(id: int):
             tension_label = f' ({playing_entry.string_tension} kg)'
 
         racquet_tooltips[player.id] = f'Raquette: {racquet_label} | Cordage: {string_label}{tension_label}'
+        current_racquets[player.id] = {
+            'racquet': racquet_label,
+            'string': f'{string_label}{tension_label}' if string_label != 'Non renseigne' else '—',
+        }
 
     return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players,
                            visitor_club=visitor_club, distance=distance,
@@ -424,7 +429,8 @@ def show_team(id: int):
                            last_burned=last_burned,
                            singles_count=singles_count,
                            avail_map=avail_map,
-                           racquet_tooltips=racquet_tooltips)
+                           racquet_tooltips=racquet_tooltips,
+                           current_racquets=current_racquets)
 
 
 @club_management_bp.route('/save_joker/<int:team_id>', methods=['POST'])
@@ -756,8 +762,6 @@ def update_player(id):
         db.session.add(license)
         current_app.logger.debug(f'license best ranking: {license.bestRanking}')
         player.isActive = False if request.form.get('is_active') is None else True
-        racquet_id = request.form.get('racquet_id')
-        player.racquet_id = int(racquet_id) if racquet_id else None
         # Récupérez les valeurs sélectionnées dans le formulaire
         selected_injuries = request.form.getlist('injuries[]')
         current_app.logger.debug(f'selected_injuries: {selected_injuries}')
@@ -783,14 +787,14 @@ def update_player(id):
         injuries = Injury.query.join(InjurySite).order_by(asc(InjurySite.name), asc(Injury.type), asc(Injury.name)).all()
         rankings = Ranking.query.order_by(desc(Ranking.id))
         bestRankings = BestRanking.query.order_by(desc(BestRanking.id))
-        racquets = Racquet.query.order_by(Racquet.is_current.desc(), Racquet.brand, Racquet.name).all()
         back_url = request.args.get('back') or request.referrer or url_for('club.index')
-        return render_template('update_player.html', player=player, injuries=injuries, rankings=rankings, best_rankings=bestRankings, racquets=racquets, back_url=back_url)
+        return render_template('update_player.html', player=player, injuries=injuries, rankings=rankings, best_rankings=bestRankings, back_url=back_url)
 
 @club_management_bp.route('/player/<int:id>')
 def show_player(id):
     back_url = request.args.get('back') or request.referrer or url_for('club.index')
-    return render_template('show_player.html', player=Player.query.get_or_404(id), back_url=back_url)
+    player = Player.query.get_or_404(id)
+    return render_template('show_player.html', player=player, back_url=back_url)
 
 
 # -- Historique raquettes joueurs ----------------------------------------------
@@ -802,6 +806,24 @@ def _parse_date_club(value):
         return date_type.fromisoformat(value)
     except ValueError:
         return None
+
+
+def _sync_player_current_racquet(player: Player, preferred_entry: PlayerRacquet | None = None) -> None:
+    """Synchronise player.racquet_id avec l'unique entrée d'historique active."""
+    history = list(player.racquet_history)
+
+    chosen_entry = None
+    if preferred_entry and preferred_entry in history and preferred_entry.is_playing:
+        chosen_entry = preferred_entry
+    else:
+        active_entries = [entry for entry in history if entry.is_playing]
+        active_entries.sort(key=lambda entry: entry.updated_at or entry.created_at or datetime.min, reverse=True)
+        chosen_entry = active_entries[0] if active_entries else None
+
+    for entry in history:
+        entry.is_playing = bool(chosen_entry and entry.id == chosen_entry.id)
+
+    player.racquet_id = chosen_entry.racquet_id if chosen_entry and chosen_entry.racquet_id else None
 
 
 @club_management_bp.route('/search')
@@ -854,6 +876,11 @@ def add_player_racquet(player_id):
             notes=request.form.get('notes') or None,
         )
         db.session.add(entry)
+        db.session.flush()
+        has_other_active = any(history_entry.is_playing for history_entry in player.racquet_history if history_entry.id != entry.id)
+        if entry.is_playing or (player.racquet_id is None and not has_other_active):
+            entry.is_playing = True
+        _sync_player_current_racquet(player, preferred_entry=entry if entry.is_playing else None)
         db.session.commit()
         flash(f'Raquette ajoutée pour {player.name}.', 'success')
         back = request.form.get('back') or url_for('club.show_player', id=player_id)
@@ -881,6 +908,7 @@ def edit_player_racquet(entry_id):
         entry.purchase_date = _parse_date_club(request.form.get('purchase_date'))
         entry.notes = request.form.get('notes') or None
 
+        _sync_player_current_racquet(player, preferred_entry=entry if entry.is_playing else None)
         db.session.commit()
         flash(f'Fiche raquette mise à jour pour {player.name}.', 'success')
         back = request.form.get('back') or url_for('club.show_player', id=player.id)
@@ -893,9 +921,12 @@ def edit_player_racquet(entry_id):
 @club_management_bp.route('/racquets/entry/<int:entry_id>/delete', methods=['POST'])
 def delete_player_racquet(entry_id):
     entry = PlayerRacquet.query.get_or_404(entry_id)
+    player = Player.query.get_or_404(entry.player_id)
     player_id = entry.player_id
     back = request.form.get('back') or url_for('club.show_player', id=player_id)
     db.session.delete(entry)
+    db.session.flush()
+    _sync_player_current_racquet(player)
     db.session.commit()
     flash('Entrée supprimée.', 'success')
     return redirect(url_for('club.show_player', id=player_id, back=back))

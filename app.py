@@ -6,34 +6,36 @@ This script provides CRUD features inside a Flask application to offer a tool fo
 """
 from __future__ import annotations
 
-import locale
-import secrets
-from logging import DEBUG, basicConfig
-
-from flask import Flask, jsonify, render_template
-from itsdangerous import URLSafeSerializer
-
+from flask import Flask, render_template, jsonify
 from extensions import db, migrate
+import secrets
+from itsdangerous import URLSafeSerializer
+from logging import basicConfig, DEBUG
+import locale
+
 from models import License
 
 
-def create_app(test_config=None):
+def create_app():
 	app = Flask(__name__, static_folder='static', static_url_path='/static')
 
+	# Set the secret key
 	app.secret_key = secrets.token_bytes(32).hex()
+
+	# Create serializer
 	app.serializer = URLSafeSerializer(app.secret_key)
 
+	# Config
 	app.config.from_object('config.Config')
-	if test_config:
-		app.config.update(test_config)
 
+	# Initialize extensions
 	db.init_app(app)
 	migrate.init_app(app, db)
 
 	# Register blueprints
 	from blueprints.admin import admin_bp
-	from blueprints.championship import championship_management_bp
 	from blueprints.club import club_management_bp
+	from blueprints.championship import championship_management_bp
 	from blueprints.medical import medical_management_bp
 	from blueprints.tournament import tournament_bp
 	from blueprints.shop import shop_bp
@@ -45,13 +47,16 @@ def create_app(test_config=None):
 	app.register_blueprint(tournament_bp, url_prefix='/tournament')
 	app.register_blueprint(shop_bp, url_prefix='/shop')
 
+	# Locale settings
 	locale.setlocale(locale.LC_TIME, 'fr_FR')
 	basicConfig(level=DEBUG)
 
+	# Add the filter to the Jinja environment
 	app.jinja_env.filters['sort_players_by_elo'] = sort_players_by_elo
 	app.jinja_env.filters['sort_players_by'] = sort_players_by
 	app.jinja_env.filters['none_to_zero'] = none_to_zero
 
+	# Créer les tables et migrations au démarrage (une seule fois)
 	with app.app_context():
 		db.create_all()
 		_run_column_migrations(app, db)
@@ -61,6 +66,7 @@ def create_app(test_config=None):
 		"""Endpoint pour forcer la migration des colonnes manquantes."""
 		try:
 			_run_column_migrations(app, db)
+			# Vérifier l'état après migration
 			from sqlalchemy import inspect
 			inspector = inspect(db.engine)
 			pma_cols = [c['name'] for c in inspector.get_columns('player_matchday_availability')]
@@ -86,16 +92,24 @@ def create_app(test_config=None):
 
 	@app.route('/licensees-by-gender', methods=['GET'])
 	def licensees_by_gender():
+		# Query to count licensees by gender
 		result = db.session.query(License.gender, db.func.count(License.id)).group_by(License.gender).all()
+
+		# Calculate total number of licensees
 		total_licensees = sum(count for gender, count in result)
+
+		# Convert the result to a dictionary with percentages
 		gender_percentages = {}
 		for gender, count in result:
 			gender_name = "Male" if gender == 0 else "Female" if gender == 1 else "Mixed"
 			percentage = (count / total_licensees) * 100
 			gender_percentages[gender_name] = f'{round(percentage, 2)} %'
+
 		return jsonify(gender_percentages)
 
 	return app
+
+
 
 
 def _run_column_migrations(app, db):
@@ -105,6 +119,7 @@ def _run_column_migrations(app, db):
 	inspector = inspect(db.engine)
 	tables = inspector.get_table_names()
 
+	# ── player_matchday_availability ─────────────────────────────────────
 	if 'player_matchday_availability' in tables:
 		pma_cols = {c['name'] for c in inspector.get_columns('player_matchday_availability')}
 		for col, ddl in [
@@ -116,6 +131,7 @@ def _run_column_migrations(app, db):
 				db.session.execute(text(f'ALTER TABLE player_matchday_availability ADD COLUMN {col} {ddl}'))
 				app.logger.info(f'Migration: player_matchday_availability.{col} ajouté')
 
+	# ── team_matchday_joker ───────────────────────────────────────────────
 	if 'team_matchday_joker' in tables:
 		tmj_cols = {c['name'] for c in inspector.get_columns('team_matchday_joker')}
 		for col, ddl in [
@@ -126,27 +142,10 @@ def _run_column_migrations(app, db):
 				db.session.execute(text(f'ALTER TABLE team_matchday_joker ADD COLUMN {col} {ddl}'))
 				app.logger.info(f'Migration: team_matchday_joker.{col} ajouté')
 
-	if 'tournament_draw' in tables:
-		td_cols = {c['name'] for c in inspector.get_columns('tournament_draw')}
-		for col, ddl in [
-			('name', 'VARCHAR(120)'),
-			('main_draw_match_id', 'INTEGER'),
-			('main_draw_slot', 'VARCHAR(2)'),
-			('qualif_number', 'INTEGER'),
-		]:
-			if col not in td_cols:
-				db.session.execute(text(f'ALTER TABLE tournament_draw ADD COLUMN {col} {ddl}'))
-				app.logger.info(f'Migration: tournament_draw.{col} ajouté')
-
-	if 'tournament_category' in tables:
-		tc_cols = {c['name'] for c in inspector.get_columns('tournament_category')}
-		if 'surfaces' not in tc_cols:
-			db.session.execute(text("ALTER TABLE tournament_category ADD COLUMN surfaces VARCHAR(60) DEFAULT 'TB'"))
-			app.logger.info('Migration: tournament_category.surfaces ajouté')
-
 	db.session.commit()
 
 
+# Define a custom filter function
 def sort_players_by_elo(players):
 	return sorted(players, key=lambda p: p.refined_elo, reverse=True)
 

@@ -76,6 +76,36 @@ tr.joker-row td {
     text-align: center;
     padding: 6px 8px;
 }
+
+.team-equipment-col {
+    display: none;
+    min-width: 240px;
+}
+
+.team-player-row td {
+    vertical-align: top;
+}
+
+.team-player-main {
+    text-align: left;
+    line-height: 1.35;
+}
+
+.team-equipment-cell {
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.team-racquet-name {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.team-racquet-string {
+    color: #64748b;
+    margin-top: 3px;
+}
 </style>
 
 <main>
@@ -83,6 +113,7 @@ tr.joker-row td {
         <tr>
             <td style="border: none;"><button onclick="updateTeam()">Mettre à jour l'équipe</button></td>
             <td style="border: none;"><button id="availButton" onclick="updateAvailability()" class="btn btn-primary">Sélection des joueurs</button></td>
+            <td style="border: none;"><button id="racquetColButton" onclick="toggleCurrentRacquetsColumn()" class="btn btn-secondary">Afficher matériel joueur</button></td>
         </tr>
     </table>
     <br>
@@ -90,42 +121,49 @@ tr.joker-row td {
         <caption class="table-caption">{{ team.name }} - {{ team.championship.name }}</caption>
         <tr>
             <td><strong>Nom de l'équipe</strong></td>
-            <td>{{ team.name }} ({{ team.weight(team.championship) }})</td>
+            <td colspan="2">{{ team.name }} ({{ team.weight(team.championship) }})</td>
         </tr>
         <tr>
             <td><strong>N° de poule</strong></td>
             {% if team.pool.letter %}
-                <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}">{{ team.pool.letter }}</a></td>
+                <td colspan="2"><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}">{{ team.pool.letter }}</a></td>
             {% else %}
-                <td>N/A (Tableau final)</td>
+                <td colspan="2">N/A (Tableau final)</td>
             {% endif %}
         </tr>
-        <tr>
-            <td><strong>Liste des joueurs</strong></td>
-            <td>
-                {% for player in sorted_team_players %}
-                    {% set icon_brule = "&#x1F525; " if loop.index <= team.championship.singlesCount else '' %}
-                    {% set icon_injury = "&#127973; " if player.injuries else '' %}
-                    {{ icon_brule|safe }}{{ icon_injury|safe }}<a href="{{ url_for('club.show_player', id=player.id, back=request.url) }}" title="{{ racquet_tooltips.get(player.id, 'Raquette: Non renseignee  Cordage: Non renseigne') }}">{{ player.full_info }}</a><br>
-                {% endfor %}
+        {% for player in sorted_team_players %}
+        {% set current_racquet = current_racquets.get(player.id, {}) %}
+        <tr class="team-player-row">
+            {% if loop.first %}
+            <td style="vertical-align: middle; text-align: center;" rowspan="{{ sorted_team_players|length }}"><strong>Liste des joueurs</strong></td>
+            {% endif %}
+            <td class="team-player-main">
+                {% set icon_brule = "&#x1F525; " if loop.index <= team.championship.singlesCount else '' %}
+                {% set icon_injury = "&#127973; " if player.injuries else '' %}
+                {{ icon_brule|safe }}{{ icon_injury|safe }}<a href="{{ url_for('club.show_player', id=player.id, back=request.url) }}" title="{{ racquet_tooltips.get(player.id, 'Raquette: Non renseignee  Cordage: Non renseigne') }}">{{ player.full_info }}</a>
+            </td>
+            <td class="team-equipment-col team-equipment-cell">
+                <div class="team-racquet-name">🎾 {{ current_racquet.get('racquet', 'Non renseignee') }}</div>
+                <div class="team-racquet-string">🪢 {{ current_racquet.get('string', '—') }}</div>
             </td>
         </tr>
+        {% endfor %}
         <tr>
             <td><strong>Capitaine</strong></td>
-            <td>{{ team.captainName }}</td>
+            <td colspan="2">{{ team.captainName }}</td>
         </tr>
         {% if visitor_club %}
         <tr>
             <td><strong>Distance</strong></td>
-            <td>{{ distance }} kms</td>
+            <td colspan="2">{{ distance }} kms</td>
         </tr>
         <tr>
             <td><strong>Temps de trajet</strong></td>
-            <td>{{ duration[0] }} h {{ duration[1] }} min</td>
+            <td colspan="2">{{ duration[0] }} h {{ duration[1] }} min</td>
         </tr>
         {% endif %}
         <tr>
-            <td colspan="2"><a href="{{ url_for('club.infos_club', id=team.club.id) }}">Infos club</a></td>
+            <td colspan="3"><a href="{{ url_for('club.infos_club', id=team.club.id) }}">Infos club</a></td>
         </tr>
     </table>
     <table>
@@ -283,7 +321,7 @@ tr.joker-row td {
 
     function updateAvailability() {
         const availabilityTable = document.getElementById('availabilityTable');
-        button = document.getElementById('availButton');
+        const button = document.getElementById('availButton');
         if (availabilityTable.style.display === 'none') {
             availabilityTable.style.display = 'block';
             button.textContent = 'Masquer les disponibilités';
@@ -291,6 +329,16 @@ tr.joker-row td {
             availabilityTable.style.display = 'none';
             button.textContent = 'Gérer les disponibilités';
         }
+    }
+
+    function toggleCurrentRacquetsColumn() {
+        const cols = document.querySelectorAll('.team-equipment-col');
+        const button = document.getElementById('racquetColButton');
+        const shouldShow = Array.from(cols).every(col => getComputedStyle(col).display === 'none');
+        cols.forEach(col => {
+            col.style.display = shouldShow ? 'table-cell' : 'none';
+        });
+        button.textContent = shouldShow ? 'Masquer matériel joueur' : 'Afficher matériel joueur';
     }
 
     function saveAvailability() {
