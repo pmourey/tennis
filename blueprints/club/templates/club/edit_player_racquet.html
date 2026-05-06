@@ -1,0 +1,102 @@
+<!-- club/templates/club/edit_player_racquet.html -->
+{% extends 'base.html' %}
+{% from 'partials/_racquet_select.html' import racquet_selector %}
+{% from 'partials/_string_select.html' import string_selector  %}
+
+{% block main %}
+{% include 'partials/_menu.html' %}
+<main class="rq-form-page">
+
+  <div class="rq-form-header">
+    <h2>✏️ Modifier la fiche raquette — <span class="player-name">{{ player.name }}</span></h2>
+  </div>
+
+  <form method="post"
+        action="{{ url_for('club.edit_player_racquet', entry_id=entry.id) }}"
+        class="rq-form">
+    <input type="hidden" name="back" value="{{ back }}">
+
+    <section class="rq-form-section">
+      <h3 class="rq-section-title">🎾 Modèle de raquette</h3>
+      <p class="rq-section-hint">Choisir le fabricant, cocher « Anciens modèles » si besoin, puis sélectionner le modèle.</p>
+      {{ racquet_selector(racquets, selected_id=entry.racquet_id) }}
+    </section>
+
+    <section class="rq-form-section">
+      <div class="rq-form-row">
+        <div class="rq-form-field">
+          <label for="quantity">Nombre d'exemplaires</label>
+          <input type="number" id="quantity" name="quantity"
+                 value="{{ entry.quantity or 1 }}" min="1" max="20">
+        </div>
+        <div class="rq-form-field">
+          <label for="grip_size">Taille de manche</label>
+          <select name="grip_size" id="grip_size">
+            <option value="">–</option>
+            {% for val, label in [('L1','L1 (4⅛")'),('L2','L2 (4¼")'),('L3','L3 (4⅜")'),('L4','L4 (4½")'),('L5','L5 (4⅝")')] %}
+            <option value="{{ val }}" {% if entry.grip_size == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="rq-form-section">
+      <h3 class="rq-section-title">🪢 Cordage</h3>
+      <p class="rq-section-hint">
+        🔴 Polyester · 🟢 Multifilament · 🟡 Boyau naturel · ⚪ Nylon · 🔀 Hybride
+      </p>
+      {{ string_selector(selected_name=entry.string_name) }}
+      <div class="rq-form-field" style="margin-top:10px;">
+        <label for="string_tension">Tension (kg)</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" step="0.5" id="string_tension" name="string_tension"
+                 value="{{ entry.string_tension or '' }}"
+                 placeholder="ex: 25" style="width:100px;">
+          <span class="rq-hint-text">kg · typique : 22–28 kg</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="rq-form-section">
+      <h3 class="rq-section-title">📋 Informations complémentaires</h3>
+      <div class="rq-form-row">
+        <div class="rq-form-field rq-checkbox-field">
+          <label class="rq-checkbox-label">
+            <input type="checkbox" id="is_owner" name="is_owner"
+                   {% if entry.is_owner %}checked{% endif %}>
+            <span>✅ Possède encore cette raquette</span>
+          </label>
+        </div>
+        <div class="rq-form-field rq-checkbox-field">
+          <label class="rq-checkbox-label">
+            <input type="checkbox" id="is_playing" name="is_playing"
+                   {% if entry.is_playing %}checked{% endif %}>
+            <span>🏓 Joue actuellement avec</span>
+          </label>
+        </div>
+      </div>
+      <div class="rq-form-row">
+        <div class="rq-form-field">
+          <label for="purchase_date">📅 Date d'achat</label>
+          <input type="date" id="purchase_date" name="purchase_date"
+                 value="{{ entry.purchase_date.strftime('%Y-%m-%d') if entry.purchase_date else '' }}">
+        </div>
+      </div>
+      <div class="rq-form-field">
+        <label for="notes">📝 Notes</label>
+        <textarea id="notes" name="notes" rows="3">{{ entry.notes or '' }}</textarea>
+      </div>
+    </section>
+
+    <div class="rq-form-actions">
+      <button type="submit" class="btn-rq btn-save">💾 Enregistrer les modifications</button>
+      <a href="{{ url_for('club.show_player', id=player.id, back=back) }}" class="btn-rq btn-cancel">
+        Annuler
+      </a>
+    </div>
+
+  </form>
+</main>
+{% endblock main %}
+

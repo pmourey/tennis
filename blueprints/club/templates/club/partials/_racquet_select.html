@@ -1,0 +1,121 @@
+{# ─────────────────────────────────────────────────────────────────
+   Macro : sélecteur de raquette en cascade
+   Paramètres :
+     racquets    – liste de tous les objets Racquet passés depuis la vue
+     selected_id – id de la raquette actuellement sélectionnée (ou None)
+   Rendu :
+     1. Sélection du fabricant (select#rq_brand)
+     2. Case à cocher "Inclure les anciens modèles"
+     3. Sélection du modèle (select#rq_model → poste la valeur sous le nom "racquet_id")
+   ───────────────────────────────────────────────────────────────── #}
+{% macro racquet_selector(racquets, selected_id=None) %}
+
+{# Données JSON embarquées pour le JS #}
+<script>
+const RACQUET_DATA = {{ racquets | map(attribute='__dict__') | list | tojson if false else '[]' }};
+// Reconstruction manuelle car __dict__ n'est pas accessible en Jinja SQLAlchemy
+const RACQUETS = [
+  {% for r in racquets %}
+  { id: {{ r.id }}, brand: {{ r.brand | tojson }}, name: {{ r.name | tojson }}, is_current: {{ 'true' if r.is_current else 'false' }} }{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
+const SELECTED_ID = {{ selected_id if selected_id else 'null' }};
+</script>
+
+<div class="rq-selector" style="display:flex; flex-direction:column; gap:8px; max-width:420px;">
+
+  {# Ligne 1 : fabricant + toggle anciens #}
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <select id="rq_brand" style="flex:1; min-width:150px; padding:5px 8px; border:1px solid #ccc; border-radius:6px; font-size:.9em;">
+      <option value="">— Tous les fabricants —</option>
+    </select>
+    <label style="font-size:.82em; display:flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap;">
+      <input type="checkbox" id="rq_show_old"> Anciens modèles
+    </label>
+  </div>
+
+  {# Ligne 2 : modèle #}
+  <select id="rq_model" name="racquet_id" style="padding:5px 8px; border:1px solid #ccc; border-radius:6px; font-size:.9em;">
+    <option value="">— Non renseignée —</option>
+  </select>
+
+  {# Ligne 3 : info raquette sélectionnée #}
+  <div id="rq_info" style="font-size:.80em; color:#555; min-height:1.2em; padding:2px 4px;"></div>
+</div>
+
+<script>
+(function () {
+  const brandSel  = document.getElementById('rq_brand');
+  const modelSel  = document.getElementById('rq_model');
+  const showOldCb = document.getElementById('rq_show_old');
+  const infoDiv   = document.getElementById('rq_info');
+
+  // ── Construire la liste des marques uniques (triées) ──────────────
+  const brands = [...new Set(RACQUETS.map(r => r.brand))].sort();
+  brands.forEach(b => {
+    const opt = new Option(b, b);
+    brandSel.appendChild(opt);
+  });
+
+  // ── Pré-sélectionner la marque si une raquette est déjà choisie ──
+  if (SELECTED_ID) {
+    const sel = RACQUETS.find(r => r.id === SELECTED_ID);
+    if (sel) {
+      brandSel.value = sel.brand;
+      // Montrer les anciens modèles si le modèle sélectionné est archivé
+      if (!sel.is_current) showOldCb.checked = true;
+    }
+  }
+
+  // ── Remplir le select modèle ──────────────────────────────────────
+  function refreshModels() {
+    const brand   = brandSel.value;
+    const showOld = showOldCb.checked;
+
+    let filtered = RACQUETS;
+    if (brand)    filtered = filtered.filter(r => r.brand === brand);
+    if (!showOld) filtered = filtered.filter(r => r.is_current);
+
+    // Trier : actuels d'abord, puis par nom
+    filtered.sort((a, b) => {
+      if (a.is_current !== b.is_current) return a.is_current ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Reconstruire les options
+    modelSel.innerHTML = '<option value="">— Non renseignée —</option>';
+    filtered.forEach(r => {
+      const label = r.is_current ? `${r.brand} ${r.name} ★` : `${r.brand} ${r.name} (archive)`;
+      const opt = new Option(label, r.id);
+      if (r.id === SELECTED_ID) opt.selected = true;
+      if (r.is_current) opt.style.fontWeight = 'bold';
+      else              opt.style.color = '#888';
+      modelSel.appendChild(opt);
+    });
+
+    refreshInfo();
+  }
+
+  // ── Info-bulle sous le select ─────────────────────────────────────
+  function refreshInfo() {
+    const id = parseInt(modelSel.value);
+    if (!id) { infoDiv.textContent = ''; return; }
+    const r = RACQUETS.find(x => x.id === id);
+    if (!r)  { infoDiv.textContent = ''; return; }
+    const status = r.is_current
+      ? '<span style="background:#28a745;color:#fff;padding:1px 7px;border-radius:8px;font-size:.9em;">Actuel</span>'
+      : '<span style="background:#bbb;color:#fff;padding:1px 7px;border-radius:8px;font-size:.9em;">Archive</span>';
+    infoDiv.innerHTML = `${r.brand} <strong>${r.name}</strong> ${status}
+      — <a href="/shop/racquets/${r.id}" target="_blank" style="font-size:.9em;">Voir la fiche ↗</a>`;
+  }
+
+  brandSel .addEventListener('change', refreshModels);
+  showOldCb.addEventListener('change', refreshModels);
+  modelSel .addEventListener('change', refreshInfo);
+
+  // Init
+  refreshModels();
+})();
+</script>
+{% endmacro %}
+

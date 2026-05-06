@@ -1,27 +1,21 @@
-<!-- medical/templates/medical_index.html -->
+<!-- blueprints/medical/templates/medical/medical_index.html -->
 
 {% extends 'base.html' %}
-{% include './partials/_menu.html' %}
 
 {% block main %}
+{% include 'partials/_menu.html' %}
 <main>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Localisation</th>
-                <th>Blessures aïgues</th>
-                <th>Blessures de surmenage</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in data %}
-                <tr>
-                    <td>{{ item['site'] }}</td>
-                    <td>{{ ', '.join(item['Acute']) }}</td>
-                    <td>{{ ', '.join(item['Overuse']) }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
+    <table class="welcome">
+        <caption class="table-caption">Infirmerie / Suivi médical</caption>
+        <tr>
+            <td><a href="{{ url_for('medical.injuries') }}">📋 Classification des blessures</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('medical.injured_players') }}">🤕 Joueurs blessés</a></td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('medical.search_players') }}">🔍 Rechercher un joueur</a></td>
+        </tr>
     </table>
 </main>
 {% endblock main %}

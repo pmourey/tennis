@@ -49,9 +49,10 @@
                 <td><a href="{{ url_for('championship.show_pool', id=team.pool.id) }}">
                     <button>Retour poule</button>
                 </a></td>
-            {% elif request.endpoint in ['club.update_player', 'club.show_player'] %}
-                <td><a href="{{ url_for('medical.index') }}">
-                    <button>Sommaire infirmerie</button>
+            {% endif %}
+            {% if request.endpoint in ['club.update_player', 'club.show_player'] %}
+                <td><a href="{{ back_url }}">
+                    <button>← Retour</button>
                 </a></td>
             {% endif %}
         {% elif request.blueprint == 'admin' and request.path != '/admin/' %}
@@ -59,12 +60,16 @@
                 <button>Sommaire administration</button>
             </a></td>
         {% elif request.blueprint == 'medical' %}
-            <!--<td><a href="{{ url_for('club.index') }}"><button>Sommaire club</button></a></td>-->
                 {% if request.path != '/medical/' %}
                 <td><a href="{{ url_for('medical.index') }}">
                     <button>Sommaire infirmerie</button>
                 </a></td>
-            {% endif %}
+                {% endif %}
+                {% if request.path != '/medical/injuries' %}
+                <td><a href="{{ url_for('medical.injuries') }}">
+                    <button>📋 Blessures</button>
+                </a></td>
+                {% endif %}
         {% elif request.blueprint == 'shop' %}
             {% if request.path != '/shop/racquets' %}
                 <td><a href="{{ url_for('shop.racquets') }}">

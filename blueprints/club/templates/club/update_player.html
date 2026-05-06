@@ -1,6 +1,7 @@
 <!-- templates/update_player.html -->
 {% extends 'base.html' %}
 {% include './partials/_menu.html' %}
+{% from './partials/_racquet_select.html' import racquet_selector %}
 
 {% block main %}
 {% set birthDate = player.birthDate.strftime('%Y-%m-%d') if player.birthDate else '' %}
@@ -8,6 +9,7 @@
 {% set overuse_label = 'Surmenage'%}
 <main>
     <form action="{{ url_for('club.update_player', id=player.id) }}" , method="POST" , onsubmit="return confirmSubmit();">
+        <input type="hidden" name="back_url" value="{{ back_url }}">
         <table class="update-form">
             <caption class="table-caption">Fiche joueur ({{ player.club.name }})</caption> <!-- Titre ajouté ici -->
             <tr>
@@ -55,6 +57,10 @@
             <tr>
                 <td><label for="is_active">Disponible</label></td>
                 <td><input type="checkbox" name="is_active" {% if player.isActive %}checked{% endif %}></td>
+            </tr>
+            <tr>
+                <td><label for="racquet_id">Raquette actuelle</label></td>
+                <td>{{ racquet_selector(racquets, selected_id=player.racquet_id) }}</td>
             </tr>
             <tr>
                 <td><label for="injuries">Blessures</label></td>

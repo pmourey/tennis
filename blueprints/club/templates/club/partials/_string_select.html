@@ -1,0 +1,100 @@
+{# ─────────────────────────────────────────────────────────────────
+   Macro : sélecteur de cordage
+   Paramètres :
+     selected_name – nom du cordage actuellement sélectionné (ou None)
+   Rendu :
+     Champ texte avec datalist de cordages courants
+   ───────────────────────────────────────────────────────────────── #}
+{% macro string_selector(selected_name=None) %}
+<div class="str-selector" style="display:flex; flex-direction:column; gap:8px;">
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+    <div style="flex:1; min-width:180px;">
+      <label for="str_type" style="font-size:.83em; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Type</label>
+      <select id="str_type" style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:.88em; background:#f9fafb;">
+        <option value="">— Tous les types —</option>
+        <option value="Polyester">🔴 Polyester</option>
+        <option value="Multifilament">🟢 Multifilament</option>
+        <option value="Boyau naturel">🟡 Boyau naturel</option>
+        <option value="Nylon">⚪ Nylon/Synthétique</option>
+        <option value="Hybride">🔀 Hybride</option>
+      </select>
+    </div>
+    <div style="flex:2; min-width:220px;">
+      <label for="string_name" style="font-size:.83em; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Nom du cordage</label>
+      <input type="text" id="string_name" name="string_name"
+             list="str_datalist"
+             value="{{ selected_name or '' }}"
+             placeholder="ex: Babolat RPM Blast 1.25"
+             style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:.88em; background:#f9fafb; box-sizing:border-box;">
+      <datalist id="str_datalist">
+        <!-- Polyester -->
+        <option value="Babolat RPM Blast 1.25">
+        <option value="Babolat RPM Blast 1.30">
+        <option value="Luxilon ALU Power 1.25">
+        <option value="Luxilon ALU Power 1.27">
+        <option value="Wilson Revolve 1.25">
+        <option value="Solinco Tour Bite 1.25">
+        <option value="Head Hawk 1.25">
+        <option value="Tecnifibre Black Code 1.28">
+        <option value="Dunlop Black Widow 1.27">
+        <!-- Multifilament -->
+        <option value="Babolat XCel 1.25">
+        <option value="Wilson NXT 1.30">
+        <option value="Tecnifibre X-One Biphase 1.24">
+        <option value="Tecnifibre NRG2 1.24">
+        <option value="Prince Premier Touch 1.35">
+        <!-- Boyau naturel -->
+        <option value="Babolat VS Team 1.25">
+        <option value="Pacific Classic 1.30">
+        <option value="Wilson Natural Gut 1.27">
+        <!-- Nylon / Synthétique -->
+        <option value="Babolat Synthetic Gut 1.25">
+        <option value="Prince Synthetic Gut 1.30">
+        <option value="Wilson Sensation 1.30">
+        <option value="Head FiberGel Power 1.30">
+        <!-- Hybride -->
+        <option value="Babolat RPM Blast + VS Touch">
+        <option value="Luxilon ALU Power + Wilson NXT">
+      </datalist>
+    </div>
+  </div>
+  <p id="str_hint" style="font-size:.78em; color:#64748b; margin:0; min-height:1.2em;"></p>
+</div>
+<script>
+(function(){
+  var typeMap = {
+    'Polyester':      ['Babolat RPM Blast 1.25','Babolat RPM Blast 1.30','Luxilon ALU Power 1.25','Luxilon ALU Power 1.27','Wilson Revolve 1.25','Solinco Tour Bite 1.25','Head Hawk 1.25','Tecnifibre Black Code 1.28','Dunlop Black Widow 1.27'],
+    'Multifilament':  ['Babolat XCel 1.25','Wilson NXT 1.30','Tecnifibre X-One Biphase 1.24','Tecnifibre NRG2 1.24','Prince Premier Touch 1.35'],
+    'Boyau naturel':  ['Babolat VS Team 1.25','Pacific Classic 1.30','Wilson Natural Gut 1.27'],
+    'Nylon':          ['Babolat Synthetic Gut 1.25','Prince Synthetic Gut 1.30','Wilson Sensation 1.30','Head FiberGel Power 1.30'],
+    'Hybride':        ['Babolat RPM Blast + VS Touch','Luxilon ALU Power + Wilson NXT']
+  };
+  var hintMap = {
+    'Polyester':      '🔴 Durabilité max, effets importants – convient aux joueurs réguliers/avancés.',
+    'Multifilament':  '🟢 Confort et puissance – idéal pour les coudes sensibles.',
+    'Boyau naturel':  '🟡 Sensations et tension stable – premium, fragile à l\'humidité.',
+    'Nylon':          '⚪ Bon rapport qualité/prix – convient aux débutants.',
+    'Hybride':        '🔀 Combinaison polyester (mains) + multifilament/boyau (croisés).'
+  };
+  var typeSel  = document.getElementById('str_type');
+  var strInput = document.getElementById('string_name');
+  var datalist = document.getElementById('str_datalist');
+  var hint     = document.getElementById('str_hint');
+
+  typeSel.addEventListener('change', function(){
+    var t = typeSel.value;
+    hint.textContent = hintMap[t] || '';
+    // Mettre à jour le datalist
+    datalist.innerHTML = '';
+    var list = t ? (typeMap[t] || []) : [].concat(...Object.values(typeMap));
+    list.forEach(function(s){
+      var opt = document.createElement('option');
+      opt.value = s;
+      datalist.appendChild(opt);
+    });
+    strInput.value = '';
+  });
+})();
+</script>
+{% endmacro %}
+

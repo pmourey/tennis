@@ -252,6 +252,8 @@ class Player(db.Model):
     height = db.Column(db.Integer, nullable=True, default=0)
     isActive = db.Column(db.Boolean, default=True)
     hiddenInTenup = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+    racquet_id = db.Column(db.Integer, db.ForeignKey('racquet.id', ondelete='SET NULL'), nullable=True)
+    racquet = relationship('Racquet', foreign_keys=[racquet_id])
 
     # Replace the secondary relationship with direct relationship to the association model
     matchday_availabilities = relationship(
@@ -1451,3 +1453,39 @@ class Score(db.Model):
             super_tie_break = f'{winner_score}/{loser_score}' if self.thirdSetP1 > self.thirdSetP2 else f'{loser_score}/{winner_score}'
         sets = [first_set, second_set, super_tie_break]
         return ' - '.join(filter(None, sets))
+
+
+class PlayerRacquet(db.Model):
+    """Historique des raquettes d'un joueur."""
+    __tablename__ = 'player_racquet'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    player_id = db.Column(db.Integer, db.ForeignKey('player.id', ondelete='CASCADE'), nullable=False)
+    racquet_id = db.Column(db.Integer, db.ForeignKey('racquet.id', ondelete='SET NULL'), nullable=True)
+
+    # Nombre d'exemplaires du modèle possédés
+    quantity = db.Column(db.Integer, default=1, nullable=False)
+    # Taille de manche (L1 / L2 / L3 / L4 / L5 ou en mm)
+    grip_size = db.Column(db.String(10), nullable=True)
+    # Cordage utilisé
+    string_name = db.Column(db.String(100), nullable=True)
+    # Tension de cordage (en kg)
+    string_tension = db.Column(db.Float, nullable=True)
+    # Le joueur possède encore cette raquette
+    is_owner = db.Column(db.Boolean, default=True, nullable=False, server_default='1')
+    # Le joueur joue actuellement avec
+    is_playing = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+    # Date d'achat
+    purchase_date = db.Column(db.Date, nullable=True)
+    # Notes libres
+    notes = db.Column(db.String(255), nullable=True)
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    player = relationship('Player', backref=backref('racquet_history', cascade='all, delete-orphan'))
+    racquet = relationship('Racquet')
+
+    def __repr__(self):
+        raquette = self.racquet.name if self.racquet else 'Inconnue'
+        return f'PlayerRacquet({self.player_id} – {raquette})'
+

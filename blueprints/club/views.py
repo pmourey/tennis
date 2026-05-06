@@ -12,8 +12,11 @@ from sqlalchemy import desc, asc, Date
 
 from flask import render_template, redirect, url_for, flash
 
+from datetime import date as date_type
+
 from models import *
 from blueprints.club import club_management_bp
+from blueprints.shop.models import Racquet
 
 from common import get_players_order_by_ranking, get_championships, Gender, check_license, keys_with_same_value, calculate_distance_and_duration, \
     CatType, update_players
@@ -284,6 +287,22 @@ def update_team(id):
         flash(f'Tâche impossible! Aucun joueur existant ou disponible dans le club {club}!', 'error')
         return render_template('index.html')
 
+@club_management_bp.route('/delete_team/<int:id>', methods=['GET'])
+def delete_team(id):
+    team = Team.query.get_or_404(id)
+    team_name = team.name
+    # Supprimer les associations joueurs, jokers, disponibilités
+    team.players = []
+    TeamMatchdayJoker.query.filter_by(team_id=id).delete()
+    # Nullifier les références dans les matchs (sans supprimer les résultats)
+    Match.query.filter_by(homeTeamId=id).update({'homeTeamId': None})
+    Match.query.filter_by(visitorTeamId=id).update({'visitorTeamId': None})
+    db.session.delete(team)
+    db.session.commit()
+    flash(f"Équipe « {team_name} » supprimée avec succès.")
+    return redirect(url_for('club.show_teams'))
+
+
 @club_management_bp.route('/infos_club/<int:id>', methods=['GET', 'POST'])
 def infos_club(id):
     if request.method == 'GET':
@@ -367,6 +386,36 @@ def show_team(id: int):
             if a.matchday_id in match_day_ids
         }
 
+    # Tooltip raquette/cordage pour affichage au survol du nom joueur
+    racquet_tooltips = {}
+    for player in sorted_team_players:
+        playing_entry = next(
+            (
+                e for e in sorted(
+                    player.racquet_history,
+                    key=lambda x: x.updated_at or x.created_at or datetime.min,
+                    reverse=True,
+                )
+                if e.is_playing
+            ),
+            None,
+        )
+        racquet_label = 'Non renseignee'
+        if playing_entry and playing_entry.racquet:
+            racquet_label = f'{playing_entry.racquet.brand} {playing_entry.racquet.name}'
+        elif player.racquet:
+            racquet_label = f'{player.racquet.brand} {player.racquet.name}'
+
+        string_label = 'Non renseigne'
+        if playing_entry and playing_entry.string_name:
+            string_label = playing_entry.string_name
+
+        tension_label = ''
+        if playing_entry and playing_entry.string_tension is not None:
+            tension_label = f' ({playing_entry.string_tension} kg)'
+
+        racquet_tooltips[player.id] = f'Raquette: {racquet_label} | Cordage: {string_label}{tension_label}'
+
     return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players,
                            visitor_club=visitor_club, distance=distance,
                            duration=(int(elapsed_hours), round(elapsed_minutes)),
@@ -374,7 +423,8 @@ def show_team(id: int):
                            current_jokers=current_jokers,
                            last_burned=last_burned,
                            singles_count=singles_count,
-                           avail_map=avail_map)
+                           avail_map=avail_map,
+                           racquet_tooltips=racquet_tooltips)
 
 
 @club_management_bp.route('/save_joker/<int:team_id>', methods=['POST'])
@@ -669,6 +719,9 @@ def new_player():
                     db.session.add(license)
                 player = Player(birthDate=birth_date, height=height, weight=weight, isActive=is_active)
                 player.licenseId, player.clubId = license.id, club_id
+                racquet_id = request.form.get('racquet_id')
+                if racquet_id:
+                    player.racquet_id = int(racquet_id)
                 db.session.add(player)
                 db.session.commit()
                 club = Club.query.get(player.clubId)
@@ -684,7 +737,8 @@ def new_player():
     genders = [Gender.Male.value, Gender.Female.value]
     rankings = Ranking.query.order_by(desc(Ranking.id)).all()
     best_rankings = BestRanking.query.order_by(desc(BestRanking.id)).all()
-    return render_template('new_player.html', club=club, genders=genders, rankings=rankings, best_rankings=best_rankings)
+    racquets = Racquet.query.order_by(Racquet.is_current.desc(), Racquet.brand, Racquet.name).all()
+    return render_template('new_player.html', club=club, genders=genders, rankings=rankings, best_rankings=best_rankings, racquets=racquets)
 
 
 @club_management_bp.route('/update_player/<int:id>', methods=['GET', 'POST'])
@@ -700,9 +754,10 @@ def update_player(id):
         license.rankingId = int(request.form['ranking'])
         license.bestRankingId = int(request.form['best_ranking'])
         db.session.add(license)
-        # db.session.add(license)
         current_app.logger.debug(f'license best ranking: {license.bestRanking}')
         player.isActive = False if request.form.get('is_active') is None else True
+        racquet_id = request.form.get('racquet_id')
+        player.racquet_id = int(racquet_id) if racquet_id else None
         # Récupérez les valeurs sélectionnées dans le formulaire
         selected_injuries = request.form.getlist('injuries[]')
         current_app.logger.debug(f'selected_injuries: {selected_injuries}')
@@ -715,7 +770,8 @@ def update_player(id):
                 player.injuries.append(injury)
         db.session.commit()
         flash(f'Infos {player.name} mises à jour avec succès!')
-        return redirect(url_for('medical.index'))
+        back_url = request.form.get('back_url') or url_for('club.show_player', id=id)
+        return redirect(back_url)
     else:
         # signed_club_id = request.cookies.get('club_id')
         # try:
@@ -727,60 +783,151 @@ def update_player(id):
         injuries = Injury.query.join(InjurySite).order_by(asc(InjurySite.name), asc(Injury.type), asc(Injury.name)).all()
         rankings = Ranking.query.order_by(desc(Ranking.id))
         bestRankings = BestRanking.query.order_by(desc(BestRanking.id))
-        return render_template('update_player.html', player=player, injuries=injuries, rankings=rankings, best_rankings=bestRankings)
+        racquets = Racquet.query.order_by(Racquet.is_current.desc(), Racquet.brand, Racquet.name).all()
+        back_url = request.args.get('back') or request.referrer or url_for('club.index')
+        return render_template('update_player.html', player=player, injuries=injuries, rankings=rankings, best_rankings=bestRankings, racquets=racquets, back_url=back_url)
 
 @club_management_bp.route('/player/<int:id>')
 def show_player(id):
-    return render_template('show_player.html', player=Player.query.get_or_404(id))
+    back_url = request.args.get('back') or request.referrer or url_for('club.index')
+    return render_template('show_player.html', player=Player.query.get_or_404(id), back_url=back_url)
 
-@club_management_bp.route('/delete_player/<int:id>', methods=['GET', 'POST'])
+
+# -- Historique raquettes joueurs ----------------------------------------------
+
+def _parse_date_club(value):
+    if not value:
+        return None
+    try:
+        return date_type.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+@club_management_bp.route('/search')
+def player_racquets_search():
+    from sqlalchemy import func
+    search_query = request.args.get('q', '').strip()
+    players = []
+    if search_query:
+        players = (
+            Player.query
+            .join(License)
+            .filter(func.lower(License.lastName).like(f'%{search_query.lower()}%'))
+            .all()
+        )
+    return render_template('player_racquets_search.html', players=players, search_query=search_query)
+
+
+@club_management_bp.route('/racquets/<int:player_id>')
+def player_racquets(player_id):
+    player = Player.query.get_or_404(player_id)
+    history = (
+        PlayerRacquet.query
+        .filter_by(player_id=player_id)
+        .order_by(PlayerRacquet.purchase_date.desc().nullslast())
+        .all()
+    )
+    return render_template('player_racquets.html', player=player, history=history)
+
+
+@club_management_bp.route('/racquets/<int:player_id>/add', methods=['GET', 'POST'])
+def add_player_racquet(player_id):
+    player = Player.query.get_or_404(player_id)
+    racquets = Racquet.query.order_by(Racquet.brand, Racquet.name).all()
+
+    if request.method == 'POST':
+        racquet_id = request.form.get('racquet_id') or None
+        if racquet_id:
+            racquet_id = int(racquet_id)
+
+        entry = PlayerRacquet(
+            player_id=player_id,
+            racquet_id=racquet_id,
+            quantity=int(request.form.get('quantity', 1)),
+            grip_size=request.form.get('grip_size') or None,
+            string_name=request.form.get('string_name') or None,
+            string_tension=float(request.form['string_tension']) if request.form.get('string_tension') else None,
+            is_owner=bool(request.form.get('is_owner')),
+            is_playing=bool(request.form.get('is_playing')),
+            purchase_date=_parse_date_club(request.form.get('purchase_date')),
+            notes=request.form.get('notes') or None,
+        )
+        db.session.add(entry)
+        db.session.commit()
+        flash(f'Raquette ajoutée pour {player.name}.', 'success')
+        back = request.form.get('back') or url_for('club.show_player', id=player_id)
+        return redirect(url_for('club.show_player', id=player_id, back=back))
+
+    back = request.args.get('back') or url_for('club.show_player', id=player_id)
+    return render_template('add_player_racquet.html', player=player, racquets=racquets, back=back)
+
+
+@club_management_bp.route('/racquets/entry/<int:entry_id>/edit', methods=['GET', 'POST'])
+def edit_player_racquet(entry_id):
+    entry = PlayerRacquet.query.get_or_404(entry_id)
+    player = Player.query.get_or_404(entry.player_id)
+    racquets = Racquet.query.order_by(Racquet.brand, Racquet.name).all()
+
+    if request.method == 'POST':
+        racquet_id = request.form.get('racquet_id') or None
+        entry.racquet_id = int(racquet_id) if racquet_id else None
+        entry.quantity = int(request.form.get('quantity', 1))
+        entry.grip_size = request.form.get('grip_size') or None
+        entry.string_name = request.form.get('string_name') or None
+        entry.string_tension = float(request.form['string_tension']) if request.form.get('string_tension') else None
+        entry.is_owner = bool(request.form.get('is_owner'))
+        entry.is_playing = bool(request.form.get('is_playing'))
+        entry.purchase_date = _parse_date_club(request.form.get('purchase_date'))
+        entry.notes = request.form.get('notes') or None
+
+        db.session.commit()
+        flash(f'Fiche raquette mise à jour pour {player.name}.', 'success')
+        back = request.form.get('back') or url_for('club.show_player', id=player.id)
+        return redirect(url_for('club.show_player', id=player.id, back=back))
+
+    back = request.args.get('back') or url_for('club.show_player', id=player.id)
+    return render_template('edit_player_racquet.html', entry=entry, player=player, racquets=racquets, back=back)
+
+
+@club_management_bp.route('/racquets/entry/<int:entry_id>/delete', methods=['POST'])
+def delete_player_racquet(entry_id):
+    entry = PlayerRacquet.query.get_or_404(entry_id)
+    player_id = entry.player_id
+    back = request.form.get('back') or url_for('club.show_player', id=player_id)
+    db.session.delete(entry)
+    db.session.commit()
+    flash('Entrée supprimée.', 'success')
+    return redirect(url_for('club.show_player', id=player_id, back=back))
+
+
+@club_management_bp.route('/delete_player/<int:id>', methods=['GET'])
 def delete_player(id):
-    if request.method == 'GET':
-        player = Player.query.get_or_404(id)
-        club = Club.query.get(player.clubId)
-        player_name = player.name
+    player = Player.query.get_or_404(id)
+    club = Club.query.get(player.clubId)
+    player_name = player.name
 
-        # Nullifier les références dans Single (simples) sans supprimer les résultats
-        Single.query.filter(Single.player1Id == id).update({'player1Id': None})
-        Single.query.filter(Single.player2Id == id).update({'player2Id': None})
+    # Nullifier les références dans Single/Double sans supprimer les résultats
+    Single.query.filter(Single.player1Id == id).update({'player1Id': None})
+    Single.query.filter(Single.player2Id == id).update({'player2Id': None})
+    Double.query.filter(Double.player1Id == id).update({'player1Id': None})
+    Double.query.filter(Double.player2Id == id).update({'player2Id': None})
+    Double.query.filter(Double.player3Id == id).update({'player3Id': None})
+    Double.query.filter(Double.player4Id == id).update({'player4Id': None})
 
-        # Nullifier les références dans Double sans supprimer les résultats
-        Double.query.filter(Double.player1Id == id).update({'player1Id': None})
-        Double.query.filter(Double.player2Id == id).update({'player2Id': None})
-        Double.query.filter(Double.player3Id == id).update({'player3Id': None})
-        Double.query.filter(Double.player4Id == id).update({'player4Id': None})
+    # Supprimer les associations
+    player.teams = []
+    player.injuries = []
+    PlayerMatchdayAvailability.query.filter_by(player_id=id).delete()
+    TeamMatchdayJoker.query.filter_by(player_id=id).delete()
+    PlayerRacquet.query.filter_by(player_id=id).delete()
 
-        # Nullifier le capitaine d'équipe si nécessaire
-        Team.query.filter(Team.captainId == id).update({'captainId': None})
+    # Supprimer la licence associée
+    license = License.query.get(player.licenseId)
+    db.session.delete(player)
+    if license:
+        db.session.delete(license)
+    db.session.commit()
 
-        db.session.delete(player)
-        db.session.commit()
-
-        current_app.logger.debug(f'Joueur {player_name} supprimé (Single/Double/Captain nullifiés).')
-        flash(f'Joueur "{player_name}" supprimé du club {club}.', 'success')
-        return redirect(url_for('club.index'))
-
-
-@club_management_bp.route('/delete_team/<int:id>', methods=['GET', 'POST'])
-def delete_team(id):
-    if request.method == 'GET':
-        team = Team.query.get_or_404(id)
-        db.session.delete(team)
-        db.session.commit()
-        current_app.logger.debug(f'Equipe {team} supprimé!')
-        flash(f"L'équipe \"{team.name}\" ne fait plus partie du club {team.club}!")
-        return redirect(url_for('club.show_teams'))
-
-# @club_management_bp.route('/map_data')
-# def map_data():
-#     # Utilisez la clé API Mapbox stockée côté serveur
-#     api_key = current_app.config['MAPBOX_API_KEY']
-#
-#     # Faites une requête à l'API Mapbox pour obtenir les données de carte
-#     # Exemple de requête fictive
-#     response = requests.get(f'https://api.mapbox.com/some_endpoint?access_token={api_key}')
-#
-#     # Traitez la réponse de l'API Mapbox comme requis
-#     map_data = response.json()
-#
-#     return jsonify(map_data)
+    flash(f'Joueur {player_name} supprimé avec succès.')
+    return redirect(url_for('club.select_gender'))

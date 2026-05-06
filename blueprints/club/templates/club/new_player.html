@@ -1,12 +1,13 @@
 <!-- tennis/templates/new_player.html -->
 {% extends 'base.html' %}
 {% include './partials/_menu.html' %}
+{% from './partials/_racquet_select.html' import racquet_selector %}
 
 {% block main %}
 <main>
-    <form action="{{ url_for('club.new_player') }}" , method="POST">
+    <form action="{{ url_for('club.new_player') }}" method="POST">
         <table class="update-form">
-            <caption class="table-caption">Nouveau joueur ({{ club.name }})</caption> <!-- Titre ajouté ici -->
+            <caption class="table-caption">Nouveau joueur ({{ club.name }})</caption>
             <input type="hidden" name="club_id" value="{{ club.id }}">
             <tr>
                 <td><label for="last_name">Nom</label></td>
@@ -25,10 +26,21 @@
                 <td><input type="date" name="birth_date" placeholder="Date de naissance" required></td>
             </tr>
             <tr>
+                <td><label for="gender">Sexe</label></td>
+                <td>
+                    <select name="gender" required>
+                        <option value="">Sélectionner un sexe</option>
+                        {% for gender in genders %}
+                        <option value="{{ gender }}">{{ 'Femmes' if gender else 'Hommes' }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <td><label for="ranking">Classement</label></td>
                 <td>
                     <select name="ranking" required>
-                        <option value="">Sélectionner un classement</option> <!-- Option vide -->
+                        <option value="">Sélectionner un classement</option>
                         {% for ranking in rankings %}
                         <option value="{{ ranking.id }}">{{ ranking.value }}</option>
                         {% endfor %}
@@ -39,7 +51,7 @@
                 <td><label for="best_ranking">Meilleur classement</label></td>
                 <td>
                     <select name="best_ranking" required>
-                        <option value="">Sélectionner un meilleur classement</option> <!-- Option vide -->
+                        <option value="">Sélectionner un meilleur classement</option>
                         {% for best_ranking in best_rankings %}
                         <option value="{{ best_ranking.id }}">{{ best_ranking.value }}</option>
                         {% endfor %}
@@ -51,15 +63,8 @@
                 <td><input type="checkbox" name="is_active" checked></td>
             </tr>
             <tr>
-                <td><label for="gender">Sexe</label></td>
-                <td>
-                    <select name="gender" required>
-                        <option value="">Sélectionner un sexe</option> <!-- Option vide -->
-                        {% for gender in genders %}
-                        <option value="{{ gender }}">{{ 'Femmes' if gender else 'Hommes' }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
+                <td><label>Raquette actuelle</label></td>
+                <td>{{ racquet_selector(racquets) }}</td>
             </tr>
             <tr>
                 <td colspan="2"><input type="submit" value="Ajouter"></td>

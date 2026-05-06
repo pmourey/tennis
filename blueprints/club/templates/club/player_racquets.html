@@ -1,0 +1,110 @@
+<!-- club/templates/club/player_racquets.html -->
+{% extends 'base.html' %}
+
+{% block main %}
+{% include 'partials/_menu.html' %}
+<main class="rq-history-page">
+
+  <div class="rq-history-header">
+    <div>
+      <h2>🎾 Historique raquettes — <span class="player-name">{{ player.name }}</span></h2>
+      <p class="rq-history-sub">{{ history | length }} fiche{% if history | length > 1 %}s{% endif %} enregistrée{% if history | length > 1 %}s{% endif %}</p>
+    </div>
+    <a href="{{ url_for('club.add_player_racquet', player_id=player.id) }}" class="btn-rq btn-add">
+      ➕ Ajouter une raquette
+    </a>
+  </div>
+
+  {% if not history %}
+  <div class="rq-empty">
+    <span style="font-size:2.5rem;">🎾</span>
+    <p>Aucune raquette enregistrée pour ce joueur.</p>
+    <a href="{{ url_for('club.add_player_racquet', player_id=player.id) }}" class="btn-rq btn-add">
+      ➕ Ajouter la première raquette
+    </a>
+  </div>
+  {% else %}
+  <div class="rq-cards-grid">
+    {% for entry in history %}
+    <div class="rq-card {% if entry.is_playing %}rq-card--active{% endif %}">
+
+      {# ── Badges statut ── #}
+      <div class="rq-card-badges">
+        {% if entry.is_playing %}
+          <span class="badge badge-playing">🏓 En jeu</span>
+        {% endif %}
+        {% if entry.is_owner %}
+          <span class="badge badge-owner">✅ Possédée</span>
+        {% else %}
+          <span class="badge badge-sold">📦 Vendue/Prêtée</span>
+        {% endif %}
+        {% if entry.quantity and entry.quantity > 1 %}
+          <span class="badge badge-qty">×{{ entry.quantity }}</span>
+        {% endif %}
+      </div>
+
+      {# ── Modèle raquette ── #}
+      <div class="rq-card-model">
+        {% if entry.racquet %}
+          <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}" class="rq-model-link" target="_blank">
+            {{ entry.racquet.brand }} <strong>{{ entry.racquet.name }}</strong> ↗
+          </a>
+          {% if not entry.racquet.is_current %}
+            <span class="badge badge-archive">archive</span>
+          {% endif %}
+        {% else %}
+          <span class="rq-model-unknown">Modèle non renseigné</span>
+        {% endif %}
+      </div>
+
+      {# ── Détails ── #}
+      <div class="rq-card-details">
+        <div class="rq-detail-row">
+          <span class="rq-detail-label">🤛 Manche</span>
+          <span class="rq-detail-val">{{ entry.grip_size or '–' }}</span>
+        </div>
+        <div class="rq-detail-row">
+          <span class="rq-detail-label">🪢 Cordage</span>
+          <span class="rq-detail-val">{{ entry.string_name or '–' }}</span>
+        </div>
+        <div class="rq-detail-row">
+          <span class="rq-detail-label">⚖️ Tension</span>
+          <span class="rq-detail-val">
+            {% if entry.string_tension %}{{ entry.string_tension }} kg{% else %}–{% endif %}
+          </span>
+        </div>
+        <div class="rq-detail-row">
+          <span class="rq-detail-label">📅 Achat</span>
+          <span class="rq-detail-val">
+            {% if entry.purchase_date %}{{ entry.purchase_date.strftime('%d/%m/%Y') }}{% else %}–{% endif %}
+          </span>
+        </div>
+        {% if entry.notes %}
+        <div class="rq-detail-row rq-detail-notes">
+          <span class="rq-detail-label">📝 Notes</span>
+          <span class="rq-detail-val rq-notes-text">{{ entry.notes }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      {# ── Actions ── #}
+      <div class="rq-card-actions">
+        <a href="{{ url_for('club.edit_player_racquet', entry_id=entry.id) }}" class="btn-rq btn-edit">
+          ✏️ Modifier
+        </a>
+        <form method="post"
+              action="{{ url_for('club.delete_player_racquet', entry_id=entry.id) }}"
+              class="rq-delete-form"
+              onsubmit="return confirm('Supprimer cette entrée ?');">
+          <button type="submit" class="btn-rq btn-delete">🗑️ Supprimer</button>
+        </form>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</main>
+{% endblock main %}
+

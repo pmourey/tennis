@@ -1,0 +1,46 @@
+<!-- club/templates/club/player_racquets_search.html -->
+{% extends 'base.html' %}
+
+{% block main %}
+{% include 'partials/_menu.html' %}
+<main>
+    <h2>🔍 Recherche joueur</h2>
+    <form method="get" action="{{ url_for('club.player_racquets_search') }}">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Nom du joueur…">
+        <button type="submit">Rechercher</button>
+    </form>
+
+    {% if search_query %}
+        {% if players %}
+        <table class="pool" style="margin-top:1em;">
+            <caption class="table-caption">Résultats ({{ players|length }} joueur(s))</caption>
+            <thead>
+                <tr>
+                    <th>Joueur</th>
+                    <th>Classement</th>
+                    <th>Club</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for player in players %}
+            <tr>
+                <td>{{ player.name }}</td>
+                <td>{{ player.ranking }}</td>
+                <td>{{ player.club.name if player.club else '–' }}</td>
+                <td>
+                    <a href="{{ url_for('club.show_player', id=player.id, back=request.url) }}">📋 Fiche joueur</a>
+                    &nbsp;|&nbsp;
+                    <a href="{{ url_for('club.player_racquets', player_id=player.id) }}">🎾 Raquettes</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Aucun joueur trouvé pour « {{ search_query }} ».</p>
+        {% endif %}
+    {% endif %}
+</main>
+{% endblock main %}
+

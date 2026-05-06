@@ -45,6 +45,21 @@
                 <td><label for="is_active">Disponible</label></td>
                 <td>{% if player.isActive %}&#x2611;{%else%}&#129969;{% endif %}</td>
             </tr>
+            <tr>
+                <td><label>Raquette actuelle</label></td>
+                <td>
+                    {% if player.racquet %}
+                        <a href="{{ url_for('shop.racquet_detail', racquet_id=player.racquet.id) }}" target="_blank">
+                            🎾 {{ player.racquet.brand }} {{ player.racquet.name }}
+                        </a>
+                        {% if player.racquet.is_current %}
+                            <span style="font-size:.75em; background:#28a745; color:#fff; padding:2px 7px; border-radius:8px; margin-left:4px;">Actuel</span>
+                        {% endif %}
+                    {% else %}
+                        <span style="color:#aaa;">Non renseignée</span>
+                    {% endif %}
+                </td>
+            </tr>
             {% for injury in player.injuries %}
                 <tr>
                     <td><label for="injuries">Blessure n°{{ loop.index }} </label></td>
@@ -52,11 +67,67 @@
                 </tr>
             {% endfor %}
         </table>
+
+        <!-- Historique raquettes -->
+        <br>
+        <table class="pool">
+            <caption class="table-caption">
+                Historique raquettes
+                <a href="{{ url_for('club.add_player_racquet', player_id=player.id, back=back_url) }}"
+                   style="margin-left:10px; font-size:.85em;">➕ Ajouter</a>
+            </caption>
+            {% if player.racquet_history %}
+            <thead>
+                <tr>
+                    <th>Modèle</th>
+                    <th>Qté</th>
+                    <th>Manche</th>
+                    <th>Cordage</th>
+                    <th>Tension</th>
+                    <th>Possède</th>
+                    <th>Joue avec</th>
+                    <th>Achat</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for entry in player.racquet_history | sort(attribute='purchase_date', reverse=True) %}
+            <tr>
+                <td>
+                    {% if entry.racquet %}
+                        <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}" target="_blank">
+                            {{ entry.racquet.brand }} {{ entry.racquet.name }}
+                        </a>
+                    {% else %}<em>Inconnue</em>{% endif %}
+                </td>
+                <td style="text-align:center;">{{ entry.quantity }}</td>
+                <td style="text-align:center;">{{ entry.grip_size or '–' }}</td>
+                <td>{{ entry.string_name or '–' }}</td>
+                <td style="text-align:center;">{{ entry.string_tension or '–' }} kg</td>
+                <td style="text-align:center;">{% if entry.is_owner %}✅{% else %}❌{% endif %}</td>
+                <td style="text-align:center;">{% if entry.is_playing %}🎾{% else %}–{% endif %}</td>
+                <td>{{ entry.purchase_date.strftime('%d/%m/%Y') if entry.purchase_date else '–' }}</td>
+                <td style="white-space:nowrap;">
+                    <a href="{{ url_for('club.edit_player_racquet', entry_id=entry.id, back=back_url) }}" title="Modifier">✏️</a>
+                    <form method="post"
+                          action="{{ url_for('club.delete_player_racquet', entry_id=entry.id) }}"
+                          style="display:inline;"
+                          onsubmit="return confirm('Supprimer cette entrée ?');">
+                        <input type="hidden" name="back" value="{{ back_url }}">                        <button type="submit" style="background:none;border:none;cursor:pointer;padding:0;" title="Supprimer">🗑️</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            {% else %}
+            <tr><td colspan="9" style="text-align:center; color:#aaa;">Aucune raquette enregistrée</td></tr>
+            {% endif %}
+        </table>
 </main>
 <script>
     function updatePlayer() {
         // Rediriger vers la page de mise à jour du joueur
-        window.location.href = "{{ url_for('club.update_player', id=player.id) }}";
+        window.location.href = "{{ url_for('club.update_player', id=player.id, back=back_url) }}";
     }
 </script>
 {% endblock main %}
