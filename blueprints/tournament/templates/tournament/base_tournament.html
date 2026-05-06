@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tournois{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('tournament.static', filename='css/tournament.css') }}">
+</head>
+<body>
+    {%- for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="alert {% if category == 'error' %}alert-danger{% else %}alert-{{ category }}{% endif %}" style="margin:8px 16px;">
+        {{ message | safe }}
+    </div>
+    {%- endfor %}
+    <nav style="background:#1e3a5f;padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px;">
+        <a href="{{ url_for('welcome') }}" style="color:#93c5fd;font-size:.85rem;text-decoration:none;font-weight:600;">🏠 Accueil</a>
+        <span style="color:#475569;\        <sp        <a href="{{ url_for('tournament.index') }}" style="color:#93c5fd;font-size:.85rem;text-decoration:none;font-weight:600;">🎾 Tournois</a>
+        {% block nav_extra %}{% endblock %}
+    </nav>
+    {% block main %}{% endblock %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function closeModal(m) { m.classList.remove('show'); m.style.display = 'none'; }
+        function openModal(t)  { if (t) { t.classList.add('show'); t.style.display = 'flex'; } }
+        document.querySelectorAll('[data-bs-toggle="modal"],[data-toggle="modal"]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                openModal(document.querySelector(btn.dataset.bsTarget || btn.dataset.target));
+            });
+        });
+        document.querySelectorAll('[data-b        document.querySelectorAll('[data-b        document.querySelectorAll('[data-b        document.querySelectorAll('[data-b        dotn.closest('.modal'); if (m) closeModal(m); });
+        });
+        document.querySelectorAll('.modal').forEach(function(modal) {
+            modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(modal); });
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') document.querySelectorAll('.modal.show').forEach(closeModal);
+        });
+    });
+    </script>
+</body>
+</html>

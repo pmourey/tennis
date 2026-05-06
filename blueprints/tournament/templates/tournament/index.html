@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "tournament/base_tournament.html" %}
 {% block main %}
 <div class="container">
 	<h1>🎾 Tournois de club</h1>
@@ -9,6 +9,7 @@
 	</div>
 
 	{% if tournaments %}
+	<div class="table-responsive-wrapper">
 	<table class="table">
 		<thead>
 			<tr>
@@ -50,6 +51,7 @@
 			{% endfor %}
 		</tbody>
 	</table>
+	</div>
 	{% else %}
 	<p class="empty-msg">Aucun tournoi créé. <a href="{{ url_for('tournament.create') }}">Créer le premier tournoi</a>.
 	</p>
