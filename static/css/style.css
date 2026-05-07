@@ -1,3 +1,77 @@
+/* ── Shop / Bootstrap helpers ── */
+.shop-main {
+  display: block;
+}
+
+.shop-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.shop-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.shop-card-image {
+  aspect-ratio: 4 / 3;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.shop-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.shop-card-thumb {
+  height: 160px;
+  aspect-ratio: auto;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.shop-card-thumb img {
+  max-height: 150px;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
+.shop-spec-pill {
+  font-size: 0.72rem;
+  color: #334155;
+  background: #e2e8f0;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+}
+
+.shop-similar-card {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.shop-similar-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+}
+
+.shop-slider-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: #334155;
+}
+
 /* ── Sliders raquette ── */
 .slider-group label { display:block; font-size:.85em; font-weight:600; margin-bottom:4px; color:#333; }
 .slider-group input[type=range] { width:100%; accent-color:#0066cc; cursor:pointer; padding:0; margin:0; }

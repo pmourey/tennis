@@ -3,195 +3,204 @@
 
 {% block main %}
 {% include 'partials/_menu.html' %}
-<main>
+<main class="shop-main">
     <div class="shop-container">
-        <div class="shop-detail">
-            <div class="shop-detail-header">
-                <h2>{{ racquet.brand }} {{ racquet.name }}
-                    {% if racquet.is_current %}<span class="badge badge-success" style="font-size:.6em; vertical-align:middle; background:#28a745; color:#fff; padding:3px 8px; border-radius:10px;">Actuel</span>{% endif %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h4 mb-2">
+                    {{ racquet.brand }} {{ racquet.name }}
+                    {% if racquet.is_current %}<span class="badge text-bg-success align-middle">Actuel</span>{% endif %}
                 </h2>
             </div>
 
-            <div class="shop-detail-body">
-                <div class="shop-detail-image">
-                    {% if racquet.image_local %}
-                        <img src="{{ url_for('static', filename='shop/images/' + racquet.image_local) }}" alt="{{ racquet.name }}">
-                    {% elif racquet.image_url %}
-                        <img src="{{ racquet.image_url }}" alt="{{ racquet.name }}">
-                    {% else %}
-                        <span class="no-image" style="font-size:64px; opacity:.3;">🎾</span>
-                    {% endif %}
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12 col-lg-4">
+                        <div class="shop-card-image rounded border">
+                            {% if racquet.image_local %}
+                                <img src="{{ url_for('static', filename='shop/images/' + racquet.image_local) }}" alt="{{ racquet.name }}">
+                            {% elif racquet.image_url %}
+                                <img src="{{ racquet.image_url }}" alt="{{ racquet.name }}">
+                            {% else %}
+                                <span class="text-muted" style="font-size:64px; opacity:.3;">🎾</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-8">
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <tbody>
+                                    <tr><th class="text-nowrap">Marque</th><td>{{ racquet.brand }}</td></tr>
+                                    <tr><th class="text-nowrap">Modèle</th><td>{{ racquet.name }}</td></tr>
+                                    {% if racquet.player_type %}
+                                    <tr><th class="text-nowrap">Type joueur</th><td>{{ racquet.player_type }}</td></tr>
+                                    {% endif %}
+
+                                    <tr>
+                                        <th class="text-nowrap">Tamis</th>
+                                        <td>
+                                            {% if racquet.head_size %}
+                                                {{ racquet.head_size | int }} sq. in.
+                                                {% if racquet.head_size_cm2 %}
+                                                    <span class="text-muted">/ {{ racquet.head_size_cm2 | int }} sq. cm.</span>
+                                                {% endif %}
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th class="text-nowrap">Longueur</th>
+                                        <td>
+                                            {% if racquet.length %}
+                                                {{ "%.2f"|format(racquet.length) }} inches
+                                                {% if racquet.length_cm %}
+                                                    <span class="text-muted">/ {{ "%.2f"|format(racquet.length_cm) }} cm</span>
+                                                {% endif %}
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th class="text-nowrap">Poids cordé</th>
+                                        <td>
+                                            {% if racquet.strung_weight %}
+                                                {{ "%.0f"|format(racquet.strung_weight) }} g
+                                                {% if racquet.strung_weight_oz %}
+                                                    <span class="text-muted">/ {{ "%.2f"|format(racquet.strung_weight_oz) }} oz</span>
+                                                {% endif %}
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th class="text-nowrap">Poids non-cordé</th>
+                                        <td>
+                                            {% if racquet.unstrung_weight %}
+                                                {{ "%.0f"|format(racquet.unstrung_weight) }} g
+                                                {% if racquet.unstrung_weight_oz %}
+                                                    <span class="text-muted">/ {{ "%.2f"|format(racquet.unstrung_weight_oz) }} oz</span>
+                                                {% endif %}
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th class="text-nowrap">Balance</th>
+                                        <td>
+                                            {% if racquet.balance is not none %}
+                                                {{ racquet.balance_label }}
+                                                {% if racquet.balance_mm %}
+                                                    <span class="text-muted">/ {{ racquet.balance_mm }} mm depuis le bas</span>
+                                                {% endif %}
+                                            {% else %}-{% endif %}
+                                        </td>
+                                    </tr>
+
+                                    <tr><th class="text-nowrap">Swingweight</th><td>{{ racquet.swingweight or '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Rigidité (RA)</th><td>{{ racquet.stiffness or '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Largeur cadre</th><td>{{ racquet.beam_width or '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Cordage</th><td>{{ racquet.string_pattern or '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Tension recommandée</th><td>{{ racquet.string_tension or '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Composition</th><td>{{ racquet.composition or '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Couleur</th><td>{{ racquet.color or '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Prix</th><td>{{ '%.0f €' % racquet.price if racquet.price else '-' }}</td></tr>
+                                    <tr><th class="text-nowrap">Statut</th><td>{{ 'Actuel' if racquet.is_current else 'Archive' }}</td></tr>
+                                    {% if racquet.url %}
+                                    <tr><th class="text-nowrap">Lien source</th><td><a href="{{ racquet.url }}" target="_blank">Voir la fiche</a></td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="shop-detail-specs">
-                    <table class="shop-spec-table">
-                        <tr><td>Marque</td><td>{{ racquet.brand }}</td></tr>
-                        <tr><td>Modèle</td><td>{{ racquet.name }}</td></tr>
-                        {% if racquet.player_type %}
-                        <tr><td>Type joueur</td><td>{{ racquet.player_type }}</td></tr>
-                        {% endif %}
-
-                        {# ── Tamis ── #}
-                        <tr>
-                            <td>Tamis</td>
-                            <td>
-                                {% if racquet.head_size %}
-                                    {{ racquet.head_size | int }} sq. in.
-                                    {% if racquet.head_size_cm2 %}
-                                        <span class="text-muted">/ {{ racquet.head_size_cm2 | int }} sq. cm.</span>
-                                    {% endif %}
-                                {% else %}-{% endif %}
-                            </td>
-                        </tr>
-
-                        {# ── Longueur ── #}
-                        <tr>
-                            <td>Longueur</td>
-                            <td>
-                                {% if racquet.length %}
-                                    {{ "%.2f"|format(racquet.length) }} inches
-                                    {% if racquet.length_cm %}
-                                        <span class="text-muted">/ {{ "%.2f"|format(racquet.length_cm) }} cm</span>
-                                    {% endif %}
-                                {% else %}-{% endif %}
-                            </td>
-                        </tr>
-
-                        {# ── Poids cordé ── #}
-                        <tr>
-                            <td>Poids cordé</td>
-                            <td>
-                                {% if racquet.strung_weight %}
-                                    {{ "%.0f"|format(racquet.strung_weight) }} g
-                                    {% if racquet.strung_weight_oz %}
-                                        <span class="text-muted">/ {{ "%.2f"|format(racquet.strung_weight_oz) }} oz</span>
-                                    {% endif %}
-                                {% else %}-{% endif %}
-                            </td>
-                        </tr>
-
-                        {# ── Poids non-cordé ── #}
-                        <tr>
-                            <td>Poids non-cordé</td>
-                            <td>
-                                {% if racquet.unstrung_weight %}
-                                    {{ "%.0f"|format(racquet.unstrung_weight) }} g
-                                    {% if racquet.unstrung_weight_oz %}
-                                        <span class="text-muted">/ {{ "%.2f"|format(racquet.unstrung_weight_oz) }} oz</span>
-                                    {% endif %}
-                                {% else %}-{% endif %}
-                            </td>
-                        </tr>
-
-                        {# ── Balance ── #}
-                        <tr>
-                            <td>Balance</td>
-                            <td>
-                                {% if racquet.balance is not none %}
-                                    {{ racquet.balance_label }}
-                                    {% if racquet.balance_mm %}
-                                        <span class="text-muted">/ {{ racquet.balance_mm }} mm depuis le bas</span>
-                                    {% endif %}
-                                {% else %}-{% endif %}
-                            </td>
-                        </tr>
-
-                        <tr><td>Swingweight</td><td>{{ racquet.swingweight or '-' }}</td></tr>
-                        <tr><td>Rigidité (RA)</td><td>{{ racquet.stiffness or '-' }}</td></tr>
-                        <tr><td>Largeur cadre</td><td>{{ racquet.beam_width or '-' }}</td></tr>
-                        <tr><td>Cordage</td><td>{{ racquet.string_pattern or '-' }}</td></tr>
-                        <tr><td>Tension recommandée</td><td>{{ racquet.string_tension or '-' }}</td></tr>
-                        <tr><td>Composition</td><td>{{ racquet.composition or '-' }}</td></tr>
-                        <tr><td>Couleur</td><td>{{ racquet.color or '-' }}</td></tr>
-                        <tr><td>Prix</td><td>{{ '%.0f €' % racquet.price if racquet.price else '-' }}</td></tr>
-                        <tr><td>Statut</td><td>{{ '✅ Actuel' if racquet.is_current else '📦 Archive' }}</td></tr>
-                        {% if racquet.url %}
-                        <tr><td>Lien source</td><td><a href="{{ racquet.url }}" target="_blank">Voir la fiche ↗</a></td></tr>
-                        {% endif %}
-                    </table>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a href="{{ url_for('shop.racquets') }}" class="btn btn-outline-secondary">Retour catalogue</a>
+                    <a href="{{ url_for('shop.racquet_selector') }}" class="btn btn-outline-primary">Utiliser le sélecteur personnalisé</a>
                 </div>
-            </div>
 
-            <div class="shop-detail-actions">
-                <a href="{{ url_for('shop.racquets') }}"><button type="button" class="btn btn-secondary">← Retour catalogue</button></a>
-                <form method="POST" action="{{ url_for('shop.delete_racquet', racquet_id=racquet.id) }}" onsubmit="return confirm('Supprimer cette raquette ?')">
-                    <button type="submit" class="btn btn-danger">Supprimer</button>
-                </form>
-            </div>
+                <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
+                    <h3 class="h6 mb-0">Actions</h3>
+                    <form method="POST" action="{{ url_for('shop.delete_racquet', racquet_id=racquet.id) }}" onsubmit="return confirm('Supprimer cette raquette ?')">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
+                    </form>
+                </div>
 
-            {# ── Recherche affinée par curseurs ── #}
-            <div class="shop-similar" style="margin-top:36px;">
-                <h3 style="margin-bottom:6px;">🔍 Affiner la recherche de raquettes similaires</h3>
-                <p class="text-muted" style="font-size:.83em; margin-bottom:16px;">
-                    Ajustez les curseurs pour explorer d'autres modèles selon vos critères.
-                    <a href="{{ url_for('shop.racquet_selector') }}" style="margin-left:12px; font-size:.9em; color:#0066cc;">🧠 Utiliser le sélecteur personnalisé →</a>
-                </p>
+                <div class="card bg-light border-0 mt-4">
+                    <div class="card-body">
+                        <h3 class="h6 mb-2">Affiner la recherche de raquettes similaires</h3>
+                        <p class="text-muted small mb-3">Ajustez les curseurs pour explorer d'autres modèles selon vos critères.</p>
 
-                <div class="slider-panel" style="background:#f8f9fa; border:1px solid #e0e0e0; border-radius:10px; padding:18px 22px; margin-bottom:20px;">
-                    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap:18px;">
-
-                        <div class="slider-group">
-                            <label>🎾 Tamis cible : <strong id="lbl_head">{{ racquet.head_size | int if racquet.head_size else 100 }}</strong> sq.in</label>
-                            <input type="range" id="sl_head" min="85" max="135" step="1"
-                                   value="{{ racquet.head_size | int if racquet.head_size else 100 }}"
-                                   oninput="document.getElementById('lbl_head').textContent=this.value; debouncedSearch()">
-                            <div style="font-size:.72em; color:#888; margin-top:2px;">Tolérance ±<span id="lbl_tol_head">8</span> sq.in
-                                <input type="range" id="sl_tol_head" min="3" max="20" step="1" value="8" style="width:80px; vertical-align:middle;"
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="shop-slider-label">Tamis cible: <strong id="lbl_head">{{ racquet.head_size | int if racquet.head_size else 100 }}</strong> sq.in</label>
+                                <input type="range" class="form-range" id="sl_head" min="85" max="135" step="1"
+                                       value="{{ racquet.head_size | int if racquet.head_size else 100 }}"
+                                       oninput="document.getElementById('lbl_head').textContent=this.value; debouncedSearch()">
+                                <div class="small text-muted">Tolérance ±<span id="lbl_tol_head">8</span> sq.in</div>
+                                <input type="range" class="form-range" id="sl_tol_head" min="3" max="20" step="1" value="8"
                                        oninput="document.getElementById('lbl_tol_head').textContent=this.value; debouncedSearch()">
                             </div>
-                        </div>
 
-                        <div class="slider-group">
-                            <label>⚖️ Poids cordé cible : <strong id="lbl_weight">{{ racquet.strung_weight | int if racquet.strung_weight else 300 }}</strong> g</label>
-                            <input type="range" id="sl_weight" min="220" max="380" step="5"
-                                   value="{{ racquet.strung_weight | int if racquet.strung_weight else 300 }}"
-                                   oninput="document.getElementById('lbl_weight').textContent=this.value; debouncedSearch()">
-                            <div style="font-size:.72em; color:#888; margin-top:2px;">Tolérance ±<span id="lbl_tol_weight">20</span> g
-                                <input type="range" id="sl_tol_weight" min="5" max="50" step="5" value="20" style="width:80px; vertical-align:middle;"
+                            <div class="col-12 col-md-6">
+                                <label class="shop-slider-label">Poids cordé cible: <strong id="lbl_weight">{{ racquet.strung_weight | int if racquet.strung_weight else 300 }}</strong> g</label>
+                                <input type="range" class="form-range" id="sl_weight" min="220" max="380" step="5"
+                                       value="{{ racquet.strung_weight | int if racquet.strung_weight else 300 }}"
+                                       oninput="document.getElementById('lbl_weight').textContent=this.value; debouncedSearch()">
+                                <div class="small text-muted">Tolérance ±<span id="lbl_tol_weight">20</span> g</div>
+                                <input type="range" class="form-range" id="sl_tol_weight" min="5" max="50" step="5" value="20"
                                        oninput="document.getElementById('lbl_tol_weight').textContent=this.value; debouncedSearch()">
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="shop-slider-label">Swingweight cible: <strong id="lbl_sw">{{ racquet.swingweight if racquet.swingweight else '—' }}</strong></label>
+                                <input type="range" class="form-range" id="sl_sw" min="250" max="380" step="1"
+                                       value="{{ racquet.swingweight if racquet.swingweight else 310 }}"
+                                       oninput="document.getElementById('lbl_sw').textContent=this.value; debouncedSearch()">
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="shop-slider-label">Rigidité cible (RA): <strong id="lbl_ra">{{ racquet.stiffness if racquet.stiffness else '—' }}</strong></label>
+                                <input type="range" class="form-range" id="sl_ra" min="50" max="85" step="1"
+                                       value="{{ racquet.stiffness if racquet.stiffness else 65 }}"
+                                       oninput="document.getElementById('lbl_ra').textContent=this.value; debouncedSearch()">
                             </div>
                         </div>
 
-                        <div class="slider-group">
-                            <label>🌀 Swingweight cible : <strong id="lbl_sw">{{ racquet.swingweight if racquet.swingweight else '—' }}</strong></label>
-                            <input type="range" id="sl_sw" min="250" max="380" step="1"
-                                   value="{{ racquet.swingweight if racquet.swingweight else 310 }}"
-                                   oninput="document.getElementById('lbl_sw').textContent=this.value; debouncedSearch()">
+                        <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="doSearch()">Mettre à jour</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetSliders()">Réinitialiser</button>
+                            <span id="similar-count" class="text-muted small"></span>
                         </div>
-
-                        <div class="slider-group">
-                            <label>📏 Rigidité cible (RA) : <strong id="lbl_ra">{{ racquet.stiffness if racquet.stiffness else '—' }}</strong></label>
-                            <input type="range" id="sl_ra" min="50" max="85" step="1"
-                                   value="{{ racquet.stiffness if racquet.stiffness else 65 }}"
-                                   oninput="document.getElementById('lbl_ra').textContent=this.value; debouncedSearch()">
-                        </div>
-
-                    </div>
-                    <div style="margin-top:14px; display:flex; gap:10px; align-items:center;">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="doSearch()" style="padding:6px 16px;">🔄 Mettre à jour</button>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="resetSliders()" style="padding:6px 12px;">↺ Réinitialiser</button>
-                        <span id="similar-count" style="font-size:.82em; color:#666;"></span>
                     </div>
                 </div>
 
-                {# Grille dynamique #}
-                <div id="similar-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:14px;">
+                <div class="row g-3 mt-2" id="similar-grid">
                     {% for r in similar %}
-                    <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card" style="display:block; border:1px solid #ddd; border-radius:8px; padding:12px; text-decoration:none; color:inherit; background:{{ '#f0fff4' if r.is_current else '#fafafa' }}; transition:box-shadow .2s;">
-                        <div style="font-size:.7em; font-weight:bold; color:{{ '#28a745' if r.is_current else '#888' }}; margin-bottom:4px;">{{ '● Actuel' if r.is_current else '○ Archive' }}</div>
-                        <div style="font-weight:bold; font-size:.9em;">{{ r.brand }}</div>
-                        <div style="font-size:.85em; color:#555; margin-bottom:6px;">{{ r.name }}</div>
-                        <div style="font-size:.78em; color:#777; line-height:1.7;">
-                            {% if r.head_size %}🔵 {{ r.head_size | int }} sq.in<br>{% endif %}
-                            {% if r.strung_weight %}⚖️ {{ r.strung_weight | int }} g<br>{% endif %}
-                            {% if r.string_pattern %}📐 {{ r.string_pattern }}<br>{% endif %}
-                            {% if r.swingweight %}🌀 SW {{ r.swingweight }}<br>{% endif %}
-                            {% if r.stiffness %}📏 RA {{ r.stiffness }}{% endif %}
-                        </div>
-                    </a>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card">
+                            <div class="card h-100 border-0 shadow-sm {{ 'bg-success-subtle' if r.is_current else 'bg-light' }}">
+                                <div class="card-body">
+                                    <div class="small fw-semibold {{ 'text-success' if r.is_current else 'text-secondary' }} mb-1">{{ 'Actuel' if r.is_current else 'Archive' }}</div>
+                                    <div class="fw-bold">{{ r.brand }}</div>
+                                    <div class="small text-body-secondary mb-2">{{ r.name }}</div>
+                                    <div class="small text-body-secondary lh-lg">
+                                        {% if r.head_size %}{{ r.head_size | int }} sq.in<br>{% endif %}
+                                        {% if r.strung_weight %}{{ r.strung_weight | int }} g<br>{% endif %}
+                                        {% if r.string_pattern %}{{ r.string_pattern }}<br>{% endif %}
+                                        {% if r.swingweight %}SW {{ r.swingweight }}<br>{% endif %}
+                                        {% if r.stiffness %}RA {{ r.stiffness }}{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                     {% endfor %}
                     {% if not similar %}
-                    <p class="text-muted" style="font-size:.85em;">Aucune raquette similaire trouvée dans la base.</p>
+                    <div class="col-12">
+                        <div class="alert alert-secondary mb-0">Aucune raquette similaire trouvée dans la base.</div>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -238,24 +247,30 @@
                 const grid = document.getElementById('similar-grid');
                 const cnt  = document.getElementById('similar-count');
                 if (!data.length) {
-                    grid.innerHTML = '<p class="text-muted" style="font-size:.85em;">Aucune raquette trouvée avec ces critères.</p>';
+                    grid.innerHTML = '<div class="col-12"><div class="alert alert-secondary mb-0">Aucune raquette trouvée avec ces critères.</div></div>';
                     cnt.textContent = '0 résultat';
                     return;
                 }
                 cnt.textContent = data.length + ' raquette(s) trouvée(s)';
                 grid.innerHTML = data.map(r => `
-                    <a href="${r.url}" class="shop-similar-card" style="display:block;border:1px solid #ddd;border-radius:8px;padding:12px;text-decoration:none;color:inherit;background:${r.is_current ? '#f0fff4' : '#fafafa'};transition:box-shadow .2s;">
-                        <div style="font-size:.7em;font-weight:bold;color:${r.is_current ? '#28a745' : '#888'};margin-bottom:4px;">${r.is_current ? '● Actuel' : '○ Archive'}</div>
-                        <div style="font-weight:bold;font-size:.9em;">${r.brand}</div>
-                        <div style="font-size:.85em;color:#555;margin-bottom:6px;">${r.name}</div>
-                        <div style="font-size:.78em;color:#777;line-height:1.7;">
-                            ${r.head_size ? '🔵 '+r.head_size+' sq.in<br>' : ''}
-                            ${r.strung_weight ? '⚖️ '+r.strung_weight+' g<br>' : ''}
-                            ${r.string_pattern ? '📐 '+r.string_pattern+'<br>' : ''}
-                            ${r.swingweight ? '🌀 SW '+r.swingweight+'<br>' : ''}
-                            ${r.stiffness ? '📏 RA '+r.stiffness : ''}
-                        </div>
-                    </a>`).join('');
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <a href="${r.url}" class="shop-similar-card">
+                            <div class="card h-100 border-0 shadow-sm ${r.is_current ? 'bg-success-subtle' : 'bg-light'}">
+                                <div class="card-body">
+                                    <div class="small fw-semibold ${r.is_current ? 'text-success' : 'text-secondary'} mb-1">${r.is_current ? 'Actuel' : 'Archive'}</div>
+                                    <div class="fw-bold">${r.brand}</div>
+                                    <div class="small text-body-secondary mb-2">${r.name}</div>
+                                    <div class="small text-body-secondary lh-lg">
+                                        ${r.head_size ? r.head_size+' sq.in<br>' : ''}
+                                        ${r.strung_weight ? r.strung_weight+' g<br>' : ''}
+                                        ${r.string_pattern ? r.string_pattern+'<br>' : ''}
+                                        ${r.swingweight ? 'SW '+r.swingweight+'<br>' : ''}
+                                        ${r.stiffness ? 'RA '+r.stiffness : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>`).join('');
             }
 
             function resetSliders() {
@@ -274,7 +289,6 @@
                 doSearch();
             }
             </script>
-
         </div>
     </div>
 </main>

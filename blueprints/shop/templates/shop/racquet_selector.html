@@ -2,26 +2,27 @@
 
 {% block main %}
 {% include 'partials/_menu.html' %}
-<main>
+<main class="shop-main">
 <div class="shop-container">
-<div class="shop-detail" style="max-width:900px; margin:0 auto;">
+<div class="card border-0 shadow-sm" style="max-width:960px; margin:0 auto;">
+<div class="card-body">
 
-  <div style="margin-bottom:24px;">
-    <h2 style="margin-bottom:4px;">🧠 Sélecteur de raquette &amp; cordage</h2>
-    <p class="text-muted" style="font-size:.88em;">
+  <div class="mb-4">
+    <h2 class="h4 mb-1">Sélecteur de raquette &amp; cordage</h2>
+    <p class="text-muted small mb-0">
       Renseignez votre profil pour obtenir des recommandations personnalisées sur la raquette
       et le cordage adaptés à votre jeu.
-      <a href="{{ url_for('shop.racquets') }}" style="margin-left:12px;">← Retour catalogue</a>
+      <a href="{{ url_for('shop.racquets') }}" class="ms-2">Retour catalogue</a>
     </p>
   </div>
 
   {# ── FORMULAIRE ── #}
   <form method="POST" action="{{ url_for('shop.racquet_selector') }}" class="selector-form">
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+    <div class="row g-4">
 
       {# Colonne gauche #}
-      <div>
+      <div class="col-12 col-lg-6">
 
         <div class="form-group">
           <label class="group-label">👤 Groupe d'âge</label>
@@ -74,7 +75,7 @@
       </div>
 
       {# Colonne droite #}
-      <div>
+      <div class="col-12 col-lg-6">
 
         <div class="form-group">
           <label class="group-label">🏋️ Morphologie / gabarit</label>
@@ -127,9 +128,9 @@
       </div>
     </div>
 
-    <div style="margin-top:24px; text-align:center;">
-      <button type="submit" class="btn btn-primary" style="padding:12px 36px; font-size:1em; border-radius:8px;">
-        🎾 Obtenir mes recommandations
+    <div class="mt-4 text-center">
+      <button type="submit" class="btn btn-primary px-4 py-2">
+        Obtenir mes recommandations
       </button>
     </div>
 
@@ -137,68 +138,75 @@
 
   {# ── RECOMMANDATIONS ── #}
   {% if recs %}
-  <hr style="margin:32px 0; border-color:#e0e0e0;">
+  <hr class="my-4">
 
-  <h3 style="margin-bottom:18px;">✅ Recommandations personnalisées</h3>
+  <h3 class="h5 mb-3">Recommandations personnalisées</h3>
 
-  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px;">
+  <div class="row g-3 mb-4">
 
-    <div class="rec-card">
+    <div class="col-12 col-lg-6">
+      <div class="rec-card h-100">
       <h4>🎾 Raquette — Critères clés</h4>
-      <p style="font-size:.85em; margin:4px 0;">
+      <p class="small my-1">
         <span class="rec-badge">Tamis : {{ recs.head_min }}–{{ recs.head_max }} sq.in</span>
         <span class="rec-badge">Poids : {{ recs.weight_min }}–{{ recs.weight_max }} g</span>
       </p>
-      <p style="font-size:.82em; color:#444; margin:8px 0 4px;">{{ recs.balance_label }}</p>
-      <p style="font-size:.82em; color:#444; margin:0;">{{ recs.ra_label }}</p>
-      <p style="font-size:.82em; color:#444; margin:6px 0 0;">{{ recs.head_label }}</p>
+      <p class="small text-body-secondary my-2">{{ recs.balance_label }}</p>
+      <p class="small text-body-secondary my-0">{{ recs.ra_label }}</p>
+      <p class="small text-body-secondary mt-2 mb-0">{{ recs.head_label }}</p>
+      </div>
     </div>
 
-    <div class="rec-card" style="border-color:#c8e6c9;">
+    <div class="col-12 col-lg-6">
+      <div class="rec-card h-100" style="border-color:#c8e6c9;">
       <h4 style="color:#1a6e1a;">🧵 Cordage recommandé</h4>
-      <p style="font-size:.9em; font-weight:700; margin:6px 0 4px; color:#333;">{{ recs.string_type }}</p>
-      <p style="font-size:.83em; margin:2px 0; color:#555;">
+      <p class="fw-bold mb-1">{{ recs.string_type }}</p>
+      <p class="small my-1 text-body-secondary">
         <strong>Jauge :</strong> {{ recs.string_gauge }} &nbsp;|&nbsp; <strong>Tension :</strong> {{ recs.string_tension }}
       </p>
-      <p style="font-size:.82em; color:#444; margin-top:8px; line-height:1.5;">{{ recs.string_rationale }}</p>
-      <p style="font-size:.75em; color:#888; margin-top:8px;">
-        ⏱ Rappel : changer le cordage tous les 6 mois même s'il n'est pas cassé.
+      <p class="small text-body-secondary mt-2 mb-0">{{ recs.string_rationale }}</p>
+      <p class="small text-muted mt-2 mb-0">
+        Rappel : changer le cordage tous les 6 mois même s'il n'est pas cassé.
       </p>
+      </div>
     </div>
 
   </div>
 
   {# Raquettes correspondantes #}
-  <h3 style="margin-bottom:14px;">📦 Raquettes correspondantes dans le catalogue</h3>
+  <h3 class="h5 mb-2">Raquettes correspondantes dans le catalogue</h3>
   {% if matching %}
-  <p class="text-muted" style="font-size:.85em; margin-bottom:14px;">
+  <p class="text-muted small mb-3">
     {{ matching | length }} modèle(s) trouvé(s) — <strong>les modèles actuels</strong> apparaissent en tête.
   </p>
-  <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px;">
+  <div class="row g-3">
     {% for r in matching %}
-    <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card"
-       style="display:block;border:1px solid #ddd;border-radius:8px;padding:12px;text-decoration:none;color:inherit;background:{{ '#f0fff4' if r.is_current else '#fafafa' }};transition:box-shadow .2s;">
-      <div style="font-size:.7em;font-weight:bold;color:{{ '#28a745' if r.is_current else '#888' }};margin-bottom:4px;">
-        {{ '● Actuel' if r.is_current else '○ Archive' }}
-      </div>
-      <div style="font-weight:bold;font-size:.9em;">{{ r.brand }}</div>
-      <div style="font-size:.85em;color:#555;margin-bottom:6px;">{{ r.name }}</div>
-      <div style="font-size:.78em;color:#777;line-height:1.7;">
-        {% if r.head_size %}🔵 {{ r.head_size | int }} sq.in<br>{% endif %}
-        {% if r.strung_weight %}⚖️ {{ r.strung_weight | int }} g<br>{% endif %}
-        {% if r.stiffness %}📏 RA {{ r.stiffness }}<br>{% endif %}
-        {% if r.string_pattern %}📐 {{ r.string_pattern }}<br>{% endif %}
-        {% if r.swingweight %}🌀 SW {{ r.swingweight }}{% endif %}
-      </div>
-      {% if r.price %}<div style="font-size:.82em;font-weight:bold;color:#333;margin-top:6px;">{{ '%.0f €'|format(r.price) }}</div>{% endif %}
-    </a>
+    <div class="col-12 col-md-6 col-xl-4">
+      <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card">
+        <div class="card h-100 border-0 shadow-sm {{ 'bg-success-subtle' if r.is_current else 'bg-light' }}">
+          <div class="card-body">
+            <div class="small fw-semibold {{ 'text-success' if r.is_current else 'text-secondary' }} mb-1">{{ 'Actuel' if r.is_current else 'Archive' }}</div>
+            <div class="fw-bold">{{ r.brand }}</div>
+            <div class="small text-body-secondary mb-2">{{ r.name }}</div>
+            <div class="small text-body-secondary lh-lg">
+              {% if r.head_size %}{{ r.head_size | int }} sq.in<br>{% endif %}
+              {% if r.strung_weight %}{{ r.strung_weight | int }} g<br>{% endif %}
+              {% if r.stiffness %}RA {{ r.stiffness }}<br>{% endif %}
+              {% if r.string_pattern %}{{ r.string_pattern }}<br>{% endif %}
+              {% if r.swingweight %}SW {{ r.swingweight }}{% endif %}
+            </div>
+            {% if r.price %}<div class="small fw-bold mt-2">{{ '%.0f €'|format(r.price) }}</div>{% endif %}
+          </div>
+        </div>
+      </a>
+    </div>
     {% endfor %}
   </div>
   {% else %}
-  <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:16px;font-size:.88em;color:#555;">
-    <strong>⚠️ Aucune raquette ne correspond exactement</strong> à ces critères dans votre catalogue actuel.<br>
+  <div class="alert alert-warning">
+    <strong>Aucune raquette ne correspond exactement</strong> à ces critères dans votre catalogue actuel.<br>
     Essayez d'importer plus de modèles via le scraper, ou élargissez les critères en sélectionnant un niveau différent.
-    <br><a href="{{ url_for('shop.racquets') }}" style="color:#0066cc;">→ Parcourir tout le catalogue</a>
+    <br><a href="{{ url_for('shop.racquets') }}">Parcourir tout le catalogue</a>
   </div>
   {% endif %}
 

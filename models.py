@@ -358,7 +358,7 @@ class Player(db.Model):
 
     @property
     def name(self):
-        return f'{self.license.firstName} {self.license.lastName}'
+        return f'{self.license.firstName} {self.license.lastName[0]}'
 
     @property
     def info(self):
