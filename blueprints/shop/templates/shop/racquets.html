@@ -373,11 +373,59 @@
 
                     {# ── Modèles actuels ── #}
                     <div class="col-12 col-sm-6 col-xl-4 d-flex align-items-center pt-2">
-                        <label class="current-only-pill" for="current_only">
+                        <label class="current-only-pill" for="current_only"
+                               title="&#8220;Actuel&#8221; signifie que le modèle était référencé comme &#8220;current&#8221; sur racquetfinder.com lors du dernier import. Cela ne correspond pas nécessairement à l&#8217;année de sortie : un modèle 2018 toujours commercialisé peut être &#8220;actuel&#8221;, et un modèle 2024 arrêté sera &#8220;archive&#8221;.">
                             <input type="checkbox" id="current_only" name="current_only"
                                    {% if filters.get('current_only') == 'on' %}checked{% endif %}>
-                            ✅ Modèles actuels uniquement
+                            ✅ Modèles actuels uniquement (2015-2026)
                         </label>
+                        <span class="ms-2 text-muted" style="font-size:.72rem; cursor:help;"
+                              title="&#8220;Actuel&#8221; = catalogué par racquetfinder comme &#8220;current&#8221; lors du dernier import (≠ date de sortie). Utilisez le filtre &#8220;Année de sortie&#8221; pour filtrer par millésime.">ⓘ</span>
+                    </div>
+
+                    {# ── Année de sortie ── #}
+                    {% set y_min = year_stats.min %}
+                    {% set y_max = year_stats.max %}
+                    {% set y_from = (filters.get('release_year_from') or y_min)|int %}
+                    {% set y_to   = (filters.get('release_year_to')   or y_max)|int %}
+                    {% set y_active = filters.get('release_year_from') or filters.get('release_year_to') %}
+                    <div class="col-12 col-sm-6 col-xl-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="filter-group-label mb-0"
+                                  title="Année inscrite dans le nom du modèle (ex : &#8220;Pure Aero - 2024&#8221; → 2024). Disponible pour ~42 % des raquettes. Les modèles sans année ne seront pas inclus si ce filtre est activé.">
+                                Année de sortie
+                                <span class="rs-value-badge" id="lbl-year">{{ y_from }}–{{ y_to }}</span>
+                                {% if y_active %}<span class="rs-active-badge">actif</span>{% endif %}
+                                <span class="text-muted ms-1" style="cursor:help;" title="Renseigné pour ~42 % des modèles uniquement. Modèles sans année exclus quand le filtre est actif.">ⓘ</span>
+                            </span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" id="toggle-year" role="switch"
+                                           {% if y_active %}checked{% endif %}
+                                           onchange="toggleFilter('year')">
+                                    <label class="form-check-label" for="toggle-year">Filtrer</label>
+                                </div>
+                                <button type="button" class="filter-reset-btn btn btn-sm"
+                                        data-key="year" data-db-min="{{ y_min }}" data-db-max="{{ y_max }}"
+                                        onclick="resetRange(this)" title="Réinitialiser année">⟳</button>
+                            </div>
+                        </div>
+                        <div id="slider-group-year" class="{{ '' if y_active else 'rs-disabled' }}">
+                            <div class="rs-wrap mt-1">
+                                <div class="rs-track">
+                                    <div class="rs-fill" id="fill-year"></div>
+                                    <input type="range" class="rs-range" id="rng-year-lo"
+                                           min="{{ y_min }}" max="{{ y_max }}" value="{{ y_from }}" step="1"
+                                           oninput="updateRange('year')">
+                                    <input type="range" class="rs-range" id="rng-year-hi"
+                                           min="{{ y_min }}" max="{{ y_max }}" value="{{ y_to }}" step="1"
+                                           oninput="updateRange('year')">
+                                </div>
+                                <div class="rs-labels"><span>{{ y_min }}</span><span>{{ y_max }}</span></div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="release_year_from" id="hid-year-lo" value="{{ y_from }}" {% if not y_active %}disabled{% endif %}>
+                        <input type="hidden" name="release_year_to"   id="hid-year-hi" value="{{ y_to }}"   {% if not y_active %}disabled{% endif %}>
                     </div>
                 </div>
 
@@ -418,8 +466,10 @@
                                     {% if racquet.string_pattern %}<span class="shop-spec-pill">{{ racquet.string_pattern }}</span>{% endif %}
                                 </div>
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
-                                    <span class="badge {{ 'text-bg-success' if racquet.is_current else 'text-bg-secondary' }}">
+                                    <span class="badge {{ 'text-bg-success' if racquet.is_current else 'text-bg-secondary' }}"
+                                          title="{% if racquet.is_current %}Catalogué comme actuel par racquetfinder lors du dernier import{% else %}Archive{% endif %}">
                                         {{ 'Actuel' if racquet.is_current else 'Archive' }}
+                                        {% if racquet.release_year %}<span class="ms-1 opacity-75">{{ racquet.release_year }}</span>{% endif %}
                                     </span>
                                     {% if racquet.price %}<strong class="text-primary-emphasis">{{ '%.0f'|format(racquet.price) }} EUR</strong>{% endif %}
                                 </div>
@@ -438,7 +488,7 @@
 
 <script>
 (function () {
-    var KEYS = ['weight', 'head', 'balance', 'swing', 'stiff'];
+    var KEYS = ['weight', 'head', 'balance', 'swing', 'stiff', 'year'];
 
     function el(id) { return document.getElementById(id); }
 

@@ -104,7 +104,25 @@ def _parse_length(raw: str) -> float | None:
     return None
 
 
-def _parse_balance(raw: str) -> float | None:
+def _parse_release_year(name: str) -> int | None:
+    """Extrait l'année de sortie depuis le nom du modèle.
+
+    Exemples :
+      "Pure Aero - 2024"        → 2024
+      "VCORE 100 - 2026"        → 2026
+      "Pro Staff 97 (2017)"     → 2017
+      "Blade 98 v9"             → None  (pas d'année explicite)
+    Plage acceptée : 2000–2030.
+    """
+    m = re.search(r'[-\s(](20[0-2][0-9])\b', name)
+    if m:
+        y = int(m.group(1))
+        if 2000 <= y <= 2030:
+            return y
+    return None
+
+
+
     """Parse la balance depuis '-6 pts HL' ou '+2 pts HH' ou '4pts HH'.
 
     Une raquette standard mesure 27 po = 685.8 mm.
@@ -342,6 +360,7 @@ def scrape_racquet_by_pcode(pcode: str) -> dict:
         'composition': composition,
         'color': color,
         'player_type': player_type,
+        'release_year': _parse_release_year(name),
         'raw': table_data,
     }
 

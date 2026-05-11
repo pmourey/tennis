@@ -24,6 +24,9 @@ class Racquet(db.Model):
     composition = db.Column(db.String(100), nullable=True)
     color = db.Column(db.String(50), nullable=True)
     is_current = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
+    # Année de sortie du modèle, parsée depuis le nom (ex: "Pure Aero - 2024" → 2024).
+    # NULL pour les modèles anciens dont le nom ne contient pas d'année.
+    release_year = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
     def __repr__(self):

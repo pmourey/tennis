@@ -105,7 +105,24 @@
                                     <tr><th class="text-nowrap">Composition</th><td>{{ racquet.composition or '-' }}</td></tr>
                                     <tr><th class="text-nowrap">Couleur</th><td>{{ racquet.color or '-' }}</td></tr>
                                     <tr><th class="text-nowrap">Prix</th><td>{{ '%.0f €' % racquet.price if racquet.price else '-' }}</td></tr>
-                                    <tr><th class="text-nowrap">Statut</th><td>{{ 'Actuel' if racquet.is_current else 'Archive' }}</td></tr>
+                                     <tr>
+                                         <th class="text-nowrap">Statut</th>
+                                         <td>
+                                             {{ 'Actuel' if racquet.is_current else 'Archive' }}
+                                             <span class="text-muted small ms-1"
+                                                   title="&#8220;Actuel&#8221; = catalogué par racquetfinder comme &#8220;current&#8221; lors du dernier import (≠ date de sortie)">ⓘ</span>
+                                         </td>
+                                     </tr>
+                                     {% if racquet.release_year %}
+                                     <tr>
+                                         <th class="text-nowrap">Année de sortie</th>
+                                         <td>
+                                             {{ racquet.release_year }}
+                                             <span class="text-muted small ms-1"
+                                                   title="Extraite du nom du modèle (suffixe &#8220;- {{ racquet.release_year }}&#8221;)">ⓘ</span>
+                                         </td>
+                                     </tr>
+                                     {% endif %}
                                     {% if racquet.url %}
                                     <tr><th class="text-nowrap">Lien source</th><td><a href="{{ racquet.url }}" target="_blank">Voir la fiche</a></td></tr>
                                     {% endif %}

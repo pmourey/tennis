@@ -29,6 +29,7 @@ def _upsert_racquet(payload: dict, mark_current: bool = False) -> str:
         'balance', 'swingweight', 'stiffness', 'beam_width',
         'string_pattern', 'string_tension', 'price', 'url',
         'image_url', 'image_local', 'player_type', 'composition', 'color',
+        'release_year',
     ]
     for field in fields:
         value = payload.get(field)
@@ -79,6 +80,8 @@ def racquets():
     string_pattern = request.args.get('string_pattern', '')
     sort_by = request.args.get('sort_by', 'brand')
     current_only = request.args.get('current_only') == 'on'
+    release_year_from = request.args.get('release_year_from', type=int)
+    release_year_to = request.args.get('release_year_to', type=int)
 
     query = Racquet.query
     if current_only:
@@ -109,6 +112,11 @@ def racquets():
         query = query.filter(Racquet.stiffness <= max_stiffness)
     if string_pattern:
         query = query.filter(Racquet.string_pattern.ilike(f'%{string_pattern}%'))
+    # Filtre par année de sortie (seulement pour les raquettes dont release_year est renseigné)
+    if release_year_from:
+        query = query.filter(Racquet.release_year >= release_year_from)
+    if release_year_to:
+        query = query.filter(Racquet.release_year <= release_year_to)
 
     sort_map = {
         'brand': Racquet.brand,
@@ -124,19 +132,26 @@ def racquets():
     brands = [r[0] for r in db.session.query(Racquet.brand).distinct().order_by(Racquet.brand).all()]
     patterns = [r[0] for r in db.session.query(Racquet.string_pattern).distinct().filter(Racquet.string_pattern.isnot(None)).order_by(Racquet.string_pattern).all()]
 
+    # Années disponibles pour le filtre (raquettes avec release_year renseigné)
     # ── Bornes physiques fixes (mêmes que racquet_detail.html) ───────────────
-    # Elles définissent le plancher/plafond absolu des sliders.
-    # On interroge la DB uniquement à l'intérieur de ces bornes pour obtenir
-    # les plages réelles des données valides (sans zéros ni valeurs aberrantes).
+    from sqlalchemy import func as sqlfunc
+
     PHYS = {
-        'weight':      (150, 400),   # g  — même plage que la vue détail (220-380 + marge)
-        'head':        (80,  140),   # sq.in
-        'balance':     (-20, 20),    # pts HL/HH
+        'weight':      (150, 400),
+        'head':        (80,  140),
+        'balance':     (-20, 20),
         'swingweight': (200, 430),
-        'stiffness':   (40,  95),    # RA
+        'stiffness':   (40,  95),
     }
 
-    from sqlalchemy import func as sqlfunc
+    year_row = db.session.query(
+        sqlfunc.min(Racquet.release_year), sqlfunc.max(Racquet.release_year)
+    ).filter(Racquet.release_year.isnot(None)).one()
+    year_stats = {
+        'min': int(year_row[0]) if year_row[0] else 2010,
+        'max': int(year_row[1]) if year_row[1] else 2026,
+    }
+
 
     def _db_range(field, lo, hi):
         row = db.session.query(sqlfunc.min(field), sqlfunc.max(field)).filter(
@@ -160,7 +175,7 @@ def racquets():
     }
 
     return render_template('shop/racquets.html', racquets=racquet_list, brands=brands, patterns=patterns,
-                           filters=request.args, range_stats=range_stats)
+                           filters=request.args, range_stats=range_stats, year_stats=year_stats)
 
 
 @shop_bp.route('/racquets/<int:racquet_id>')
