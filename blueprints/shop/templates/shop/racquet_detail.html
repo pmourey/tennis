@@ -354,8 +354,21 @@
                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="drResetAll()">
                                 ⟳ Tout réinitialiser
                             </button>
-                            <span id="similar-count" class="text-muted small"></span>
-                            <span class="text-muted small ms-auto">
+                            {# ── Toggle modèles actuels ── #}
+                            <label class="d-inline-flex align-items-center gap-2 mb-0 ms-2"
+                                   style="cursor:pointer; font-size:.85rem; font-weight:600; color:#0d6efd; user-select:none;"
+                                   title="Affiche uniquement les modèles marqués comme actuels ou dont l'année de sortie est ≥ 2015">
+                                <div class="form-check form-switch mb-0">
+                                    <input class="form-check-input" type="checkbox" id="toggle-current-only"
+                                           role="switch" onchange="doSearch()">
+                                    <label class="form-check-label" for="toggle-current-only"
+                                           style="font-size:.82rem; font-weight:600;">
+                                        Modèles actuels seulement (≥ 2015)
+                                    </label>
+                                </div>
+                            </label>
+                            <span id="similar-count" class="text-muted small ms-auto"></span>
+                            <span class="text-muted small">
                                 <span style="display:inline-block;width:10px;height:10px;background:#fd7e14;border-radius:2px;vertical-align:middle;"></span>
                                 Valeur de la raquette sélectionnée
                             </span>
@@ -363,26 +376,26 @@
                     </div>
                 </div>
 
-                <div class="row g-3 mt-2" id="similar-grid">
+                <div class="row g-2 mt-2" id="similar-grid">
                     {% for r in similar %}
-                    <div class="col-12 col-md-6 col-xl-4">
+                    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
                         <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="text-decoration-none">
                             <div class="card h-100 border-0 shadow-sm {{ 'bg-success-subtle' if r.is_current else 'bg-light' }}">
-                                <div class="card-body">
+                                <div class="card-body p-2">
                                     <div class="mb-1">
-                                        <span class="badge {{ 'text-bg-success' if r.is_current else 'text-bg-secondary' }}">
+                                        <span class="badge {{ 'text-bg-success' if r.is_current else 'text-bg-secondary' }}" style="font-size:.68rem;">
                                             {{ 'Actuel' if r.is_current else 'Archive' }}
                                             {% if r.release_year %}<small class="opacity-75"> {{ r.release_year }}</small>{% endif %}
                                         </span>
                                     </div>
-                                    <div class="fw-bold small">{{ r.brand }}</div>
-                                    <div class="small text-body-secondary mb-2">{{ r.name }}</div>
+                                    <div class="fw-bold small lh-sm">{{ r.brand }}</div>
+                                    <div class="small text-body-secondary mb-1" style="font-size:.75rem;">{{ r.name }}</div>
                                     <div>
-                                        {% if r.head_size %}<span class="badge text-bg-light border me-1">{{ r.head_size | int }} sq.in</span>{% endif %}
-                                        {% if r.strung_weight %}<span class="badge text-bg-light border me-1">{{ r.strung_weight | int }} g</span>{% endif %}
-                                        {% if r.string_pattern %}<span class="badge text-bg-light border me-1">{{ r.string_pattern }}</span>{% endif %}
-                                        {% if r.swingweight %}<span class="badge text-bg-light border me-1">SW {{ r.swingweight }}</span>{% endif %}
-                                        {% if r.stiffness %}<span class="badge text-bg-light border me-1">RA {{ r.stiffness }}</span>{% endif %}
+                                        {% if r.head_size %}<span class="badge text-bg-light border me-1 mb-1" style="font-size:.7rem;">{{ r.head_size | int }} sq.in</span>{% endif %}
+                                        {% if r.strung_weight %}<span class="badge text-bg-light border me-1 mb-1" style="font-size:.7rem;">{{ r.strung_weight | int }} g</span>{% endif %}
+                                        {% if r.string_pattern %}<span class="badge text-bg-light border me-1 mb-1" style="font-size:.7rem;">{{ r.string_pattern }}</span>{% endif %}
+                                        {% if r.swingweight %}<span class="badge text-bg-light border me-1 mb-1" style="font-size:.7rem;">SW&nbsp;{{ r.swingweight }}</span>{% endif %}
+                                        {% if r.stiffness %}<span class="badge text-bg-light border me-1 mb-1" style="font-size:.7rem;">RA&nbsp;{{ r.stiffness }}</span>{% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -457,14 +470,14 @@
 
             function doSearch() {
                 var keys = ['head', 'weight', 'swing', 'stiff', 'balance'];
-                var params = new URLSearchParams({ exclude_id: RACQUET_ID });
+                var params = new URLSearchParams({
+                    exclude_id: RACQUET_ID,
+                    limit: 24,
+                    current_only: el('toggle-current-only') && el('toggle-current-only').checked ? '1' : '0',
+                });
                 keys.forEach(function(k) {
-                    var lo = el('rng-' + k + '-lo').value;
-                    var hi = el('rng-' + k + '-hi').value;
-                    // N'inclure que si le paramètre est filtrant (pas à pleine plage)
-                    var d = DR_DEFAULTS[k];
-                    params.set('min_' + k, lo);
-                    params.set('max_' + k, hi);
+                    params.set('min_' + k, el('rng-' + k + '-lo').value);
+                    params.set('max_' + k, el('rng-' + k + '-hi').value);
                 });
                 el('similar-count').textContent = '⏳ Recherche…';
                 fetch('{{ url_for("shop.similar_ajax") }}?' + params.toString())
@@ -476,31 +489,56 @@
             function renderSimilar(data) {
                 var grid = el('similar-grid'), cnt = el('similar-count');
                 if (!data.length) {
-                    grid.innerHTML = '<div class="col-12"><div class="alert alert-secondary mb-0">Aucune raquette similaire trouvée avec ces critères.</div></div>';
+                    grid.innerHTML = '<div class="col-12"><div class="alert alert-secondary mb-0">Aucune raquette trouvée avec ces critères.</div></div>';
                     cnt.textContent = '0 résultat';
                     return;
                 }
-                cnt.textContent = data.length + ' raquette(s)';
-                grid.innerHTML = data.map(function(r) {
-                    var badge = r.is_current ? 'text-bg-success' : 'text-bg-secondary';
+                cnt.textContent = data.length + ' raquette(s) – triées par proximité';
+
+                // Calcul de la plage de distances pour coloriser le badge de proximité
+                var dists = data.map(function(r){ return r.distance; }).filter(function(d){ return isFinite(d); });
+                var dMin = Math.min.apply(null, dists), dMax = Math.max.apply(null, dists);
+
+                grid.innerHTML = data.map(function(r, idx) {
+                    var badge      = r.is_current ? 'text-bg-success' : 'text-bg-secondary';
+                    var yearBadge  = r.release_year ? ' <small class="opacity-75">' + r.release_year + '</small>' : '';
                     var specs = [
-                        r.head_size    ? r.head_size + ' sq.in' : null,
-                        r.strung_weight ? r.strung_weight + ' g' : null,
-                        r.string_pattern || null,
-                        r.swingweight  ? 'SW ' + r.swingweight : null,
-                        r.stiffness    ? 'RA ' + r.stiffness : null,
+                        r.head_size     ? r.head_size + ' sq.in'             : null,
+                        r.strung_weight ? r.strung_weight + ' g'             : null,
+                        r.string_pattern                                       || null,
+                        r.swingweight   ? 'SW\u00a0' + r.swingweight         : null,
+                        r.stiffness     ? 'RA\u00a0' + r.stiffness           : null,
+                        r.balance !== null && r.balance !== undefined
+                            ? (r.balance > 0 ? r.balance + '\u00a0pts\u00a0HH' : Math.abs(r.balance) + '\u00a0pts\u00a0HL') : null,
                     ].filter(Boolean).map(function(s) {
-                        return '<span class="badge text-bg-light border me-1">' + s + '</span>';
+                        return '<span class="badge text-bg-light border me-1 mb-1" style="font-size:.7rem;">' + s + '</span>';
                     }).join('');
-                    var yearBadge = r.release_year ? ' <small class="opacity-75">' + r.release_year + '</small>' : '';
-                    return '<div class="col-12 col-md-6 col-xl-4">' +
+
+                    // Barre de proximité (0 = identique, rouge→vert)
+                    var proxHtml = '';
+                    if (isFinite(r.distance) && dMax > dMin) {
+                        var pct = Math.round((1 - (r.distance - dMin) / (dMax - dMin)) * 100);
+                        var col = pct >= 75 ? '#198754' : pct >= 40 ? '#fd7e14' : '#dc3545';
+                        proxHtml = '<div title="Proximité ' + pct + '%" style="margin-top:4px;">' +
+                            '<div style="height:4px;border-radius:2px;background:#e9ecef;overflow:hidden;">' +
+                            '<div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:2px;"></div>' +
+                            '</div></div>';
+                    } else if (dMax === dMin) {
+                        proxHtml = '<div style="height:4px;border-radius:2px;background:#198754;margin-top:4px;"></div>';
+                    }
+
+                    return '<div class="col-12 col-sm-6 col-lg-4 col-xl-3">' +
                         '<a href="' + r.url + '" class="text-decoration-none">' +
                         '<div class="card h-100 border-0 shadow-sm ' + (r.is_current ? 'bg-success-subtle' : 'bg-light') + '">' +
-                        '<div class="card-body">' +
-                        '<div class="mb-1"><span class="badge ' + badge + '">' + (r.is_current ? 'Actuel' : 'Archive') + yearBadge + '</span></div>' +
-                        '<div class="fw-bold small">' + r.brand + '</div>' +
-                        '<div class="small text-body-secondary mb-2">' + r.name + '</div>' +
+                        '<div class="card-body p-2">' +
+                        '<div class="mb-1 d-flex justify-content-between align-items-start">' +
+                        '<span class="badge ' + badge + '" style="font-size:.68rem;">' + (r.is_current ? 'Actuel' : 'Archive') + yearBadge + '</span>' +
+                        '<small class="text-muted" style="font-size:.65rem;">#' + (idx + 1) + '</small>' +
+                        '</div>' +
+                        '<div class="fw-bold small lh-sm">' + r.brand + '</div>' +
+                        '<div class="small text-body-secondary mb-1" style="font-size:.75rem;">' + r.name + '</div>' +
                         '<div>' + specs + '</div>' +
+                        proxHtml +
                         '</div></div></a></div>';
                 }).join('');
             }
