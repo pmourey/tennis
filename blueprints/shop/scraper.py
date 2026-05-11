@@ -105,19 +105,31 @@ def _parse_length(raw: str) -> float | None:
 
 
 def _parse_balance(raw: str) -> float | None:
-    """Parse la balance depuis '-6 pts HL' ou '+2 pts HH'."""
+    """Parse la balance depuis '-6 pts HL' ou '+2 pts HH' ou '4pts HH'.
+
+    Une raquette standard mesure 27 po = 685.8 mm.
+    1 pt = 1/8 po = 3.175 mm → le point d'équilibre ne peut physiquement
+    pas s'éloigner de plus de ~15 pts du centre (342.9 mm).
+    Toute valeur |balance| > 25 est rejetée (donnée invalide).
+    """
+    _MAX_BALANCE_PTS = 25  # seuil de validité physique
+
     if not raw:
         return None
     m = re.search(r'(-?\d+(?:\.\d+)?)\s*pts?\s*(HL|HH)', raw, re.IGNORECASE)
     if m:
         val = float(m.group(1))
-        if m.group(2).upper() == 'HL':
-            return -abs(val)
-        return abs(val)
-    # Format numérique simple
+        result = -abs(val) if m.group(2).upper() == 'HL' else abs(val)
+        if abs(result) > _MAX_BALANCE_PTS:
+            return None
+        return result
+    # Format numérique simple (fallback)
     m = re.search(r'(-?\d+(?:\.\d+)?)', raw)
     if m:
-        return float(m.group(1))
+        val = float(m.group(1))
+        if abs(val) > _MAX_BALANCE_PTS:
+            return None  # valeur hors plage physique → ignorer
+        return val
     return None
 
 
@@ -268,6 +280,9 @@ def scrape_racquet_by_pcode(pcode: str) -> dict:
                 table_data[k] = v
 
     head_size = _parse_head_size(head_size_raw)
+    # Validation bornes physiques tamis (80–140 sq.in)
+    if head_size is not None and not (80 <= head_size <= 140):
+        head_size = None
 
     # Fallback head_size via spans/meta (certaines pages l'encodent différemment)
     if head_size is None:
@@ -282,14 +297,26 @@ def scrape_racquet_by_pcode(pcode: str) -> dict:
     strung_weight = _parse_weight_oz_to_g(
         _find_value(table_data, 'Strung Weight', 'Weight', 'Strung') or ''
     )
+    # Validation bornes physiques poids (150–400 g)
+    if strung_weight is not None and not (150 <= strung_weight <= 400):
+        strung_weight = None
     unstrung_weight = _parse_weight_oz_to_g(
         _find_value(table_data, 'Unstrung Weight', 'Unstrung') or ''
     )
+    if unstrung_weight is not None and not (100 <= unstrung_weight <= 380):
+        unstrung_weight = None
     balance = _parse_balance(_find_value(table_data, 'Balance') or '')
     swingweight_raw = _find_value(table_data, 'Swingweight', 'Swing Weight', 'SwingWeight') or ''
-    swingweight = int(re.search(r'\d+', swingweight_raw).group()) if re.search(r'\d+', swingweight_raw) else None
+    _sw_m = re.search(r'\d+', swingweight_raw)
+    swingweight = int(_sw_m.group()) if _sw_m else None
+    if swingweight is not None and not (200 <= swingweight <= 430):
+        swingweight = None  # valeur hors bornes physiques → ignorer
+
     stiffness_raw = _find_value(table_data, 'Stiffness', 'Flex', 'RA') or ''
-    stiffness = int(re.search(r'\d+', stiffness_raw).group()) if re.search(r'\d+', stiffness_raw) else None
+    _st_m = re.search(r'\d+', stiffness_raw)
+    stiffness = int(_st_m.group()) if _st_m else None
+    if stiffness is not None and not (40 <= stiffness <= 95):
+        stiffness = None  # valeur hors bornes physiques → ignorer
     beam_width = _find_value(table_data, 'Beam Width', 'BeamWidth', 'Beam') or None
     string_tension = _find_value(table_data, 'String Tension', 'StringTension', 'Tension') or None
     composition = _find_value(table_data, 'Composition', 'Material', 'Matière') or None

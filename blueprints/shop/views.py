@@ -124,7 +124,43 @@ def racquets():
     brands = [r[0] for r in db.session.query(Racquet.brand).distinct().order_by(Racquet.brand).all()]
     patterns = [r[0] for r in db.session.query(Racquet.string_pattern).distinct().filter(Racquet.string_pattern.isnot(None)).order_by(Racquet.string_pattern).all()]
 
-    return render_template('shop/racquets.html', racquets=racquet_list, brands=brands, patterns=patterns, filters=request.args)
+    # ── Bornes physiques fixes (mêmes que racquet_detail.html) ───────────────
+    # Elles définissent le plancher/plafond absolu des sliders.
+    # On interroge la DB uniquement à l'intérieur de ces bornes pour obtenir
+    # les plages réelles des données valides (sans zéros ni valeurs aberrantes).
+    PHYS = {
+        'weight':      (150, 400),   # g  — même plage que la vue détail (220-380 + marge)
+        'head':        (80,  140),   # sq.in
+        'balance':     (-20, 20),    # pts HL/HH
+        'swingweight': (200, 430),
+        'stiffness':   (40,  95),    # RA
+    }
+
+    from sqlalchemy import func as sqlfunc
+
+    def _db_range(field, lo, hi):
+        row = db.session.query(sqlfunc.min(field), sqlfunc.max(field)).filter(
+            field >= lo, field <= hi
+        ).one()
+        return (int(row[0]) if row[0] is not None else lo,
+                int(row[1]) if row[1] is not None else hi)
+
+    w_lo, w_hi   = _db_range(Racquet.strung_weight, *PHYS['weight'])
+    h_lo, h_hi   = _db_range(Racquet.head_size,     *PHYS['head'])
+    b_lo, b_hi   = _db_range(Racquet.balance,        *PHYS['balance'])
+    sw_lo, sw_hi = _db_range(Racquet.swingweight,    *PHYS['swingweight'])
+    st_lo, st_hi = _db_range(Racquet.stiffness,      *PHYS['stiffness'])
+
+    range_stats = {
+        'weight_min':      w_lo,  'weight_max':      w_hi,
+        'head_min':        h_lo,  'head_max':        h_hi,
+        'balance_min':     b_lo,  'balance_max':     b_hi,
+        'swingweight_min': sw_lo, 'swingweight_max': sw_hi,
+        'stiffness_min':   st_lo, 'stiffness_max':   st_hi,
+    }
+
+    return render_template('shop/racquets.html', racquets=racquet_list, brands=brands, patterns=patterns,
+                           filters=request.args, range_stats=range_stats)
 
 
 @shop_bp.route('/racquets/<int:racquet_id>')
