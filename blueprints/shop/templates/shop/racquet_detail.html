@@ -146,49 +146,219 @@
 
                 <div class="card bg-light border-0 mt-4">
                     <div class="card-body">
-                        <h3 class="h6 mb-2">Affiner la recherche de raquettes similaires</h3>
-                        <p class="text-muted small mb-3">Ajustez les curseurs pour explorer d'autres modèles selon vos critères.</p>
+                        <h3 class="h6 mb-1">Affiner la recherche de raquettes similaires</h3>
+                        <p class="text-muted small mb-3">Ajustez les plages pour explorer des modèles proches selon vos critères.</p>
 
-                        <div class="row g-3">
+                        {# ── Styles dual-range (inline pour ne pas dépendre du CSS global) #}
+                        <style>
+                        .dr-wrap { position: relative; padding: 0 4px; }
+                        .dr-track { position: relative; height: 6px; background: #dee2e6; border-radius: 3px; margin: 14px 0 6px; }
+                        .dr-fill  { position: absolute; height: 100%; background: #0d6efd; border-radius: 3px; pointer-events: none; }
+                        .dr-range {
+                            position: absolute; top: -7px; width: 100%;
+                            appearance: none; -webkit-appearance: none;
+                            height: 20px; background: transparent; pointer-events: none; margin: 0; padding: 0;
+                        }
+                        .dr-range::-webkit-slider-thumb {
+                            appearance: none; -webkit-appearance: none;
+                            width: 18px; height: 18px; border-radius: 50%;
+                            background: #0d6efd; border: 2px solid #fff;
+                            box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: pointer; pointer-events: all;
+                        }
+                        .dr-range::-moz-range-thumb {
+                            width: 18px; height: 18px; border-radius: 50%;
+                            background: #0d6efd; border: 2px solid #fff; cursor: pointer; pointer-events: all;
+                        }
+                        .dr-labels { display: flex; justify-content: space-between; font-size: .72rem; color: #6c757d; margin-top: 2px; }
+                        .dr-badge  { display: inline-block; padding: 1px 7px; border-radius: 12px; background: #e7f1ff; color: #0d6efd; font-size: .78rem; font-weight: 600; }
+                        .dr-group-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6c757d; }
+                        .dr-reset-btn { font-size: .75rem; padding: 1px 8px; border-radius: 10px; color: #6c757d; border: 1px solid #ced4da; background: transparent; cursor: pointer; }
+                        .dr-reset-btn:hover { background: #fff0f0; color: #dc3545; border-color: #dc3545; }
+                        /* Repère de la valeur de la raquette actuelle */
+                        .dr-ref-marker { position: absolute; top: -5px; width: 3px; height: 16px; background: #fd7e14; border-radius: 2px; pointer-events: none; }
+                        .dr-ref-label  { position: absolute; font-size: .65rem; color: #fd7e14; font-weight: 700; transform: translateX(-50%); top: 14px; white-space: nowrap; }
+                        </style>
+
+                        {# ── Macro slider ─────────────────────────────── #}
+                        {# Tamis #}
+                        {% set h = slider_cfg.head %}
+                        {# h = (phys_lo, phys_hi, init_lo, init_hi) #}
+                        <div class="row g-3 mb-3">
                             <div class="col-12 col-md-6">
-                                <label class="shop-slider-label">Tamis cible: <strong id="lbl_head">{{ racquet.head_size | int if racquet.head_size else 100 }}</strong> sq.in</label>
-                                <input type="range" class="form-range" id="sl_head" min="85" max="135" step="1"
-                                       value="{{ racquet.head_size | int if racquet.head_size else 100 }}"
-                                       oninput="document.getElementById('lbl_head').textContent=this.value; debouncedSearch()">
-                                <div class="small text-muted">Tolérance ±<span id="lbl_tol_head">8</span> sq.in</div>
-                                <input type="range" class="form-range" id="sl_tol_head" min="3" max="20" step="1" value="8"
-                                       oninput="document.getElementById('lbl_tol_head').textContent=this.value; debouncedSearch()">
+                                {% set ref_head = racquet.head_size | int if racquet.head_size else None %}
+                                {% set ref_pct_head = ((ref_head - h[0]) / (h[1] - h[0]) * 100) | round(1) if ref_head else None %}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="dr-group-label">
+                                        Tamis (sq.in) <span class="dr-badge" id="lbl-head">{{ h[2] }}–{{ h[3] }}</span>
+                                    </span>
+                                    <button type="button" class="dr-reset-btn"
+                                            data-key="head" data-lo="{{ h[2] }}" data-hi="{{ h[3] }}"
+                                            data-min="{{ h[0] }}" data-max="{{ h[1] }}"
+                                            onclick="drReset(this)">⟳ Reset</button>
+                                </div>
+                                <div class="dr-wrap mt-1">
+                                    <div class="dr-track">
+                                        <div class="dr-fill" id="fill-head"></div>
+                                        {% if ref_pct_head is not none %}
+                                        <div class="dr-ref-marker" style="left:{{ ref_pct_head }}%;"></div>
+                                        <span class="dr-ref-label" style="left:{{ ref_pct_head }}%;">{{ ref_head }}</span>
+                                        {% endif %}
+                                        <input type="range" class="dr-range" id="rng-head-lo"
+                                               min="{{ h[0] }}" max="{{ h[1] }}" value="{{ h[2] }}" step="1"
+                                               oninput="drUpdate('head'); debouncedSearch()">
+                                        <input type="range" class="dr-range" id="rng-head-hi"
+                                               min="{{ h[0] }}" max="{{ h[1] }}" value="{{ h[3] }}" step="1"
+                                               oninput="drUpdate('head'); debouncedSearch()">
+                                    </div>
+                                    <div class="dr-labels"><span>{{ h[0] }}</span><span>{{ h[1] }}</span></div>
+                                </div>
                             </div>
 
+                            {# Poids cordé #}
+                            {% set w = slider_cfg.weight %}
+                            {% set ref_w = racquet.strung_weight | int if racquet.strung_weight else None %}
+                            {% set ref_pct_w = ((ref_w - w[0]) / (w[1] - w[0]) * 100) | round(1) if ref_w else None %}
                             <div class="col-12 col-md-6">
-                                <label class="shop-slider-label">Poids cordé cible: <strong id="lbl_weight">{{ racquet.strung_weight | int if racquet.strung_weight else 300 }}</strong> g</label>
-                                <input type="range" class="form-range" id="sl_weight" min="220" max="380" step="5"
-                                       value="{{ racquet.strung_weight | int if racquet.strung_weight else 300 }}"
-                                       oninput="document.getElementById('lbl_weight').textContent=this.value; debouncedSearch()">
-                                <div class="small text-muted">Tolérance ±<span id="lbl_tol_weight">20</span> g</div>
-                                <input type="range" class="form-range" id="sl_tol_weight" min="5" max="50" step="5" value="20"
-                                       oninput="document.getElementById('lbl_tol_weight').textContent=this.value; debouncedSearch()">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="dr-group-label">
+                                        Poids cordé (g) <span class="dr-badge" id="lbl-weight">{{ w[2] }}–{{ w[3] }}</span>
+                                    </span>
+                                    <button type="button" class="dr-reset-btn"
+                                            data-key="weight" data-lo="{{ w[2] }}" data-hi="{{ w[3] }}"
+                                            data-min="{{ w[0] }}" data-max="{{ w[1] }}"
+                                            onclick="drReset(this)">⟳ Reset</button>
+                                </div>
+                                <div class="dr-wrap mt-1">
+                                    <div class="dr-track">
+                                        <div class="dr-fill" id="fill-weight"></div>
+                                        {% if ref_pct_w is not none %}
+                                        <div class="dr-ref-marker" style="left:{{ ref_pct_w }}%;"></div>
+                                        <span class="dr-ref-label" style="left:{{ ref_pct_w }}%;">{{ ref_w }}</span>
+                                        {% endif %}
+                                        <input type="range" class="dr-range" id="rng-weight-lo"
+                                               min="{{ w[0] }}" max="{{ w[1] }}" value="{{ w[2] }}" step="1"
+                                               oninput="drUpdate('weight'); debouncedSearch()">
+                                        <input type="range" class="dr-range" id="rng-weight-hi"
+                                               min="{{ w[0] }}" max="{{ w[1] }}" value="{{ w[3] }}" step="1"
+                                               oninput="drUpdate('weight'); debouncedSearch()">
+                                    </div>
+                                    <div class="dr-labels"><span>{{ w[0] }} g</span><span>{{ w[1] }} g</span></div>
+                                </div>
                             </div>
 
+                            {# Swingweight #}
+                            {% set sw = slider_cfg.swing %}
+                            {% set ref_sw = racquet.swingweight %}
+                            {% set ref_pct_sw = ((ref_sw - sw[0]) / (sw[1] - sw[0]) * 100) | round(1) if ref_sw else None %}
                             <div class="col-12 col-md-6">
-                                <label class="shop-slider-label">Swingweight cible: <strong id="lbl_sw">{{ racquet.swingweight if racquet.swingweight else '—' }}</strong></label>
-                                <input type="range" class="form-range" id="sl_sw" min="250" max="380" step="1"
-                                       value="{{ racquet.swingweight if racquet.swingweight else 310 }}"
-                                       oninput="document.getElementById('lbl_sw').textContent=this.value; debouncedSearch()">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="dr-group-label">
+                                        Swingweight <span class="dr-badge" id="lbl-swing">{{ sw[2] }}–{{ sw[3] }}</span>
+                                    </span>
+                                    <button type="button" class="dr-reset-btn"
+                                            data-key="swing" data-lo="{{ sw[2] }}" data-hi="{{ sw[3] }}"
+                                            data-min="{{ sw[0] }}" data-max="{{ sw[1] }}"
+                                            onclick="drReset(this)">⟳ Reset</button>
+                                </div>
+                                <div class="dr-wrap mt-1">
+                                    <div class="dr-track">
+                                        <div class="dr-fill" id="fill-swing"></div>
+                                        {% if ref_pct_sw is not none %}
+                                        <div class="dr-ref-marker" style="left:{{ ref_pct_sw }}%;"></div>
+                                        <span class="dr-ref-label" style="left:{{ ref_pct_sw }}%;">{{ ref_sw }}</span>
+                                        {% endif %}
+                                        <input type="range" class="dr-range" id="rng-swing-lo"
+                                               min="{{ sw[0] }}" max="{{ sw[1] }}" value="{{ sw[2] }}" step="1"
+                                               oninput="drUpdate('swing'); debouncedSearch()">
+                                        <input type="range" class="dr-range" id="rng-swing-hi"
+                                               min="{{ sw[0] }}" max="{{ sw[1] }}" value="{{ sw[3] }}" step="1"
+                                               oninput="drUpdate('swing'); debouncedSearch()">
+                                    </div>
+                                    <div class="dr-labels"><span>{{ sw[0] }}</span><span>{{ sw[1] }}</span></div>
+                                </div>
                             </div>
 
+                            {# Rigidité #}
+                            {% set st = slider_cfg.stiff %}
+                            {% set ref_st = racquet.stiffness %}
+                            {% set ref_pct_st = ((ref_st - st[0]) / (st[1] - st[0]) * 100) | round(1) if ref_st else None %}
                             <div class="col-12 col-md-6">
-                                <label class="shop-slider-label">Rigidité cible (RA): <strong id="lbl_ra">{{ racquet.stiffness if racquet.stiffness else '—' }}</strong></label>
-                                <input type="range" class="form-range" id="sl_ra" min="50" max="85" step="1"
-                                       value="{{ racquet.stiffness if racquet.stiffness else 65 }}"
-                                       oninput="document.getElementById('lbl_ra').textContent=this.value; debouncedSearch()">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="dr-group-label">
+                                        Rigidité (RA) <span class="dr-badge" id="lbl-stiff">{{ st[2] }}–{{ st[3] }}</span>
+                                    </span>
+                                    <button type="button" class="dr-reset-btn"
+                                            data-key="stiff" data-lo="{{ st[2] }}" data-hi="{{ st[3] }}"
+                                            data-min="{{ st[0] }}" data-max="{{ st[1] }}"
+                                            onclick="drReset(this)">⟳ Reset</button>
+                                </div>
+                                <div class="dr-wrap mt-1">
+                                    <div class="dr-track">
+                                        <div class="dr-fill" id="fill-stiff"></div>
+                                        {% if ref_pct_st is not none %}
+                                        <div class="dr-ref-marker" style="left:{{ ref_pct_st }}%;"></div>
+                                        <span class="dr-ref-label" style="left:{{ ref_pct_st }}%;">{{ ref_st }}</span>
+                                        {% endif %}
+                                        <input type="range" class="dr-range" id="rng-stiff-lo"
+                                               min="{{ st[0] }}" max="{{ st[1] }}" value="{{ st[2] }}" step="1"
+                                               oninput="drUpdate('stiff'); debouncedSearch()">
+                                        <input type="range" class="dr-range" id="rng-stiff-hi"
+                                               min="{{ st[0] }}" max="{{ st[1] }}" value="{{ st[3] }}" step="1"
+                                               oninput="drUpdate('stiff'); debouncedSearch()">
+                                    </div>
+                                    <div class="dr-labels"><span>{{ st[0] }} (souple)</span><span>{{ st[1] }} (rigide)</span></div>
+                                </div>
+                            </div>
+
+                            {# Balance #}
+                            {% set bl = slider_cfg.balance %}
+                            {% set ref_bl = racquet.balance | int if racquet.balance is not none else None %}
+                            {% set ref_pct_bl = ((ref_bl - bl[0]) / (bl[1] - bl[0]) * 100) | round(1) if ref_bl is not none else None %}
+                            {% set zero_pct = ((-bl[0]) / (bl[1] - bl[0]) * 100) | round(1) %}
+                            <div class="col-12 col-md-6">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="dr-group-label">
+                                        Balance (HL↔HH) <span class="dr-badge" id="lbl-balance">{{ bl[2] }}–{{ bl[3] }}</span>
+                                    </span>
+                                    <button type="button" class="dr-reset-btn"
+                                            data-key="balance" data-lo="{{ bl[2] }}" data-hi="{{ bl[3] }}"
+                                            data-min="{{ bl[0] }}" data-max="{{ bl[1] }}"
+                                            onclick="drReset(this)">⟳ Reset</button>
+                                </div>
+                                <div class="dr-wrap mt-1">
+                                    <div class="dr-track">
+                                        <div class="dr-fill" id="fill-balance"></div>
+                                        {# Repère zéro neutre #}
+                                        <div style="position:absolute;left:{{ zero_pct }}%;top:-4px;width:2px;height:14px;background:#adb5bd;border-radius:1px;pointer-events:none;" title="Équilibre neutre"></div>
+                                        {% if ref_pct_bl is not none %}
+                                        <div class="dr-ref-marker" style="left:{{ ref_pct_bl }}%;"></div>
+                                        <span class="dr-ref-label" style="left:{{ ref_pct_bl }}%;">{{ ref_bl }}</span>
+                                        {% endif %}
+                                        <input type="range" class="dr-range" id="rng-balance-lo"
+                                               min="{{ bl[0] }}" max="{{ bl[1] }}" value="{{ bl[2] }}" step="1"
+                                               oninput="drUpdate('balance'); debouncedSearch()">
+                                        <input type="range" class="dr-range" id="rng-balance-hi"
+                                               min="{{ bl[0] }}" max="{{ bl[1] }}" value="{{ bl[3] }}" step="1"
+                                               oninput="drUpdate('balance'); debouncedSearch()">
+                                    </div>
+                                    <div class="dr-labels" style="position:relative;">
+                                        <span>{{ bl[0] }} (HL)</span>
+                                        <span style="position:absolute;left:{{ zero_pct }}%;transform:translateX(-50%);color:#495057;font-weight:700;">0</span>
+                                        <span>{{ bl[1] }} (HH)</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="d-flex flex-wrap gap-2 align-items-center mt-3">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="doSearch()">Mettre à jour</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetSliders()">Réinitialiser</button>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="drResetAll()">
+                                ⟳ Tout réinitialiser
+                            </button>
                             <span id="similar-count" class="text-muted small"></span>
+                            <span class="text-muted small ms-auto">
+                                <span style="display:inline-block;width:10px;height:10px;background:#fd7e14;border-radius:2px;vertical-align:middle;"></span>
+                                Valeur de la raquette sélectionnée
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -196,18 +366,23 @@
                 <div class="row g-3 mt-2" id="similar-grid">
                     {% for r in similar %}
                     <div class="col-12 col-md-6 col-xl-4">
-                        <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card">
+                        <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="text-decoration-none">
                             <div class="card h-100 border-0 shadow-sm {{ 'bg-success-subtle' if r.is_current else 'bg-light' }}">
                                 <div class="card-body">
-                                    <div class="small fw-semibold {{ 'text-success' if r.is_current else 'text-secondary' }} mb-1">{{ 'Actuel' if r.is_current else 'Archive' }}</div>
-                                    <div class="fw-bold">{{ r.brand }}</div>
+                                    <div class="mb-1">
+                                        <span class="badge {{ 'text-bg-success' if r.is_current else 'text-bg-secondary' }}">
+                                            {{ 'Actuel' if r.is_current else 'Archive' }}
+                                            {% if r.release_year %}<small class="opacity-75"> {{ r.release_year }}</small>{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="fw-bold small">{{ r.brand }}</div>
                                     <div class="small text-body-secondary mb-2">{{ r.name }}</div>
-                                    <div class="small text-body-secondary lh-lg">
-                                        {% if r.head_size %}{{ r.head_size | int }} sq.in<br>{% endif %}
-                                        {% if r.strung_weight %}{{ r.strung_weight | int }} g<br>{% endif %}
-                                        {% if r.string_pattern %}{{ r.string_pattern }}<br>{% endif %}
-                                        {% if r.swingweight %}SW {{ r.swingweight }}<br>{% endif %}
-                                        {% if r.stiffness %}RA {{ r.stiffness }}{% endif %}
+                                    <div>
+                                        {% if r.head_size %}<span class="badge text-bg-light border me-1">{{ r.head_size | int }} sq.in</span>{% endif %}
+                                        {% if r.strung_weight %}<span class="badge text-bg-light border me-1">{{ r.strung_weight | int }} g</span>{% endif %}
+                                        {% if r.string_pattern %}<span class="badge text-bg-light border me-1">{{ r.string_pattern }}</span>{% endif %}
+                                        {% if r.swingweight %}<span class="badge text-bg-light border me-1">SW {{ r.swingweight }}</span>{% endif %}
+                                        {% if r.stiffness %}<span class="badge text-bg-light border me-1">RA {{ r.stiffness }}</span>{% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -224,87 +399,115 @@
 
             <script>
             const RACQUET_ID = {{ racquet.id }};
-            const BASE_HEAD  = {{ racquet.head_size | int if racquet.head_size else 100 }};
-            const BASE_WEIGHT = {{ racquet.strung_weight | int if racquet.strung_weight else 300 }};
-            const BASE_SW    = {{ racquet.swingweight if racquet.swingweight else 310 }};
-            const BASE_RA    = {{ racquet.stiffness if racquet.stiffness else 65 }};
-            const BASE_BAL   = {{ racquet.balance if racquet.balance is not none else 'null' }};
 
-            let searchTimer = null;
-            function debouncedSearch() {
-                clearTimeout(searchTimer);
-                searchTimer = setTimeout(doSearch, 400);
+            // ── Defaults (valeurs initiales centrées sur la raquette) ──────────
+            const DR_DEFAULTS = {
+                head:    { lo: {{ slider_cfg.head[2] }},    hi: {{ slider_cfg.head[3] }},    min: {{ slider_cfg.head[0] }},    max: {{ slider_cfg.head[1] }} },
+                weight:  { lo: {{ slider_cfg.weight[2] }},  hi: {{ slider_cfg.weight[3] }},  min: {{ slider_cfg.weight[0] }},  max: {{ slider_cfg.weight[1] }} },
+                swing:   { lo: {{ slider_cfg.swing[2] }},   hi: {{ slider_cfg.swing[3] }},   min: {{ slider_cfg.swing[0] }},   max: {{ slider_cfg.swing[1] }} },
+                stiff:   { lo: {{ slider_cfg.stiff[2] }},   hi: {{ slider_cfg.stiff[3] }},   min: {{ slider_cfg.stiff[0] }},   max: {{ slider_cfg.stiff[1] }} },
+                balance: { lo: {{ slider_cfg.balance[2] }}, hi: {{ slider_cfg.balance[3] }}, min: {{ slider_cfg.balance[0] }}, max: {{ slider_cfg.balance[1] }} },
+            };
+
+            // ── Dual-range helpers ────────────────────────────────────────────
+            function el(id) { return document.getElementById(id); }
+
+            function drFill(key) {
+                var lo = el('rng-' + key + '-lo'), hi = el('rng-' + key + '-hi');
+                var fill = el('fill-' + key);
+                var pLo = (parseFloat(lo.value) - parseFloat(lo.min)) / (parseFloat(lo.max) - parseFloat(lo.min)) * 100;
+                var pHi = (parseFloat(hi.value) - parseFloat(lo.min)) / (parseFloat(lo.max) - parseFloat(lo.min)) * 100;
+                fill.style.left  = pLo + '%';
+                fill.style.width = Math.max(0, pHi - pLo) + '%';
             }
 
-            function doSearch() {
-                const head     = document.getElementById('sl_head').value;
-                const tolHead  = document.getElementById('sl_tol_head').value;
-                const weight   = document.getElementById('sl_weight').value;
-                const tolW     = document.getElementById('sl_tol_weight').value;
-                const sw       = document.getElementById('sl_sw').value;
-                const ra       = document.getElementById('sl_ra').value;
+            function drUpdate(key) {
+                var loEl = el('rng-' + key + '-lo'), hiEl = el('rng-' + key + '-hi');
+                var lo = parseFloat(loEl.value), hi = parseFloat(hiEl.value);
+                if (lo > hi) {
+                    if (document.activeElement === loEl) { loEl.value = hi; lo = hi; }
+                    else                                  { hiEl.value = lo; hi = lo; }
+                }
+                el('lbl-' + key).textContent = lo + '–' + hi;
+                drFill(key);
+            }
 
-                const params = new URLSearchParams({
-                    head_size: head, tol_head: tolHead,
-                    strung_weight: weight, tol_weight: tolW,
-                    swingweight: sw, stiffness: ra,
-                    balance: BASE_BAL !== null ? BASE_BAL : '',
-                    exclude_id: RACQUET_ID,
+            function drReset(btn) {
+                var key = btn.dataset.key;
+                var d = DR_DEFAULTS[key];
+                el('rng-' + key + '-lo').value = d.lo;
+                el('rng-' + key + '-hi').value = d.hi;
+                drUpdate(key);
+                doSearch();
+            }
+
+            function drResetAll() {
+                Object.keys(DR_DEFAULTS).forEach(function(key) {
+                    var d = DR_DEFAULTS[key];
+                    el('rng-' + key + '-lo').value = d.lo;
+                    el('rng-' + key + '-hi').value = d.hi;
+                    drUpdate(key);
                 });
+                doSearch();
+            }
 
-                document.getElementById('similar-count').textContent = '⏳ Recherche…';
+            // ── Recherche similaires ──────────────────────────────────────────
+            var searchTimer = null;
+            function debouncedSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(doSearch, 350); }
 
+            function doSearch() {
+                var keys = ['head', 'weight', 'swing', 'stiff', 'balance'];
+                var params = new URLSearchParams({ exclude_id: RACQUET_ID });
+                keys.forEach(function(k) {
+                    var lo = el('rng-' + k + '-lo').value;
+                    var hi = el('rng-' + k + '-hi').value;
+                    // N'inclure que si le paramètre est filtrant (pas à pleine plage)
+                    var d = DR_DEFAULTS[k];
+                    params.set('min_' + k, lo);
+                    params.set('max_' + k, hi);
+                });
+                el('similar-count').textContent = '⏳ Recherche…';
                 fetch('{{ url_for("shop.similar_ajax") }}?' + params.toString())
-                    .then(r => r.json())
-                    .then(data => renderSimilar(data))
-                    .catch(() => { document.getElementById('similar-count').textContent = '⚠️ Erreur réseau'; });
+                    .then(function(r) { return r.json(); })
+                    .then(renderSimilar)
+                    .catch(function() { el('similar-count').textContent = '⚠️ Erreur réseau'; });
             }
 
             function renderSimilar(data) {
-                const grid = document.getElementById('similar-grid');
-                const cnt  = document.getElementById('similar-count');
+                var grid = el('similar-grid'), cnt = el('similar-count');
                 if (!data.length) {
-                    grid.innerHTML = '<div class="col-12"><div class="alert alert-secondary mb-0">Aucune raquette trouvée avec ces critères.</div></div>';
+                    grid.innerHTML = '<div class="col-12"><div class="alert alert-secondary mb-0">Aucune raquette similaire trouvée avec ces critères.</div></div>';
                     cnt.textContent = '0 résultat';
                     return;
                 }
-                cnt.textContent = data.length + ' raquette(s) trouvée(s)';
-                grid.innerHTML = data.map(r => `
-                    <div class="col-12 col-md-6 col-xl-4">
-                        <a href="${r.url}" class="shop-similar-card">
-                            <div class="card h-100 border-0 shadow-sm ${r.is_current ? 'bg-success-subtle' : 'bg-light'}">
-                                <div class="card-body">
-                                    <div class="small fw-semibold ${r.is_current ? 'text-success' : 'text-secondary'} mb-1">${r.is_current ? 'Actuel' : 'Archive'}</div>
-                                    <div class="fw-bold">${r.brand}</div>
-                                    <div class="small text-body-secondary mb-2">${r.name}</div>
-                                    <div class="small text-body-secondary lh-lg">
-                                        ${r.head_size ? r.head_size+' sq.in<br>' : ''}
-                                        ${r.strung_weight ? r.strung_weight+' g<br>' : ''}
-                                        ${r.string_pattern ? r.string_pattern+'<br>' : ''}
-                                        ${r.swingweight ? 'SW '+r.swingweight+'<br>' : ''}
-                                        ${r.stiffness ? 'RA '+r.stiffness : ''}
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>`).join('');
+                cnt.textContent = data.length + ' raquette(s)';
+                grid.innerHTML = data.map(function(r) {
+                    var badge = r.is_current ? 'text-bg-success' : 'text-bg-secondary';
+                    var specs = [
+                        r.head_size    ? r.head_size + ' sq.in' : null,
+                        r.strung_weight ? r.strung_weight + ' g' : null,
+                        r.string_pattern || null,
+                        r.swingweight  ? 'SW ' + r.swingweight : null,
+                        r.stiffness    ? 'RA ' + r.stiffness : null,
+                    ].filter(Boolean).map(function(s) {
+                        return '<span class="badge text-bg-light border me-1">' + s + '</span>';
+                    }).join('');
+                    var yearBadge = r.release_year ? ' <small class="opacity-75">' + r.release_year + '</small>' : '';
+                    return '<div class="col-12 col-md-6 col-xl-4">' +
+                        '<a href="' + r.url + '" class="text-decoration-none">' +
+                        '<div class="card h-100 border-0 shadow-sm ' + (r.is_current ? 'bg-success-subtle' : 'bg-light') + '">' +
+                        '<div class="card-body">' +
+                        '<div class="mb-1"><span class="badge ' + badge + '">' + (r.is_current ? 'Actuel' : 'Archive') + yearBadge + '</span></div>' +
+                        '<div class="fw-bold small">' + r.brand + '</div>' +
+                        '<div class="small text-body-secondary mb-2">' + r.name + '</div>' +
+                        '<div>' + specs + '</div>' +
+                        '</div></div></a></div>';
+                }).join('');
             }
 
-            function resetSliders() {
-                document.getElementById('sl_head').value   = BASE_HEAD;
-                document.getElementById('lbl_head').textContent = BASE_HEAD;
-                document.getElementById('sl_tol_head').value = 8;
-                document.getElementById('lbl_tol_head').textContent = 8;
-                document.getElementById('sl_weight').value = BASE_WEIGHT;
-                document.getElementById('lbl_weight').textContent = BASE_WEIGHT;
-                document.getElementById('sl_tol_weight').value = 20;
-                document.getElementById('lbl_tol_weight').textContent = 20;
-                document.getElementById('sl_sw').value  = BASE_SW;
-                document.getElementById('lbl_sw').textContent = BASE_SW;
-                document.getElementById('sl_ra').value  = BASE_RA;
-                document.getElementById('lbl_ra').textContent = BASE_RA;
-                doSearch();
-            }
+            // ── Init ─────────────────────────────────────────────────────────
+            Object.keys(DR_DEFAULTS).forEach(drFill);
+            doSearch();
             </script>
         </div>
     </div>

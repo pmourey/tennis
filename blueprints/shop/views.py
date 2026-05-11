@@ -182,7 +182,35 @@ def racquets():
 def racquet_detail(racquet_id):
     racquet = Racquet.query.get_or_404(racquet_id)
     similar = _find_similar(racquet)
-    return render_template('shop/racquet_detail.html', racquet=racquet, similar=similar)
+
+    # ── Bornes physiques absolues ──────────────────────────────────────────
+    PHYS = dict(head=(85, 137), weight=(220, 400), swing=(200, 430), stiff=(40, 95), balance=(-15, 16))
+    # Tolérances par défaut centrées sur la valeur de la raquette
+    TOL  = dict(head=8, weight=20, swing=15, stiff=5, balance=3)
+
+    def _init(key, val):
+        lo, hi = PHYS[key]
+        if val is None:
+            return lo, hi, lo, hi          # pas de valeur → plage complète
+        tol = TOL[key]
+        return lo, hi, max(lo, val - tol), min(hi, val + tol)
+
+    h_phys_lo, h_phys_hi, h_lo, h_hi     = _init('head',    int(racquet.head_size)    if racquet.head_size    else None)
+    w_phys_lo, w_phys_hi, w_lo, w_hi     = _init('weight',  int(racquet.strung_weight) if racquet.strung_weight else None)
+    sw_phys_lo, sw_phys_hi, sw_lo, sw_hi = _init('swing',   racquet.swingweight)
+    st_phys_lo, st_phys_hi, st_lo, st_hi = _init('stiff',   racquet.stiffness)
+    b_phys_lo,  b_phys_hi,  b_lo,  b_hi  = _init('balance', int(racquet.balance)       if racquet.balance is not None else None)
+
+    slider_cfg = {
+        'head':    (h_phys_lo,  h_phys_hi,  h_lo,  h_hi),
+        'weight':  (w_phys_lo,  w_phys_hi,  w_lo,  w_hi),
+        'swing':   (sw_phys_lo, sw_phys_hi, sw_lo, sw_hi),
+        'stiff':   (st_phys_lo, st_phys_hi, st_lo, st_hi),
+        'balance': (b_phys_lo,  b_phys_hi,  b_lo,  b_hi),
+    }
+
+    return render_template('shop/racquet_detail.html', racquet=racquet, similar=similar,
+                           slider_cfg=slider_cfg)
 
 
 def _find_similar(racquet: Racquet, limit: int = 6) -> list:
@@ -322,63 +350,85 @@ def delete_racquet(racquet_id):
 @shop_bp.route('/racquets/similar_ajax')
 def similar_ajax():
     from flask import jsonify
-    head_size = request.args.get('head_size', type=float)
-    strung_weight = request.args.get('strung_weight', type=float)
-    balance = request.args.get('balance', type=float)
-    stiffness = request.args.get('stiffness', type=int)
-    swingweight = request.args.get('swingweight', type=int)
-    exclude_id = request.args.get('exclude_id', type=int)
-    tol_head = request.args.get('tol_head', 8, type=float)
-    tol_weight = request.args.get('tol_weight', 20, type=float)
+
+    # Plages min/max directes (nouvelle API)
+    min_head       = request.args.get('min_head',       type=float)
+    max_head       = request.args.get('max_head',       type=float)
+    min_weight     = request.args.get('min_weight',     type=float)
+    max_weight     = request.args.get('max_weight',     type=float)
+    min_swing      = request.args.get('min_swing',      type=int)
+    max_swing      = request.args.get('max_swing',      type=int)
+    min_stiff      = request.args.get('min_stiff',      type=int)
+    max_stiff      = request.args.get('max_stiff',      type=int)
+    min_balance    = request.args.get('min_balance',    type=float)
+    max_balance    = request.args.get('max_balance',    type=float)
+    exclude_id     = request.args.get('exclude_id',     type=int)
 
     q = Racquet.query
     if exclude_id:
         q = q.filter(Racquet.id != exclude_id)
 
-    filters = []
-    if head_size:
-        filters.append(db.and_(
-            Racquet.head_size >= head_size - tol_head,
-            Racquet.head_size <= head_size + tol_head,
-        ))
-    if strung_weight:
-        filters.append(db.and_(
-            Racquet.strung_weight >= strung_weight - tol_weight,
-            Racquet.strung_weight <= strung_weight + tol_weight,
-        ))
-    if filters:
-        q = q.filter(db.and_(*filters))
+    if min_head is not None:
+        q = q.filter(Racquet.head_size >= min_head)
+    if max_head is not None:
+        q = q.filter(Racquet.head_size <= max_head)
+    if min_weight is not None:
+        q = q.filter(Racquet.strung_weight >= min_weight)
+    if max_weight is not None:
+        q = q.filter(Racquet.strung_weight <= max_weight)
+    if min_swing is not None:
+        q = q.filter(Racquet.swingweight >= min_swing)
+    if max_swing is not None:
+        q = q.filter(Racquet.swingweight <= max_swing)
+    if min_stiff is not None:
+        q = q.filter(Racquet.stiffness >= min_stiff)
+    if max_stiff is not None:
+        q = q.filter(Racquet.stiffness <= max_stiff)
+    if min_balance is not None:
+        q = q.filter(Racquet.balance >= min_balance)
+    if max_balance is not None:
+        q = q.filter(Racquet.balance <= max_balance)
 
     candidates = q.order_by(Racquet.is_current.desc(), Racquet.brand).limit(100).all()
 
     def score(r):
         s = 0
-        if balance is not None and r.balance is not None:
-            if abs(r.balance - balance) <= 3:
-                s += 3
-        if swingweight and r.swingweight:
-            if abs(r.swingweight - swingweight) <= 15:
-                s += 3
-        if stiffness and r.stiffness:
-            if abs(r.stiffness - stiffness) <= 5:
-                s += 2
         if r.is_current:
-            s += 1
+            s += 2
+        # Bonus précision : plus la valeur est proche du centre des plages, mieux c'est
+        if min_head and max_head and r.head_size:
+            mid = (min_head + max_head) / 2
+            if abs(r.head_size - mid) <= (max_head - min_head) / 4:
+                s += 2
+        if min_weight and max_weight and r.strung_weight:
+            mid = (min_weight + max_weight) / 2
+            if abs(r.strung_weight - mid) <= (max_weight - min_weight) / 4:
+                s += 2
+        if min_swing and max_swing and r.swingweight:
+            mid = (min_swing + max_swing) / 2
+            if abs(r.swingweight - mid) <= (max_swing - min_swing) / 4:
+                s += 3
+        if min_stiff and max_stiff and r.stiffness:
+            mid = (min_stiff + max_stiff) / 2
+            if abs(r.stiffness - mid) <= (max_stiff - min_stiff) / 4:
+                s += 2
         return s
 
     candidates.sort(key=score, reverse=True)
     results = []
-    for r in candidates[:6]:
+    for r in candidates[:9]:
         results.append({
             'id': r.id,
             'brand': r.brand,
             'name': r.name,
             'is_current': r.is_current,
+            'release_year': r.release_year,
             'head_size': int(r.head_size) if r.head_size else None,
             'strung_weight': int(r.strung_weight) if r.strung_weight else None,
-            'string_pattern': r.string_pattern,
             'swingweight': r.swingweight,
             'stiffness': r.stiffness,
+            'balance': r.balance,
+            'string_pattern': r.string_pattern,
             'url': url_for('shop.racquet_detail', racquet_id=r.id),
             'image_local': r.image_local,
             'image_url': r.image_url,
