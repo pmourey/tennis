@@ -350,23 +350,43 @@
                             </div>
                         </div>
 
+                        {# ── Filtre Marques (liste déroulante) ── #}
+                        <div class="mb-3">
+                            <label class="dr-group-label d-block mb-1" for="brand-select">Marque</label>
+                            <select id="brand-select" class="form-select form-select-sm" onchange="debouncedSearch()">
+                                <option value="">Toutes</option>
+                                {% for brand in all_brands %}
+                                <option value="{{ brand }}">{{ brand }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {# ── Filtre Plan de cordage (dynamique depuis les résultats) ── #}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="dr-group-label">Plan de cordage</span>
+                                <button type="button" class="dr-reset-btn" onclick="patternSelectAll()">⟳ Reset</button>
+                            </div>
+                            <div id="pattern-filter-options"
+                                 style="display:flex;flex-wrap:wrap;gap:4px 12px;min-height:24px;">
+                                <span class="text-muted small" style="font-size:.75rem;">⏳ Chargement…</span>
+                            </div>
+                        </div>
+
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="drResetAll()">
                                 ⟳ Tout réinitialiser
                             </button>
                             {# ── Toggle modèles actuels ── #}
-                            <label class="d-inline-flex align-items-center gap-2 mb-0 ms-2"
-                                   style="cursor:pointer; font-size:.85rem; font-weight:600; color:#0d6efd; user-select:none;"
-                                   title="Affiche uniquement les modèles marqués comme actuels ou dont l'année de sortie est ≥ 2015">
-                                <div class="form-check form-switch mb-0">
-                                    <input class="form-check-input" type="checkbox" id="toggle-current-only"
-                                           role="switch" onchange="doSearch()">
-                                    <label class="form-check-label" for="toggle-current-only"
-                                           style="font-size:.82rem; font-weight:600;">
-                                        Modèles actuels seulement (≥ 2015)
-                                    </label>
-                                </div>
-                            </label>
+                            <div class="form-check form-switch mb-0 ms-2"
+                                 title="Affiche uniquement les modèles marqués comme actuels ou dont l'année de sortie est ≥ 2015">
+                                <input class="form-check-input" type="checkbox" id="toggle-current-only"
+                                       role="switch" onchange="doSearch()">
+                                <label class="form-check-label" for="toggle-current-only"
+                                       style="font-size:.82rem; font-weight:600; color:#0d6efd; cursor:pointer;">
+                                    Modèles actuels seulement (≥ 2015)
+                                </label>
+                            </div>
                             <span id="similar-count" class="text-muted small ms-auto"></span>
                             <span class="text-muted small">
                                 <span style="display:inline-block;width:10px;height:10px;background:#fd7e14;border-radius:2px;vertical-align:middle;"></span>
@@ -461,11 +481,16 @@
                     el('rng-' + key + '-hi').value = d.hi;
                     drUpdate(key);
                 });
+                var brandSelect = document.getElementById('brand-select');
+                if (brandSelect) brandSelect.value = '';
                 doSearch();
             }
 
             // ── Recherche similaires ──────────────────────────────────────────
             var searchTimer = null;
+            var lastResults  = null;           // mémorise les résultats bruts
+            var activePatterns = new Set();    // patterns cochés (vide = tous)
+
             function debouncedSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(doSearch, 350); }
 
             function doSearch() {
@@ -479,11 +504,71 @@
                     params.set('min_' + k, el('rng-' + k + '-lo').value);
                     params.set('max_' + k, el('rng-' + k + '-hi').value);
                 });
+
+                // ── Filtre marques ──
+                var brandSelect = document.getElementById('brand-select');
+                if (brandSelect && brandSelect.value) {
+                    params.set('brands', brandSelect.value);
+                }
+
                 el('similar-count').textContent = '⏳ Recherche…';
                 fetch('{{ url_for("shop.similar_ajax") }}?' + params.toString())
                     .then(function(r) { return r.json(); })
-                    .then(renderSimilar)
+                    .then(function(data) {
+                        lastResults = data;
+                        updatePatternFilter(data);
+                        renderSimilar(applyPatternFilter(data));
+                    })
                     .catch(function() { el('similar-count').textContent = '⚠️ Erreur réseau'; });
+            }
+
+            // ── Filtre plan de cordage (client-side) ─────────────────────────
+            function applyPatternFilter(data) {
+                if (activePatterns.size === 0) return data;
+                return data.filter(function(r) { return activePatterns.has(r.string_pattern); });
+            }
+
+            function updatePatternFilter(data) {
+                var container = el('pattern-filter-options');
+                if (!container) return;
+                var patterns = [];
+                data.forEach(function(r) { if (r.string_pattern && patterns.indexOf(r.string_pattern) === -1) patterns.push(r.string_pattern); });
+                patterns.sort();
+
+                if (!patterns.length) {
+                    container.innerHTML = '<span class="text-muted" style="font-size:.75rem;">Aucun plan disponible</span>';
+                    return;
+                }
+                // Retirer les patterns disparus de activePatterns
+                if (activePatterns.size > 0) {
+                    activePatterns.forEach(function(p) { if (patterns.indexOf(p) === -1) activePatterns.delete(p); });
+                }
+                container.innerHTML = patterns.map(function(p) {
+                    var safeId = 'pat-' + p.replace(/[^a-zA-Z0-9]/g, '-');
+                    var checked = (activePatterns.size === 0 || activePatterns.has(p)) ? 'checked' : '';
+                    return '<div class="form-check mb-0" style="min-width:70px;">' +
+                        '<input class="form-check-input" type="checkbox" id="' + safeId + '" value="' + p + '" ' + checked + ' onchange="onPatternChange(this)">' +
+                        '<label class="form-check-label" for="' + safeId + '" style="font-size:.78rem;">' + p + '</label>' +
+                        '</div>';
+                }).join('');
+            }
+
+            function onPatternChange() {
+                var boxes = document.querySelectorAll('#pattern-filter-options input[type=checkbox]');
+                var checked = Array.from(boxes).filter(function(c){ return c.checked; });
+                if (checked.length === 0 || checked.length === boxes.length) {
+                    activePatterns = new Set();
+                } else {
+                    activePatterns = new Set(checked.map(function(c){ return c.value; }));
+                }
+                if (lastResults) renderSimilar(applyPatternFilter(lastResults));
+            }
+
+            function patternSelectAll() {
+                activePatterns = new Set();
+                var boxes = document.querySelectorAll('#pattern-filter-options input[type=checkbox]');
+                boxes.forEach(function(c){ c.checked = true; });
+                if (lastResults) renderSimilar(applyPatternFilter(lastResults));
             }
 
             function renderSimilar(data) {

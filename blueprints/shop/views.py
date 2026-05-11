@@ -209,8 +209,13 @@ def racquet_detail(racquet_id):
         'balance': (b_phys_lo,  b_phys_hi,  b_lo,  b_hi),
     }
 
+    all_brands = sorted({r.brand for r in Racquet.query.with_entities(Racquet.brand).distinct() if r.brand})
+    all_string_patterns = [r[0] for r in db.session.query(Racquet.string_pattern).distinct()
+                           .filter(Racquet.string_pattern.isnot(None)).order_by(Racquet.string_pattern).all()]
+
     return render_template('shop/racquet_detail.html', racquet=racquet, similar=similar,
-                           slider_cfg=slider_cfg)
+                           slider_cfg=slider_cfg, all_brands=all_brands,
+                           all_string_patterns=all_string_patterns)
 
 
 def _find_similar(racquet: Racquet, limit: int = 6) -> list:
@@ -366,6 +371,8 @@ def similar_ajax():
     exclude_id  = request.args.get('exclude_id',  type=int)
     current_only = request.args.get('current_only') == '1'
     limit       = request.args.get('limit', 24, type=int)
+    brands_raw  = request.args.get('brands', '')
+    brands_filter = [b.strip() for b in brands_raw.split(',') if b.strip()]
 
     q = Racquet.query
     if exclude_id:
@@ -384,6 +391,7 @@ def similar_ajax():
     if max_stiff   is not None: q = q.filter(Racquet.stiffness     <= max_stiff)
     if min_balance is not None: q = q.filter(Racquet.balance       >= min_balance)
     if max_balance is not None: q = q.filter(Racquet.balance       <= max_balance)
+    if brands_filter:           q = q.filter(Racquet.brand.in_(brands_filter))
 
     candidates = q.limit(300).all()
 
