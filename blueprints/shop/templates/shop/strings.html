@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block main %}
+{% include 'partials/_menu.html' %}
+<main class="shop-main">
+<div class="shop-container" style="max-width:1400px; margin:0 auto; padding:0 16px;">
+
+  <div class="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div>
+      <h2 class="h4 mb-1">🧵 Catalogue cordages</h2>
+      <p class="text-muted small mb-0">
+        {{ strings|length }} cordage(s) trouvé(s) · Source : <a href="https://www.racqix.com" target="_blank">Racqix.com</a>
+        <a href="{{ url_for('shop.racquets') }}" class="ms-3">🎾 Catalogue raquettes</a>
+        <a href="{{ url_for('shop.racquet_selector') }}" class="ms-3">🎯 Sélecteur</a>
+      </p>
+    </div>
+  </div>
+
+  {# ── FILTRES ── #}
+  <form method="GET" action="{{ url_for('shop.strings') }}" id="filter-form">
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body py-3">
+        <div class="row g-3 align-items-end">
+
+          {# Marque #}
+          <div class="col-6 col-md-3 col-lg-2">
+            <label class="form-label form-label-sm fw-semibold">Marque</label>
+            <select name="brand" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">— Toutes —</option>
+              {% for b in all_brands %}
+              <option value="{{ b }}" {% if filters.get('brand') == b %}selected{% endif %}>{{ b|capitalize }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {# Type #}
+          <div class="col-6 col-md-3 col-lg-2">
+            <label class="form-label form-label-sm fw-semibold">Type</label>
+            <select name="string_type" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">— Tous —</option>
+              {% for val, lbl in all_types %}
+              <option value="{{ val }}" {% if filters.get('string_type') == val %}selected{% endif %}>{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {# Jauge #}
+          <div class="col-6 col-md-2 col-lg-2">
+            <label class="form-label form-label-sm fw-semibold">Jauge</label>
+            <select name="gauge" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">— Toutes —</option>
+              {% for g in ['1.15','1.18','1.20','1.22','1.23','1.24','1.25','1.27','1.28','1.30','1.32','1.35'] %}
+              <option value="{{ g }}" {% if filters.get('gauge') == g %}selected{% endif %}>{{ g }} mm</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {# Tri #}
+          <div class="col-6 col-md-2 col-lg-2">
+            <label class="form-label form-label-sm fw-semibold">Trier par</label>
+            <select name="sort_by" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="name"    {% if filters.get('sort_by','name') == 'name'    %}selected{% endif %}>Nom</option>
+              <option value="brand"   {% if filters.get('sort_by') == 'brand'   %}selected{% endif %}>Marque</option>
+              <option value="power"   {% if filters.get('sort_by') == 'power'   %}selected{% endif %}>⚡ Puissance</option>
+              <option value="control" {% if filters.get('sort_by') == 'control' %}selected{% endif %}>🎯 Contrôle</option>
+              <option value="spin"    {% if filters.get('sort_by') == 'spin'    %}selected{% endif %}>🌀 Spin</option>
+              <option value="comfort" {% if filters.get('sort_by') == 'comfort' %}selected{% endif %}>🛡️ Confort</option>
+            </select>
+          </div>
+
+          {# Reset #}
+          <div class="col-12 col-md-2">
+            <a href="{{ url_for('shop.strings') }}" class="btn btn-outline-secondary btn-sm w-100">
+              Réinitialiser
+            </a>
+          </div>
+        </div>
+
+        {# Sliders caractéristiques #}
+        <div class="row g-3 mt-2">
+          {% for key, lbl, emoji in [('min_power','Puissance','⚡'),('min_control','Contrôle','🎯'),('min_spin','Spin','🌀'),('min_comfort','Confort','🛡️')] %}
+          <div class="col-6 col-md-3">
+            <label class="form-label form-label-sm fw-semibold">{{ emoji }} {{ lbl }} min.</label>
+            <div class="d-flex align-items-center gap-2">
+              <input type="range" name="{{ key }}" min="0" max="100" step="5"
+                     value="{{ filters.get(key, 0) }}"
+                     class="form-range flex-grow-1"
+                     oninput="document.getElementById('lbl_{{ key }}').textContent=this.value"
+                     onchange="this.form.submit()">
+              <span id="lbl_{{ key }}" class="badge bg-secondary" style="min-width:2.5rem;">{{ filters.get(key, 0) }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </form>
+
+  {# ── GRILLE ── #}
+  {% if strings %}
+  <div class="row g-3">
+    {% for s in strings %}
+    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+      <div class="card h-100 border-0 shadow-sm string-card">
+        {% if s.image_url %}
+        <div class="string-img-wrap text-center pt-3">
+          <img src="{{ s.image_url }}" alt="{{ s.name }}"
+               loading="lazy"
+               style="max-height:100px; max-width:80%; object-fit:contain;">
+        </div>
+        {% else %}
+        <div class="string-img-placeholder d-flex align-items-center justify-content-center"
+             style="height:80px; background:#f1f5f9; font-size:2rem;">🧵</div>
+        {% endif %}
+        <div class="card-body p-2">
+          <div class="fw-bold small lh-sm mb-1" title="{{ s.name }}">
+            {{ s.type_emoji }} {{ s.name|truncate(40) }}
+          </div>
+          <div class="badge rounded-pill mb-2
+            {% if s.string_type in ('co_polyester','polyester') %}bg-danger
+            {% elif s.string_type == 'multifilament' %}bg-success
+            {% elif s.string_type == 'natural_gut' %}bg-warning text-dark
+            {% elif s.string_type == 'hybrid' %}bg-info text-dark
+            {% else %}bg-secondary{% endif %}
+            " style="font-size:.7em;">{{ s.type_label }}</div>
+
+          {% if s.gauges %}
+          <div class="text-muted" style="font-size:.72em;">
+            Jauge{{ 's' if s.gauges|length > 1 else '' }} : {{ s.gauges | join(', ') }}
+          </div>
+          {% endif %}
+
+          {# Barres de caractéristiques #}
+          {% if s.rating_power or s.rating_control or s.rating_spin or s.rating_comfort %}
+          <div class="mt-2" style="font-size:.68em;">
+            {% for val, lbl, color in [
+              (s.rating_power,   '⚡', '#ef4444'),
+              (s.rating_control, '🎯', '#3b82f6'),
+              (s.rating_spin,    '🌀', '#a855f7'),
+              (s.rating_comfort, '🛡️', '#22c55e'),
+            ] %}
+            {% if val %}
+            <div class="d-flex align-items-center gap-1 mb-1">
+              <span style="width:1.1em;">{{ lbl }}</span>
+              <div class="flex-grow-1 bg-light rounded" style="height:5px; overflow:hidden;">
+                <div style="width:{{ val }}%; height:100%; background:{{ color }};"></div>
+              </div>
+              <span class="text-muted" style="min-width:1.8em; text-align:right;">{{ val }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info mt-4">
+    Aucun cordage trouvé avec ces critères.
+    <a href="{{ url_for('shop.strings') }}">Réinitialiser les filtres</a>
+  </div>
+  {% endif %}
+
+</div>
+</main>
+
+<style>
+.string-card { transition: transform .15s, box-shadow .15s; cursor:default; }
+.string-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.12)!important; }
+.string-img-wrap img { transition: transform .2s; }
+.string-card:hover .string-img-wrap img { transform: scale(1.05); }
+</style>
+{% endblock main %}
+

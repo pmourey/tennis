@@ -73,7 +73,17 @@
         {% elif request.blueprint == 'shop' %}
             {% if request.path != '/shop/racquets' %}
                 <td><a href="{{ url_for('shop.racquets') }}">
-                    <button>Catalogue raquettes</button>
+                    <button>🎾 Catalogue raquettes</button>
+                </a></td>
+            {% endif %}
+            {% if request.path != '/shop/strings' %}
+                <td><a href="{{ url_for('shop.strings') }}">
+                    <button>🧵 Catalogue cordages</button>
+                </a></td>
+            {% endif %}
+            {% if request.endpoint != 'shop.racquet_selector' %}
+                <td><a href="{{ url_for('shop.racquet_selector') }}">
+                    <button>🎯 Sélecteur</button>
                 </a></td>
             {% endif %}
         {% endif %}

@@ -1,6 +1,6 @@
-from flask import render_template, request, flash, redirect, url_for, current_app
+from flask import render_template, request, flash, redirect, url_for, current_app, jsonify
 from blueprints.shop import shop_bp
-from blueprints.shop.models import Racquet
+from blueprints.shop.models import Racquet, RacqixString
 from blueprints.shop import scraper as shop_scraper
 from extensions import db
 
@@ -608,7 +608,148 @@ def diagnose_pcode(pcode):
         result = shop_scraper.diagnose_head_size(pcode.upper())
     except Exception as exc:
         result = {'error': str(exc)}
-    from flask import jsonify
     return jsonify(result)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  CATALOGUE CORDAGES
+# ══════════════════════════════════════════════════════════════════════════════
+
+@shop_bp.route('/strings')
+def strings():
+    """Catalogue de cordages Racqix avec filtres par caractéristique."""
+    brand      = request.args.get('brand', '')
+    stype      = request.args.get('string_type', '')
+    gauge      = request.args.get('gauge', '')
+    min_power  = request.args.get('min_power',   type=int)
+    min_control= request.args.get('min_control', type=int)
+    min_spin   = request.args.get('min_spin',    type=int)
+    min_comfort= request.args.get('min_comfort', type=int)
+    sort_by    = request.args.get('sort_by', 'name')
+
+    q = RacqixString.query
+    if brand:
+        q = q.filter(RacqixString.brand == brand)
+    if stype:
+        q = q.filter(RacqixString.string_type == stype)
+    if gauge:
+        q = q.filter(RacqixString.gauges_json.contains(gauge))
+    if min_power is not None:
+        q = q.filter(RacqixString.rating_power >= min_power)
+    if min_control is not None:
+        q = q.filter(RacqixString.rating_control >= min_control)
+    if min_spin is not None:
+        q = q.filter(RacqixString.rating_spin >= min_spin)
+    if min_comfort is not None:
+        q = q.filter(RacqixString.rating_comfort >= min_comfort)
+
+    sort_map = {
+        'name':    RacqixString.name,
+        'brand':   RacqixString.brand,
+        'power':   RacqixString.rating_power.desc(),
+        'control': RacqixString.rating_control.desc(),
+        'spin':    RacqixString.rating_spin.desc(),
+        'comfort': RacqixString.rating_comfort.desc(),
+    }
+    order = sort_map.get(sort_by, RacqixString.name)
+    if sort_by in ('power', 'control', 'spin', 'comfort'):
+        q = q.order_by(order)
+    else:
+        q = q.order_by(order)
+
+    string_list = q.all()
+
+    # Valeurs distinctes pour les filtres
+    all_brands = sorted(set(
+        s[0] for s in db.session.query(RacqixString.brand).distinct().all()
+    ))
+    all_types = [
+        ('co_polyester', '🔴 Co-polyester'),
+        ('polyester',    '🔴 Polyester'),
+        ('multifilament','🟢 Multifilament'),
+        ('natural_gut',  '🟡 Boyau naturel'),
+        ('synthetic_gut','⚪ Synthétique'),
+        ('hybrid',       '🔀 Hybride'),
+        ('kevlar',       '⚫ Kevlar'),
+    ]
+
+    return render_template(
+        'shop/strings.html',
+        strings=string_list,
+        all_brands=all_brands,
+        all_types=all_types,
+        filters=request.args,
+    )
+
+
+@shop_bp.route('/strings/api')
+def strings_api():
+    """API JSON pour le sélecteur de cordage (filtres)."""
+    brand      = request.args.get('brand', '')
+    stype      = request.args.get('string_type', '')
+    gauge      = request.args.get('gauge', '')
+    min_power  = request.args.get('min_power',   type=int)
+    min_control= request.args.get('min_control', type=int)
+    min_spin   = request.args.get('min_spin',    type=int)
+    min_comfort= request.args.get('min_comfort', type=int)
+    limit      = request.args.get('limit', 200, type=int)
+
+    q = RacqixString.query
+    if brand:
+        q = q.filter(RacqixString.brand == brand)
+    if stype:
+        q = q.filter(RacqixString.string_type == stype)
+    if gauge:
+        q = q.filter(RacqixString.gauges_json.contains(gauge))
+    if min_power is not None:
+        q = q.filter(RacqixString.rating_power >= min_power)
+    if min_control is not None:
+        q = q.filter(RacqixString.rating_control >= min_control)
+    if min_spin is not None:
+        q = q.filter(RacqixString.rating_spin >= min_spin)
+    if min_comfort is not None:
+        q = q.filter(RacqixString.rating_comfort >= min_comfort)
+
+    results = []
+    for s in q.order_by(RacqixString.brand, RacqixString.name).limit(limit).all():
+        results.append({
+            'id':        s.id,
+            'slug':      s.slug,
+            'brand':     s.brand,
+            'name':      s.name,
+            'family':    s.family,
+            'string_type': s.string_type,
+            'type_label':  s.type_label,
+            'type_emoji':  s.type_emoji,
+            'gauges':    s.gauges,
+            'rating_power':   s.rating_power,
+            'rating_control': s.rating_control,
+            'rating_spin':    s.rating_spin,
+            'rating_comfort': s.rating_comfort,
+            'image_url':      s.image_url,
+        })
+    return jsonify(results)
+
+
+@shop_bp.route('/racquets/import-racqix', methods=['POST'])
+def import_racqix():
+    """Import/refresh des données racqix (raquettes + cordages)."""
+    try:
+        import subprocess, sys, os
+        script = os.path.join(current_app.root_path, '..', 'tools', 'import_racqix.py')
+        result = subprocess.run(
+            [sys.executable, script],
+            capture_output=True, text=True, timeout=120,
+            cwd=current_app.root_path + '/..'
+        )
+        output = result.stdout + result.stderr
+        if result.returncode == 0:
+            flash(f'Import Racqix réussi : {output}', 'success')
+        else:
+            flash(f'Erreur import Racqix : {output}', 'error')
+    except Exception as exc:
+        flash(f'Erreur : {exc}', 'error')
+    return redirect(url_for('shop.racquets'))
+
 
 

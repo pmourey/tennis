@@ -4,15 +4,15 @@
 {% include 'partials/_menu.html' %}
 <main class="shop-main">
 <div class="shop-container">
-<div class="card border-0 shadow-sm" style="max-width:960px; margin:0 auto;">
+<div class="card border-0 shadow-sm" style="max-width:1100px; margin:0 auto;">
 <div class="card-body">
 
   <div class="mb-4">
-    <h2 class="h4 mb-1">Sélecteur de raquette &amp; cordage</h2>
+    <h2 class="h4 mb-1">🎯 Sélecteur de raquette &amp; cordage</h2>
     <p class="text-muted small mb-0">
-      Renseignez votre profil pour obtenir des recommandations personnalisées sur la raquette
-      et le cordage adaptés à votre jeu.
+      Renseignez votre profil pour obtenir des recommandations personnalisées.
       <a href="{{ url_for('shop.racquets') }}" class="ms-2">Retour catalogue</a>
+      <a href="{{ url_for('shop.strings') }}" class="ms-3">🧵 Catalogue cordages</a>
     </p>
   </div>
 
@@ -20,8 +20,6 @@
   <form method="POST" action="{{ url_for('shop.racquet_selector') }}" class="selector-form">
 
     <div class="row g-4">
-
-      {# Colonne gauche #}
       <div class="col-12 col-lg-6">
 
         <div class="form-group">
@@ -51,7 +49,7 @@
         <div class="form-group">
           <label class="group-label">🎯 Style de jeu</label>
           <div class="radio-group">
-            {% for val, lbl in [('attaquant','Attaquant / Montée filet'),('polyvalent','Polyvalent'),('defenseur','Défenseur fond de court')] %}
+            {% for val, lbl in [('attaquant','Attaquant / Monte filet'),('polyvalent','Polyvalent'),('defenseur','Défenseur fond de court')] %}
             <label class="{{ 'radio-selected' if form.get('style', 'polyvalent') == val else '' }}">
               <input type="radio" name="style" value="{{ val }}" {% if form.get('style','polyvalent') == val %}checked{% endif %} style="display:none;" onchange="updateRadio(this)">
               <span>{{ lbl }}</span>
@@ -74,7 +72,6 @@
 
       </div>
 
-      {# Colonne droite #}
       <div class="col-12 col-lg-6">
 
         <div class="form-group">
@@ -130,7 +127,7 @@
 
     <div class="mt-4 text-center">
       <button type="submit" class="btn btn-primary px-4 py-2">
-        Obtenir mes recommandations
+        🎯 Obtenir mes recommandations
       </button>
     </div>
 
@@ -139,53 +136,57 @@
   {# ── RECOMMANDATIONS ── #}
   {% if recs %}
   <hr class="my-4">
-
   <h3 class="h5 mb-3">Recommandations personnalisées</h3>
 
   <div class="row g-3 mb-4">
-
     <div class="col-12 col-lg-6">
       <div class="rec-card h-100">
-      <h4>🎾 Raquette — Critères clés</h4>
-      <p class="small my-1">
-        <span class="rec-badge">Tamis : {{ recs.head_min }}–{{ recs.head_max }} sq.in</span>
-        <span class="rec-badge">Poids : {{ recs.weight_min }}–{{ recs.weight_max }} g</span>
-      </p>
-      <p class="small text-body-secondary my-2">{{ recs.balance_label }}</p>
-      <p class="small text-body-secondary my-0">{{ recs.ra_label }}</p>
-      <p class="small text-body-secondary mt-2 mb-0">{{ recs.head_label }}</p>
+        <h4>🎾 Raquette — Critères clés</h4>
+        <p class="small my-1">
+          <span class="rec-badge">Tamis : {{ recs.head_min }}–{{ recs.head_max }} sq.in</span>
+          <span class="rec-badge">Poids : {{ recs.weight_min }}–{{ recs.weight_max }} g</span>
+        </p>
+        <p class="small text-body-secondary my-2">{{ recs.balance_label }}</p>
+        <p class="small text-body-secondary my-0">{{ recs.ra_label }}</p>
+        <p class="small text-body-secondary mt-2 mb-0">{{ recs.head_label }}</p>
       </div>
     </div>
-
     <div class="col-12 col-lg-6">
       <div class="rec-card h-100" style="border-color:#c8e6c9;">
-      <h4 style="color:#1a6e1a;">🧵 Cordage recommandé</h4>
-      <p class="fw-bold mb-1">{{ recs.string_type }}</p>
-      <p class="small my-1 text-body-secondary">
-        <strong>Jauge :</strong> {{ recs.string_gauge }} &nbsp;|&nbsp; <strong>Tension :</strong> {{ recs.string_tension }}
-      </p>
-      <p class="small text-body-secondary mt-2 mb-0">{{ recs.string_rationale }}</p>
-      <p class="small text-muted mt-2 mb-0">
-        Rappel : changer le cordage tous les 6 mois même s'il n'est pas cassé.
-      </p>
+        <h4 style="color:#1a6e1a;">🧵 Cordage recommandé</h4>
+        <p class="fw-bold mb-1">{{ recs.string_type }}</p>
+        <p class="small my-1 text-body-secondary">
+          <strong>Jauge :</strong> {{ recs.string_gauge }} &nbsp;|&nbsp; <strong>Tension :</strong> {{ recs.string_tension }}
+        </p>
+        <p class="small text-body-secondary mt-2 mb-0">{{ recs.string_rationale }}</p>
+        <p class="small text-muted mt-2 mb-0">
+          Rappel : changer le cordage tous les 6 mois même s'il n'est pas cassé.
+        </p>
       </div>
     </div>
-
   </div>
 
-  {# Raquettes correspondantes #}
-  <h3 class="h5 mb-2">Raquettes correspondantes dans le catalogue</h3>
+  {# ── Raquettes correspondantes ── #}
+  <h3 class="h5 mb-2">🎾 Raquettes correspondantes dans le catalogue</h3>
   {% if matching %}
   <p class="text-muted small mb-3">
-    {{ matching | length }} modèle(s) trouvé(s) — <strong>les modèles actuels</strong> apparaissent en tête.
+    {{ matching | length }} modèle(s) trouvé(s) — les <strong>modèles actuels</strong> apparaissent en tête.
   </p>
-  <div class="row g-3">
+  <div class="row g-3 mb-4">
     {% for r in matching %}
     <div class="col-12 col-md-6 col-xl-4">
-      <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card">
+      <a href="{{ url_for('shop.racquet_detail', racquet_id=r.id) }}" class="shop-similar-card text-decoration-none">
         <div class="card h-100 border-0 shadow-sm {{ 'bg-success-subtle' if r.is_current else 'bg-light' }}">
-          <div class="card-body">
-            <div class="small fw-semibold {{ 'text-success' if r.is_current else 'text-secondary' }} mb-1">{{ 'Actuel' if r.is_current else 'Archive' }}</div>
+          {% if r.image_url %}
+          <div class="text-center pt-3" style="height:100px; overflow:hidden; background:#f8f9fa;">
+            <img src="{{ r.image_url }}" alt="{{ r.brand }} {{ r.name }}"
+                 style="max-height:90px; max-width:90%; object-fit:contain;"
+                 loading="lazy"
+                 onerror="this.parentElement.style.display='none'">
+          </div>
+          {% endif %}
+          <div class="card-body py-2 px-3">
+            <div class="small fw-semibold {{ 'text-success' if r.is_current else 'text-secondary' }} mb-1">{{ 'Actuel' if r.is_current else 'Archivé' }}</div>
             <div class="fw-bold">{{ r.brand }}</div>
             <div class="small text-body-secondary mb-2">{{ r.name }}</div>
             <div class="small text-body-secondary lh-lg">
@@ -195,6 +196,22 @@
               {% if r.string_pattern %}{{ r.string_pattern }}<br>{% endif %}
               {% if r.swingweight %}SW {{ r.swingweight }}{% endif %}
             </div>
+            {# Barres de scores racqix #}
+            {% if r.scores_power or r.scores_control or r.scores_spin %}
+            <div class="mt-2" style="font-size:.68em;">
+              {% for score, lbl, color in [(r.scores_power,'⚡','#ef4444'),(r.scores_control,'🎯','#3b82f6'),(r.scores_spin,'🌀','#a855f7')] %}
+              {% if score %}
+              <div class="d-flex align-items-center gap-1 mb-1">
+                <span>{{ lbl }}</span>
+                <div class="flex-grow-1 rounded" style="background:#f1f5f9; height:4px; overflow:hidden;">
+                  <div style="width:{{ score }}%; height:100%; background:{{ color }};"></div>
+                </div>
+                <span class="text-muted">{{ score }}</span>
+              </div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
             {% if r.price %}<div class="small fw-bold mt-2">{{ '%.0f €'|format(r.price) }}</div>{% endif %}
           </div>
         </div>
@@ -205,10 +222,15 @@
   {% else %}
   <div class="alert alert-warning">
     <strong>Aucune raquette ne correspond exactement</strong> à ces critères dans votre catalogue actuel.<br>
-    Essayez d'importer plus de modèles via le scraper, ou élargissez les critères en sélectionnant un niveau différent.
-    <br><a href="{{ url_for('shop.racquets') }}">Parcourir tout le catalogue</a>
+    <a href="{{ url_for('shop.racquets') }}">Parcourir tout le catalogue</a>
   </div>
   {% endif %}
+
+  {# ── Cordages Racqix correspondants ── #}
+  <h3 class="h5 mb-2 mt-4">🧵 Cordages correspondants (Racqix)</h3>
+  <div id="str_rec_zone">
+    <p class="text-muted small">Chargement des cordages…</p>
+  </div>
 
   {% endif %}
 
@@ -222,6 +244,77 @@ function updateRadio(input) {
   group.querySelectorAll('label').forEach(l => l.classList.remove('radio-selected'));
   input.closest('label').classList.add('radio-selected');
 }
+
+{% if recs %}
+// ── Charger les cordages correspondants depuis l'API ──────────────────────
+(function(){
+  var strType = {{ recs.string_type | tojson }};
+  var zone = document.getElementById('str_rec_zone');
+  if (!zone) return;
+
+  // Déduire le type racqix depuis la recommandation
+  var typeMap = {
+    'Multifilament':                    'multifilament',
+    'Multifilament ou Boyau naturel':   'multifilament',
+    'Multifilament ou Nylon à guipage': 'synthetic_gut',
+    'Boyau naturel':                    'natural_gut',
+    'Monofilament polyester (co-poly)': 'co_polyester',
+    'Monofilament ou Multifilament renforc': 'multifilament',
+    'Monofilament textur ou Polyester structur (polydrique)': 'co_polyester',
+    'Hybride (monofilament en montants / multifilament en travers)': 'hybrid',
+  };
+  var racqixType = null;
+  for (var k in typeMap) {
+    if (strType && strType.indexOf(k.split(' ')[0]) !== -1) { racqixType = typeMap[k]; break; }
+  }
+
+  var url = '/shop/strings/api?limit=6';
+  if (racqixType) url += '&string_type=' + racqixType;
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.length) { zone.innerHTML = '<p class="text-muted small">Aucun cordage trouvé.</p>'; return; }
+      var html = '<div class="row g-3">';
+      data.forEach(function(s){
+        var typeColors = {
+          'co_polyester':'danger','polyester':'danger','multifilament':'success',
+          'natural_gut':'warning','hybrid':'info','synthetic_gut':'secondary'
+        };
+        var typeEmojis = {
+          'co_polyester':'🔴','polyester':'🔴','multifilament':'🟢',
+          'natural_gut':'🟡','hybrid':'🔀','synthetic_gut':'⚪'
+        };
+        var bars = '';
+        [['power','⚡','#ef4444'],['control','🎯','#3b82f6'],['spin','🌀','#a855f7'],['comfort','🛡️','#22c55e']].forEach(function(r){
+          var v = s['rating_' + r[0]];
+          if (v) bars += '<div style="font-size:.65em;display:flex;align-items:center;gap:3px;margin-bottom:2px;">' +
+            '<span>' + r[1] + '</span>' +
+            '<div style="flex:1;background:#f1f5f9;border-radius:3px;height:4px;overflow:hidden;">' +
+              '<div style="width:' + v + '%;height:100%;background:' + r[2] + ';"></div>' +
+            '</div><span style="color:#9ca3af;min-width:1.5em;">' + v + '</span></div>';
+        });
+        var gauges = s.gauges && s.gauges.length ? '<small class="text-muted d-block">' + s.gauges.join('/') + ' mm</small>' : '';
+        var imgHtml = s.image_url
+          ? '<div class="text-center mb-2" style="height:70px;overflow:hidden;"><img src="' + s.image_url + '" style="max-height:65px;max-width:80%;object-fit:contain;" loading="lazy" onerror="this.parentElement.style.display=\'none\'"></div>'
+          : '<div style="height:40px;"></div>';
+        html += '<div class="col-6 col-md-4 col-xl-2">' +
+          '<div class="card h-100 border-0 shadow-sm" style="font-size:.82em;">' +
+            imgHtml +
+            '<div class="card-body p-2">' +
+              '<div class="fw-semibold lh-sm mb-1">' + (typeEmojis[s.string_type]||'⚪') + ' ' + s.name + '</div>' +
+              gauges +
+              bars +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      html += '</div>';
+      html += '<p class="mt-2 small"><a href="{{ url_for("shop.strings") }}">Voir tout le catalogue cordages →</a></p>';
+      zone.innerHTML = html;
+    })
+    .catch(function(){ zone.innerHTML = '<p class="text-muted small">Impossible de charger les cordages.</p>'; });
+})();
+{% endif %}
 </script>
 {% endblock main %}
-

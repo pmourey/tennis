@@ -1,99 +1,258 @@
-{# ─────────────────────────────────────────────────────────────────
-   Macro : sélecteur de cordage
+{# ─────────────────────────────────────────────────────────────────────────────
+   Macro : sélecteur de cordage enrichi (données Racqix)
    Paramètres :
      selected_name – nom du cordage actuellement sélectionné (ou None)
    Rendu :
-     Champ texte avec datalist de cordages courants
-   ───────────────────────────────────────────────────────────────── #}
+     - Filtres : marque / type / jauge / caractéristiques (sliders)
+     - Liste déroulante avec image et minibarres
+     - Prévisualisation image + barres
+   ───────────────────────────────────────────────────────────────────────────── #}
 {% macro string_selector(selected_name=None) %}
-<div class="str-selector" style="display:flex; flex-direction:column; gap:8px;">
-  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
-    <div style="flex:1; min-width:180px;">
-      <label for="str_type" style="font-size:.83em; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Type</label>
-      <select id="str_type" style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:.88em; background:#f9fafb;">
-        <option value="">— Tous les types —</option>
-        <option value="Polyester">🔴 Polyester</option>
-        <option value="Multifilament">🟢 Multifilament</option>
-        <option value="Boyau naturel">🟡 Boyau naturel</option>
-        <option value="Nylon">⚪ Nylon/Synthétique</option>
-        <option value="Hybride">🔀 Hybride</option>
+<div class="str-selector" id="str_selector_wrap">
+
+  {# ── Ligne 1 : Marque + Type ── #}
+  <div class="str-filters" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+    <div style="flex:1; min-width:140px;">
+      <label style="font-size:.8em; font-weight:600; color:#374151; display:block; margin-bottom:3px;">Marque</label>
+      <select id="str_brand_filter" style="width:100%; padding:5px 7px; border:1px solid #d1d5db; border-radius:6px; font-size:.85em; background:#f9fafb;">
+        <option value="">— Toutes —</option>
       </select>
     </div>
-    <div style="flex:2; min-width:220px;">
-      <label for="string_name" style="font-size:.83em; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Nom du cordage</label>
-      <input type="text" id="string_name" name="string_name"
-             list="str_datalist"
-             value="{{ selected_name or '' }}"
-             placeholder="ex: Babolat RPM Blast 1.25"
-             style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:.88em; background:#f9fafb; box-sizing:border-box;">
-      <datalist id="str_datalist">
-        <!-- Polyester -->
-        <option value="Babolat RPM Blast 1.25">
-        <option value="Babolat RPM Blast 1.30">
-        <option value="Luxilon ALU Power 1.25">
-        <option value="Luxilon ALU Power 1.27">
-        <option value="Wilson Revolve 1.25">
-        <option value="Solinco Tour Bite 1.25">
-        <option value="Head Hawk 1.25">
-        <option value="Tecnifibre Black Code 1.28">
-        <option value="Dunlop Black Widow 1.27">
-        <!-- Multifilament -->
-        <option value="Babolat XCel 1.25">
-        <option value="Wilson NXT 1.30">
-        <option value="Tecnifibre X-One Biphase 1.24">
-        <option value="Tecnifibre NRG2 1.24">
-        <option value="Prince Premier Touch 1.35">
-        <!-- Boyau naturel -->
-        <option value="Babolat VS Team 1.25">
-        <option value="Pacific Classic 1.30">
-        <option value="Wilson Natural Gut 1.27">
-        <!-- Nylon / Synthétique -->
-        <option value="Babolat Synthetic Gut 1.25">
-        <option value="Prince Synthetic Gut 1.30">
-        <option value="Wilson Sensation 1.30">
-        <option value="Head FiberGel Power 1.30">
-        <!-- Hybride -->
-        <option value="Babolat RPM Blast + VS Touch">
-        <option value="Luxilon ALU Power + Wilson NXT">
-      </datalist>
+    <div style="flex:1; min-width:140px;">
+      <label style="font-size:.8em; font-weight:600; color:#374151; display:block; margin-bottom:3px;">Type</label>
+      <select id="str_type_filter" style="width:100%; padding:5px 7px; border:1px solid #d1d5db; border-radius:6px; font-size:.85em; background:#f9fafb;">
+        <option value="">— Tous —</option>
+        <option value="co_polyester">🔴 Co-polyester</option>
+        <option value="polyester">🔴 Polyester</option>
+        <option value="multifilament">🟢 Multifilament</option>
+        <option value="natural_gut">🟡 Boyau naturel</option>
+        <option value="synthetic_gut">⚪ Synthétique</option>
+        <option value="hybrid">🔀 Hybride</option>
+      </select>
+    </div>
+    <div style="flex:0 0 110px; min-width:100px;">
+      <label style="font-size:.8em; font-weight:600; color:#374151; display:block; margin-bottom:3px;">Jauge</label>
+      <select id="str_gauge_filter" style="width:100%; padding:5px 7px; border:1px solid #d1d5db; border-radius:6px; font-size:.85em; background:#f9fafb;">
+        <option value="">— Toutes —</option>
+        <option value="1.15">1.15 mm</option>
+        <option value="1.18">1.18 mm</option>
+        <option value="1.20">1.20 mm</option>
+        <option value="1.22">1.22 mm</option>
+        <option value="1.23">1.23 mm</option>
+        <option value="1.24">1.24 mm</option>
+        <option value="1.25">1.25 mm</option>
+        <option value="1.27">1.27 mm</option>
+        <option value="1.28">1.28 mm</option>
+        <option value="1.30">1.30 mm</option>
+        <option value="1.32">1.32 mm</option>
+        <option value="1.35">1.35 mm</option>
+      </select>
     </div>
   </div>
-  <p id="str_hint" style="font-size:.78em; color:#64748b; margin:0; min-height:1.2em;"></p>
+
+  {# ── Sliders caractéristiques ── #}
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin-bottom:8px; padding:8px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0;">
+    <div style="font-size:.72em; font-weight:600; color:#64748b; grid-column:1/-1; margin-bottom:2px;">Caractéristiques minimales :</div>
+    {% for key, lbl, emoji, color in [('str_min_power','Puissance','⚡','#ef4444'),('str_min_control','Contrôle','🎯','#3b82f6'),('str_min_spin','Spin','🌀','#a855f7'),('str_min_comfort','Confort','🛡️','#22c55e')] %}
+    <div>
+      <div style="display:flex; justify-content:space-between; font-size:.72em; color:#374151; margin-bottom:2px;">
+        <span>{{ emoji }} {{ lbl }}</span>
+        <span id="{{ key }}_lbl" style="font-weight:600; color:{{ color }};">0</span>
+      </div>
+      <input type="range" id="{{ key }}" min="0" max="100" step="5" value="0"
+             style="width:100%; accent-color:{{ color }}; height:4px;"
+             oninput="document.getElementById('{{ key }}_lbl').textContent=this.value; refreshStrings()">
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ── Zone résultats : liste + prévisualisation ── #}
+  <div style="display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+
+    {# Select principal #}
+    <div style="flex:2; min-width:200px;">
+      <label style="font-size:.8em; font-weight:600; color:#374151; display:block; margin-bottom:3px;">
+        Cordage <span id="str_count" style="font-weight:normal; color:#6b7280;"></span>
+      </label>
+      <select id="string_name_sel" style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:.85em; background:#f9fafb; height:38px;">
+        <option value="">— Non renseigné —</option>
+      </select>
+      {# Champ caché pour soumettre le nom #}
+      <input type="hidden" id="string_name" name="string_name" value="{{ selected_name or '' }}">
+    </div>
+
+    {# Prévisualisation #}
+    <div id="str_preview" style="flex:1; min-width:130px; max-width:180px; display:none;
+         background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:8px; text-align:center;">
+      <img id="str_preview_img" src="" alt="" style="max-height:80px; max-width:100%; object-fit:contain; display:none; margin-bottom:6px;">
+      <div id="str_preview_name" style="font-size:.75em; font-weight:600; color:#1e293b; margin-bottom:4px;"></div>
+      <div id="str_preview_type" style="font-size:.7em; margin-bottom:6px;"></div>
+      {% for key, lbl, color in [('power','⚡','#ef4444'),('control','🎯','#3b82f6'),('spin','🌀','#a855f7'),('comfort','🛡️','#22c55e')] %}
+      <div id="str_bar_{{ key }}_wrap" style="display:none; margin-bottom:3px;">
+        <div style="display:flex; align-items:center; gap:4px; font-size:.68em;">
+          <span style="width:1.2em;">{{ lbl }}</span>
+          <div style="flex:1; background:#f1f5f9; border-radius:3px; height:5px; overflow:hidden;">
+            <div id="str_bar_{{ key }}" style="height:100%; background:{{ color }}; transition: width .3s;"></div>
+          </div>
+          <span id="str_val_{{ key }}" style="min-width:1.8em; text-align:right; color:#6b7280;"></span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <div id="str_hint" style="font-size:.75em; color:#64748b; margin-top:6px; min-height:1.3em;"></div>
+  <div id="str_loading" style="font-size:.8em; color:#6b7280; display:none;">Chargement…</div>
 </div>
+
 <script>
 (function(){
-  var typeMap = {
-    'Polyester':      ['Babolat RPM Blast 1.25','Babolat RPM Blast 1.30','Luxilon ALU Power 1.25','Luxilon ALU Power 1.27','Wilson Revolve 1.25','Solinco Tour Bite 1.25','Head Hawk 1.25','Tecnifibre Black Code 1.28','Dunlop Black Widow 1.27'],
-    'Multifilament':  ['Babolat XCel 1.25','Wilson NXT 1.30','Tecnifibre X-One Biphase 1.24','Tecnifibre NRG2 1.24','Prince Premier Touch 1.35'],
-    'Boyau naturel':  ['Babolat VS Team 1.25','Pacific Classic 1.30','Wilson Natural Gut 1.27'],
-    'Nylon':          ['Babolat Synthetic Gut 1.25','Prince Synthetic Gut 1.30','Wilson Sensation 1.30','Head FiberGel Power 1.30'],
-    'Hybride':        ['Babolat RPM Blast + VS Touch','Luxilon ALU Power + Wilson NXT']
-  };
-  var hintMap = {
-    'Polyester':      '🔴 Durabilité max, effets importants – convient aux joueurs réguliers/avancés.',
-    'Multifilament':  '🟢 Confort et puissance – idéal pour les coudes sensibles.',
-    'Boyau naturel':  '🟡 Sensations et tension stable – premium, fragile à l\'humidité.',
-    'Nylon':          '⚪ Bon rapport qualité/prix – convient aux débutants.',
-    'Hybride':        '🔀 Combinaison polyester (mains) + multifilament/boyau (croisés).'
-  };
-  var typeSel  = document.getElementById('str_type');
-  var strInput = document.getElementById('string_name');
-  var datalist = document.getElementById('str_datalist');
-  var hint     = document.getElementById('str_hint');
+  var ALL_STRINGS = [];
+  var SELECTED_NAME = {{ selected_name | tojson if selected_name else 'null' }};
+  var _loaded = false;
 
-  typeSel.addEventListener('change', function(){
-    var t = typeSel.value;
-    hint.textContent = hintMap[t] || '';
-    // Mettre à jour le datalist
-    datalist.innerHTML = '';
-    var list = t ? (typeMap[t] || []) : [].concat(...Object.values(typeMap));
-    list.forEach(function(s){
-      var opt = document.createElement('option');
-      opt.value = s;
-      datalist.appendChild(opt);
+  var brandSel  = document.getElementById('str_brand_filter');
+  var typeSel   = document.getElementById('str_type_filter');
+  var gaugeSel  = document.getElementById('str_gauge_filter');
+  var mainSel   = document.getElementById('string_name_sel');
+  var hiddenInp = document.getElementById('string_name');
+  var hint      = document.getElementById('str_hint');
+  var loading   = document.getElementById('str_loading');
+  var countSpan = document.getElementById('str_count');
+  var preview   = document.getElementById('str_preview');
+
+  var TYPE_LABELS = {
+    'co_polyester': '🔴 Co-polyester',
+    'polyester':    '🔴 Polyester',
+    'multifilament':'🟢 Multifilament',
+    'natural_gut':  '🟡 Boyau naturel',
+    'synthetic_gut':'⚪ Synthétique',
+    'hybrid':       '🔀 Hybride',
+    'kevlar':       '⚫ Kevlar',
+  };
+  var TYPE_HINTS = {
+    'co_polyester': '🔴 Co-poly : durabilité max, effets importants — joueurs réguliers/avancés.',
+    'polyester':    '🔴 Poly : résistance et contrôle élevés.',
+    'multifilament':'🟢 Multi : confort et puissance proches du boyau — idéal coudes sensibles.',
+    'natural_gut':  '🟡 Boyau : sensations premium et tension stable — fragile à l\'humidité.',
+    'synthetic_gut':'⚪ Synthétique : bon rapport qualité/prix — débutants.',
+    'hybrid':       '🔀 Hybride : combo poly (montants) + multi/boyau (croix).',
+    'kevlar':       '⚫ Kevlar : résistance maximale — bras solide requis.',
+  };
+
+  function loadStrings() {
+    if (_loaded) { refreshStrings(); return; }
+    loading.style.display = 'block';
+    fetch('/shop/strings/api?limit=1000')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        ALL_STRINGS = data;
+        _loaded = true;
+        loading.style.display = 'none';
+        var brands = [...new Set(data.map(function(s){ return s.brand; }))].sort();
+        brands.forEach(function(b){
+          var label = b.charAt(0).toUpperCase() + b.slice(1).replace(/-/g,' ');
+          var opt = new Option(label, b);
+          brandSel.appendChild(opt);
+        });
+        // Pré-sélectionner le type si un cordage est déjà sélectionné
+        if (SELECTED_NAME) {
+          var found = data.find(function(s){ return s.name === SELECTED_NAME; });
+          if (found && found.string_type) {
+            typeSel.value = found.string_type;
+          }
+        }
+        refreshStrings();
+      })
+      .catch(function(){ loading.style.display = 'none'; });
+  }
+
+  function refreshStrings() {
+    if (!_loaded) { loadStrings(); return; }
+
+    var brand   = brandSel.value;
+    var type    = typeSel.value;
+    var gauge   = gaugeSel.value;
+    var minPow  = parseInt(document.getElementById('str_min_power').value)   || 0;
+    var minCtrl = parseInt(document.getElementById('str_min_control').value) || 0;
+    var minSpin = parseInt(document.getElementById('str_min_spin').value)    || 0;
+    var minConf = parseInt(document.getElementById('str_min_comfort').value) || 0;
+
+    var filtered = ALL_STRINGS.filter(function(s){
+      if (brand && s.brand !== brand) return false;
+      if (type  && s.string_type !== type) return false;
+      if (gauge && !s.gauges.includes(gauge)) return false;
+      if (minPow  && (s.rating_power   || 0) < minPow)  return false;
+      if (minCtrl && (s.rating_control || 0) < minCtrl) return false;
+      if (minSpin && (s.rating_spin    || 0) < minSpin) return false;
+      if (minConf && (s.rating_comfort || 0) < minConf) return false;
+      return true;
     });
-    strInput.value = '';
-  });
+
+    countSpan.textContent = '(' + filtered.length + ')';
+
+    var currentName = hiddenInp.value || SELECTED_NAME;
+    mainSel.innerHTML = '<option value="">— Non renseigné —</option>';
+    filtered.forEach(function(s){
+      var label = (TYPE_LABELS[s.string_type] || '⚪') + ' ' + s.name;
+      if (s.gauges && s.gauges.length > 0) label += ' (' + s.gauges.join('/') + ' mm)';
+      var opt = new Option(label, s.name);
+      opt.dataset.slug = s.slug;
+      if (s.name === currentName) opt.selected = true;
+      mainSel.appendChild(opt);
+    });
+    refreshHint();
+  }
+
+  function refreshHint() {
+    var selOpt = mainSel.options[mainSel.selectedIndex];
+    if (!selOpt || !selOpt.value) {
+      hint.textContent = '';
+      preview.style.display = 'none';
+      hiddenInp.value = '';
+      return;
+    }
+    var name = selOpt.value;
+    hiddenInp.value = name;
+
+    var s = ALL_STRINGS.find(function(x){ return x.name === name; });
+    if (!s) { hint.textContent = ''; preview.style.display = 'none'; return; }
+
+    hint.textContent = TYPE_HINTS[s.string_type] || '';
+    preview.style.display = 'block';
+    document.getElementById('str_preview_name').textContent = s.name;
+    document.getElementById('str_preview_type').textContent = TYPE_LABELS[s.string_type] || '';
+
+    var img = document.getElementById('str_preview_img');
+    if (s.image_url) {
+      img.src = s.image_url;
+      img.style.display = 'block';
+      img.onerror = function(){ img.style.display = 'none'; };
+    } else {
+      img.style.display = 'none';
+    }
+    ['power','control','spin','comfort'].forEach(function(k){
+      var wrap = document.getElementById('str_bar_' + k + '_wrap');
+      var bar  = document.getElementById('str_bar_' + k);
+      var val  = document.getElementById('str_val_' + k);
+      var v = s['rating_' + k];
+      if (v != null) {
+        wrap.style.display = 'block';
+        bar.style.width = v + '%';
+        val.textContent = v;
+      } else {
+        wrap.style.display = 'none';
+      }
+    });
+  }
+
+  brandSel.addEventListener('change', refreshStrings);
+  typeSel .addEventListener('change', refreshStrings);
+  gaugeSel.addEventListener('change', refreshStrings);
+  mainSel .addEventListener('change', refreshHint);
+
+  loadStrings();
 })();
 </script>
 {% endmacro %}

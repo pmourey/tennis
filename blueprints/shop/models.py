@@ -24,10 +24,18 @@ class Racquet(db.Model):
     composition = db.Column(db.String(100), nullable=True)
     color = db.Column(db.String(50), nullable=True)
     is_current = db.Column(db.Boolean, default=False, nullable=False, server_default='0')
-    # Année de sortie du modèle, parsée depuis le nom (ex: "Pure Aero - 2024" → 2024).
-    # NULL pour les modèles anciens dont le nom ne contient pas d'année.
     release_year = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.now())
+    # ── Champs racqix ──────────────────────────────────────────────────────
+    racqix_id = db.Column(db.String(50), nullable=True, unique=True, index=True)
+    racqix_slug = db.Column(db.String(100), nullable=True)
+    scores_power = db.Column(db.Integer, nullable=True)
+    scores_control = db.Column(db.Integer, nullable=True)
+    scores_spin = db.Column(db.Integer, nullable=True)
+    category_tag = db.Column(db.String(30), nullable=True)
+    player_level = db.Column(db.String(50), nullable=True)   # ex: "intermediate,pro"
+    swing_style = db.Column(db.String(20), nullable=True)    # ex: "full"
+    play_style = db.Column(db.String(50), nullable=True)     # ex: "baseliner"
 
     def __repr__(self):
         return f'{self.brand} {self.name}'
@@ -84,3 +92,62 @@ class Racquet(db.Model):
         if self.unstrung_weight is None:
             return None
         return round(self.unstrung_weight / 28.3495, 2)
+
+
+class RacqixString(db.Model):
+    """Cordage issu de la base Racqix."""
+    __tablename__ = 'racqix_string'
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(120), nullable=False, unique=True, index=True)
+    brand = db.Column(db.String(60), nullable=False, index=True)
+    name = db.Column(db.String(150), nullable=False)
+    family = db.Column(db.String(30), nullable=True)
+    shape = db.Column(db.String(20), nullable=True)
+    string_type = db.Column(db.String(30), nullable=True, index=True)
+    gauges_json = db.Column(db.Text, nullable=True)     # JSON list ex: ["1.25","1.30"]
+    rating_comfort = db.Column(db.Integer, nullable=True)
+    rating_control = db.Column(db.Integer, nullable=True)
+    rating_power = db.Column(db.Integer, nullable=True)
+    rating_spin = db.Column(db.Integer, nullable=True)
+    image_url = db.Column(db.String(500), nullable=True)
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+
+    @property
+    def gauges(self):
+        import json
+        if not self.gauges_json:
+            return []
+        try:
+            return json.loads(self.gauges_json)
+        except Exception:
+            return []
+
+    @property
+    def type_label(self):
+        _map = {
+            'co_polyester': 'Co-polyester',
+            'polyester': 'Polyester',
+            'multifilament': 'Multifilament',
+            'natural_gut': 'Boyau naturel',
+            'synthetic_gut': 'Synthétique',
+            'hybrid': 'Hybride',
+            'kevlar': 'Kevlar',
+            'unknown': 'Autre',
+        }
+        return _map.get(self.string_type or '', self.string_type or 'Autre')
+
+    @property
+    def type_emoji(self):
+        _map = {
+            'co_polyester': '🔴',
+            'polyester': '🔴',
+            'multifilament': '🟢',
+            'natural_gut': '🟡',
+            'synthetic_gut': '⚪',
+            'hybrid': '🔀',
+            'kevlar': '⚫',
+        }
+        return _map.get(self.string_type or '', '⚪')
+
+    def __repr__(self):
+        return f'<RacqixString {self.brand} {self.name}>'
