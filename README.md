@@ -2,215 +2,188 @@
 
 ![Licence](https://img.shields.io/badge/licence-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.9+-green.svg)
-![Flask](https://img.shields.io/badge/Flask-2.0+-yellow.svg)
+![Flask](https://img.shields.io/badge/Flask-3.0+-yellow.svg)
 
-Une application web complète pour la gestion des clubs de tennis, des championnats par équipes et le suivi des joueurs.
+Application web Flask pour la gestion d'un club de tennis, des championnats par equipes, des tournois individuels FFT, du suivi medical et d'un module materiel (raquettes/cordages).
 
-## 🎾 À propos
+## A propos
 
-TennisManager est une solution complète pour la gestion des clubs de tennis, offrant :
+Le projet est organise en blueprints Flask:
 
-- Gestion des clubs (USC Tennis comme club par défaut)
-- Gestion des licences joueurs
-- Création et gestion des équipes
-- Organisation des championnats par saison
-- Support administratif multi-clubs
+- Admin
+- Club
+- Championship
+- Tournament
+- Medical
+- Shop
 
-## ✨ Fonctionnalités principales
+La base est geree via SQLAlchemy, avec SQLite par defaut.
 
-### 🏢 Gestion des clubs
+## Fonctionnalites implementees
 
-- Administration complète des clubs
-- Gestion des droits d'accès
-- Interface personnalisée par club
+### Admin
 
-### 📅 Gestion des saisons sportives
+- Creation/suppression de clubs
+- Selection du club actif via cookie signe
+- Import initial des donnees clubs/joueurs depuis CSV
+- Gestion des saisons (saison active, creation au format YYYY/YYYY)
 
-- Création et gestion des saisons sportives (format YYYY/YYYY)
-- Calcul automatique de l'année sportive courante (octobre à septembre)
-- Historisation complète des championnats par saison
-- Interface de filtrage multi-saisons
-- Paramétrage de la saison active
+### Club
 
-### 👥 Gestion des joueurs
+- CRUD equipes et joueurs
+- Gestion des blessures joueur
+- Gestion des disponibilites par journee (simple/double/remplacant)
+- Gestion des jokers avec controle de regle de classement
+- Mutations/transferts de joueurs entre clubs
+- Historique raquettes/cordages par joueur (entree active synchronisee)
+- Calcul distance/temps de trajet entre clubs (Mapbox si cle configuree)
 
-- Inscription et suivi des joueurs
-- Gestion des licences
-- Suivi des classements
-- Gestion des mutations
+### Championnats par equipes
 
-### 🏆 Championnats
-
-- Configuration des divisions par saison sportive
-- Gestion des poules
+- Creation de championnats par division et saison
+- Creation/configuration de poules
+- Affectation des equipes aux poules
 - Planification des rencontres
-- Saisie et suivi des résultats
-- Historisation des championnats par saison
-- Filtrage et consultation des saisons précédentes
+- Consultation des poules, matches et classements
+- Simulations de poules et simulations batch avec historisation
+- Filtrage multi-saisons
 
-### 🎾 Module Tournoi Individuel (conforme règles FFT Art. 44–52)
+### Tournoi individuel (FFT Art. 44 a 52)
 
-Ce module gère l'organisation complète d'un tournoi de tennis individuel, depuis
-la création jusqu'à l'export PDF des tableaux.
+- Creation de tournoi interne ou ouvert
+- Statuts: DRAFT, OPEN, IN_PROGRESS, CLOSED
+- Categories (genre, tranche d'age, format, bornes de classement, series autorisees, surfaces)
+- Inscriptions, desinscriptions, liste d'attente, promotion liste d'attente
+- Tetes de serie (activation manuelle) et disponibilites joueurs
+- Convocations/alertes de retard de saisie
+- Saisie des resultats, WO, propagation des vainqueurs
+- Requalification/remplacement selon regles metier implementees
+- Suppression controlee de tableaux/tournois selon statut et matchs joues
 
-#### Fonctionnalités générales
+Modes de generation des tableaux:
 
-- Création de tournois internes (club) ou ouverts, avec gestion de l'état
-  (`DRAFT` → `OPEN` → `IN_PROGRESS` → `CLOSED`)
-- Gestion des catégories (simple / double, genre, tranche d'âge, surface,
-  classement minimum autorisé)
-- Gestion des terrains (nom, surface)
-- Inscription des joueurs avec statut (`REGISTERED`, `WITHDRAWN`, etc.)
-- Désignation manuelle des têtes de série ou attribution automatique
-- Saisie des disponibilités des joueurs
-- Planification automatique des matchs par terrain et par créneau horaire
-- Export PDF des tableaux (bibliothèque ReportLab)
+- Tableau classique (depart en ligne)
+- Tableau en cascade (qualificatifs chaines par tranche)
+- Tableau a sections (qualificatifs paralleles + final)
 
-#### Génération des tableaux — conformité FFT
+Planification/edition:
 
-Trois modes de génération, tous conformes aux règles FFT :
+- Planification automatique des matchs
+- Vue d'impression
+- Route export PDF conservee en retro-compatibilite (redirection vers impression)
 
-| Mode | Route | Description |
-|------|-------|-------------|
-| **Tableau classique** | `POST /generate-draw/<cid>` | Tableau à départ en ligne (Art. 47) avec têtes de série et exempts (BYEs) |
-| **Tableau en cascade** | `POST /generate-draw-tranche/<cid>` | Tableaux qualificatifs chaînés par tranches de classement puis tableau final |
-| **Tableau à sections** | `POST /generate-section-draw/<cid>` | Tableau à sections parallèles (Art. 49) avec tirage `num_sections` optionnel |
+### Medical
 
-**Tableau classique à départ en ligne (Art. 47)**
+- Referentiel blessures/sites
+- Liste des joueurs blesses
+- Recherche joueurs
 
-- Dimension = plus petite puissance de 2 ≥ effectif (`next_power_of_2`)
-- Nombre de BYEs = dimension − effectif (Art. 47-3)
-- Têtes de série placées en **haut des fractions du demi-tableau haut** et en
-  **bas des fractions du demi-tableau bas** (Art. 46-1-e-i)
-- BYEs placés **adjacents aux premières têtes de série** (Art. 47-4-a :
-  si `nb_byes < nb_seeds`, les premières TdS sont exemptes)
-- BYEs supplémentaires distribués comme des têtes de série virtuelles
-  (Art. 47-4-b/c)
-- Tirage au sort pour les positions des TdS 3 & 4, 5 & 6, etc.
-  (paires depuis le centre, Art. 46-1-c)
-- Propagation automatique des vainqueurs par forfait (BYE/WO)
+### Shop (raquettes/cordages)
 
-**Tableau à sections (Art. 49)**
+- Catalogue raquettes avec filtres avances (poids, tamis, equilibre, rigidite, swingweight, annee...)
+- Detail raquette et suggestions de modeles similaires
+- Import/scraping de raquettes (racquetfinder) avec fusion et mise a jour
+- Outils de diagnostic scraping
+- Assistant de selection raquette base profil joueur
+- Catalogue cordages Racqix + API JSON de filtrage
+- Import Racqix (raquettes + cordages)
 
-- Nombre de sections = `num_sections` (paramètre POST optionnel ; calculé
-  automatiquement si absent)
-- Chaque section est un **tableau classique indépendant** qualifiant
-  **1 joueur** pour le tableau final
-- **1 tête de série par section** (Art. 49-2-d)
-- La TdS k est placée **en bas de la section k** (Art. 46-1-e-ii)
-- Tous les joueurs d'un même classement sont regroupés dans les mêmes sections
-  (Art. 45-3-e) ; distribution équilibrée par tirage au sort au sein de chaque
-  groupe de classement
-- Le tableau final reçoit les vainqueurs de sections avec au plus **1 qualifié
-  par match** au 1er tour (Art. 45-3-c)
+## Synthese: implemente vs README precedent
 
-**Conformité Art. 52 — Remplacement / Requalification**
+### Correctifs apportes au README
 
-- Vérification qu'un joueur n'a pas encore disputé de match avant retrait
-- Requalification disponible à partir des 1/16 de finale du tableau final,
-  et en tableau intermédiaire pour les joueurs NC, 5e et 4e série
-- Gestion des forfaits avec propagation WO automatique
+- Ajout des modules Medical et Shop (absents du README precedent)
+- Ajout des fonctions avancees du tournoi: liste d'attente, requalification, convocations, suppression controlee
+- Precision sur l'export PDF: URL conservee mais redirection vers vue impression
+- Mise a jour de la stack Flask (3.0+) et de la base par defaut (SQLite)
 
-#### Routes disponibles
+### Ecart principal detecte
 
-```
-GET  /tournament/                              Liste des tournois
-POST /tournament/create                        Créer un tournoi
-GET  /tournament/<id>                          Détail du tournoi
-POST /tournament/<id>/status/<new_status>      Changer le statut
-POST /tournament/<id>/add-category             Ajouter une catégorie
-POST /tournament/<id>/delete-category/<cid>    Supprimer une catégorie
-POST /tournament/<id>/add-court                Ajouter un terrain
-POST /tournament/<id>/delete-court/<coid>      Supprimer un terrain
-GET  /tournament/<id>/registrations/<cid>      Inscriptions d'une catégorie
-POST /tournament/<id>/generate-draw/<cid>      Générer tableau classique (Art. 47)
-POST /tournament/<id>/generate-draw-tranche/<cid>  Générer tableau en cascade
-POST /tournament/<id>/generate-section-draw/<cid>  Générer tableau à sections (Art. 49)
-GET  /tournament/<id>/draw/<draw_id>           Afficher un tableau
-POST /tournament/<id>/match/<mid>/score        Saisir un résultat
-GET  /tournament/<id>/schedule/<draw_id>       Planification des matchs
-GET  /tournament/<id>/export-pdf/<draw_id>     Exporter le tableau en PDF
-```
+- Le README precedent indiquait PostgreSQL en prerequis, alors que la configuration active est SQLite (SQLALCHEMY_DATABASE_URI = sqlite:///tennis.sqlite3)
 
-## 🛠 Technologies utilisées
+## Routes principales
 
-- **Backend:** Python, Flask
-- **Base de données:** SQLAlchemy ORM
-- **Cartographie:** Mapbox GL JS
-- **Frontend:** HTML, CSS, JavaScript
-- **Hébergement:** PythonAnywhere
+### Application
 
-## 🚀 Installation
+- /
+- /licensees-by-gender
+
+### Blueprints
+
+- /admin
+- /club
+- /championship
+- /tournament
+- /medical
+- /shop
+
+Exemples de routes tournoi:
+
+- GET /tournament/
+- GET|POST /tournament/create
+- GET /tournament/<tid>
+- POST /tournament/<tid>/generate-draw/<cid>
+- POST /tournament/<tid>/generate-draw-tranche/<cid>
+- POST /tournament/<tid>/generate-section-draw/<cid>
+- GET /tournament/<tid>/draw/<draw_id>
+- GET|POST /tournament/<tid>/match/<mid>/score
+- POST /tournament/<tid>/schedule/<draw_id>
+- GET /tournament/<tid>/print/<draw_id>
+- GET /tournament/<tid>/export-pdf/<draw_id>
+
+## Stack technique
+
+- Backend: Flask 3, SQLAlchemy, Flask-Migrate
+- Frontend: Jinja2, HTML, CSS, JavaScript
+- Donnees: SQLite par defaut (adaptable a un autre SGBD)
+- Integrations: Mapbox (optionnel), pandas, scraping web, reportlab/weasyprint (selon usage)
+
+## Installation
 
 1. Cloner le repository
 
-  ```bash
-  git clone https://github.com/pmourey/tennis.git
-  ```
-
-2. Créer un environnement virtuel
-
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+git clone https://github.com/pmourey/tennis.git
+cd tennis
 ```
 
-3. Installer les dépendances
+2. Creer un environnement virtuel
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+.venv\Scripts\activate     # Windows
+```
+
+3. Installer les dependances
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 📖 Documentation
+4. Lancer l'application
 
-La documentation complète est disponible dans le wiki du projet, incluant :
+```bash
+python app.py
+```
 
-- Guide d'utilisation détaillé
-- Documentation API
-- Guides d'administration
-- FAQ
+Alternative WSGI: utiliser wsgi.py.
 
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! Voir `CONTRIBUTING.md` pour les lignes directrices.
-
-## 🔑 Prérequis
+## Prerequis
 
 - Python 3.9+
-- Base de données PostgreSQL
-- Compte Mapbox pour les services de cartographie
+- pip
+- SQLite (inclus dans Python, par defaut)
+- Optionnel: cle MAPBOX_API_KEY pour les fonctions d'itineraire
 
-## 📝 Licence
+## Documentation et contribution
 
-Ce projet est sous licence MIT - voir le fichier `LICENSE.md` pour plus de détails.
+- Voir CONTRIBUTING.md pour contribuer
+- Voir Wiki.md et docs/ pour la documentation projet
 
-## 📞 Contact
+## Licence
 
-Pour toute question ou suggestion, n'hésitez pas à :
-
-- Ouvrir une issue
-- Contacter l'équipe de développement
-
-## 🌟 Démo
-
-Une version de démonstration est disponible sur PythonAnywhere :
-http://godot70.pythonanywhere.com
-
-Cette démo vous permet de tester les principales fonctionnalités de l'application :
-
-- Gestion des équipes par saison sportive
-- Suivi des championnats avec historique
-- Gestion des joueurs et mutations
-- Planification des rencontres
-- Administration des saisons sportives
-- Filtrage et consultation multi-saisons
-
-Note : Les données de la démo sont réinitialisées périodiquement.
-
----
-
-Développé avec ❤️ pour la communauté du tennis
+Projet sous licence MIT. Voir LICENSE.md.
 
 
 
