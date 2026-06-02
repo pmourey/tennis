@@ -794,7 +794,12 @@ def update_player(id):
 def show_player(id):
     back_url = request.args.get('back') or request.referrer or url_for('club.index')
     player = Player.query.get_or_404(id)
-    return render_template('show_player.html', player=player, back_url=back_url)
+    # Préparer listes d'historique raquettes : avec date triées puis sans date
+    history = list(player.racquet_history)
+    with_date = sorted([e for e in history if e.purchase_date], key=lambda e: e.purchase_date, reverse=True)
+    without_date = [e for e in history if not e.purchase_date]
+    return render_template('show_player.html', player=player, back_url=back_url,
+                           with_date=with_date, without_date=without_date)
 
 
 # -- Historique raquettes joueurs ----------------------------------------------
