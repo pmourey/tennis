@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block main %}
+
+<div class="mb-3">
+  <div class="btn-group" role="group" aria-label="Navigation">
+    <a class="btn btn-outline-secondary" href="{{ back_url }}">Retour</a>
+    <a class="btn btn-outline-primary" href="{{ url_for('shop.racquets') }}">Menu principal</a>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-0">Test raquettes</h1>
+    <p class="text-muted mb-0">Joueurs ayant renseigné du matériel</p>
+  </div>
+  <div>
+    <form class="d-flex" role="search" method="get" action="">
+      <input class="form-control me-2" type="search" name="q" placeholder="Rechercher nom..." aria-label="Search">
+      <button class="btn btn-outline-primary" type="submit">Rechercher</button>
+    </form>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for p in players %}
+  <div class="col-12 col-sm-6 col-md-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <h5 class="card-title mb-1">{{ p.license.firstName }} {{ p.license.lastName[0] }}.</h5>
+        <p class="card-text mb-2">
+          <span class="badge bg-primary">{{ p.racquet_history|length }} raquette(s)</span>
+        </p>
+        {% if p.racquet_history and p.racquet_history|length > 0 and p.racquet_history[0].racquet %}
+          <p class="mb-2 small text-truncate"><strong>Dernière raquette :</strong> {{ p.racquet_history[0].racquet.brand }} {{ p.racquet_history[0].racquet.name }}</p>
+        {% endif %}
+        <div class="mt-auto d-flex justify-content-between align-items-center">
+          <a href="{{ url_for('club.show_player', id=p.id, next=request.full_path) }}" class="btn btn-sm btn-outline-secondary">Voir fiche</a>
+          {% if p.racquet_id %}
+            <a href="{{ url_for('shop.racquet_detail', racquet_id=p.racquet_id) }}" class="btn btn-sm btn-outline-primary">Raquette actuelle</a>
+          {% else %}
+            <a href="#" class="btn btn-sm btn-outline-primary disabled" aria-disabled="true">Raquette actuelle</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock main %}
