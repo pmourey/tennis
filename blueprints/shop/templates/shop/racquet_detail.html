@@ -133,15 +133,7 @@
                 </div>
 
                 <div class="d-flex flex-wrap gap-2 mt-4">
-                    <a href="{{ url_for('shop.racquets') }}" class="btn btn-outline-secondary">Retour catalogue</a>
-                    <a href="{{ url_for('shop.racquet_selector') }}" class="btn btn-outline-primary">Utiliser le sélecteur personnalisé</a>
-                </div>
-
-                <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
-                    <h3 class="h6 mb-0">Actions</h3>
-                    <form method="POST" action="{{ url_for('shop.delete_racquet', racquet_id=racquet.id) }}" onsubmit="return confirm('Supprimer cette raquette ?')">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
-                    </form>
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">Retour</button>
                 </div>
 
                 <div class="card bg-light border-0 mt-4">

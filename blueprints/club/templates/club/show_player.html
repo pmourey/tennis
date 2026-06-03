@@ -81,7 +81,7 @@
             <tr>
                     <td>
                     {% if entry.racquet %}
-                        <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}" target="_blank">
+                        <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id, back=back_url) }}">
                             {{ entry.racquet.brand }} {{ entry.racquet.name }}
                         </a>
                     {% else %}<em>Inconnue</em>{% endif %}
@@ -109,7 +109,7 @@
                 <tr>
                     <td>
                         {% if entry.racquet %}
-                            <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}" target="_blank">
+                            <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id, back=back_url) }}">
                                 {{ entry.racquet.brand }} {{ entry.racquet.name }}
                             </a>
                         {% else %}<em>Inconnue</em>{% endif %}
