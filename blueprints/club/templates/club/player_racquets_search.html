@@ -29,7 +29,7 @@
                 <td>{{ player.ranking }}</td>
                 <td>{{ player.club.name if player.club else '–' }}</td>
                 <td>
-                    <a href="{{ url_for('club.show_player', id=player.id, back=request.url) }}">📋 Fiche joueur</a>
+                    <a href="{{ url_for('club.show_player', id=player.id) }}">📋 Fiche joueur</a>
                     &nbsp;|&nbsp;
                     <a href="{{ url_for('club.player_racquets', player_id=player.id) }}">🎾 Raquettes</a>
                 </td>

@@ -11,6 +11,9 @@
                     {{ racquet.brand }} {{ racquet.name }}
                     {% if racquet.is_current %}<span class="badge text-bg-success align-middle">Actuel</span>{% endif %}
                 </h2>
+                <div class="mt-1">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="history.back()">← Retour</button>
+                </div>
             </div>
 
             <div class="card-body">

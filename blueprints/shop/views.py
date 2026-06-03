@@ -3,6 +3,8 @@ from blueprints.shop import shop_bp
 from blueprints.shop.models import Racquet, RacqixString
 from blueprints.shop import scraper as shop_scraper
 from extensions import db
+from models import Player, PlayerRacquet, License
+from sqlalchemy.orm import selectinload
 
 
 def _merge_payload(base: dict, extra: dict) -> dict:
@@ -216,6 +218,41 @@ def racquet_detail(racquet_id):
     return render_template('shop/racquet_detail.html', racquet=racquet, similar=similar,
                            slider_cfg=slider_cfg, all_brands=all_brands,
                            all_string_patterns=all_string_patterns)
+
+
+@shop_bp.route('/racquet_lab')
+def racquet_lab():
+    # Liste des joueurs ayant au moins une entrée PlayerRacquet
+    q = request.args.get('q', '').strip()
+    base = Player.query.join(PlayerRacquet).join(License, Player.licenseId == License.id).options(selectinload(Player.racquet_history))
+    if q:
+        # filtrer par nom ou prénom (insensible à la casse)
+        ilike_q = f"%{q}%"
+        base = base.filter(db.or_(License.lastName.ilike(ilike_q), License.firstName.ilike(ilike_q)))
+    players = base.order_by(License.lastName, License.firstName).all()
+    # Priorité au paramètre explicite `next` pour contrôler la cible du bouton Retour
+    next_param = request.args.get('next')
+    back_url = None
+    if next_param:
+        # n'accepter que les cibles internes
+        if next_param.startswith('/'):
+            back_url = request.host_url.rstrip('/') + next_param
+        elif next_param.startswith(request.host_url):
+            back_url = next_param
+    if not back_url:
+        referer = request.headers.get('Referer') or request.referrer
+        # Si le referer est interne, on l'utilise sauf s'il pointe sur une fiche joueur
+        # (pour éviter la boucle retour <-> fiche joueur).
+        if referer and referer.startswith(request.host_url):
+            # Extraire le path relatif pour l'inspection
+            rel = referer[len(request.host_url.rstrip('/')):]
+            if '/player/' not in rel and '/player' not in rel:
+                back_url = referer
+            else:
+                back_url = url_for('shop.racquets')
+        else:
+            back_url = url_for('shop.racquets')
+    return render_template('shop/racquet_lab.html', players=players, back_url=back_url)
 
 
 def _find_similar(racquet: Racquet, limit: int = 6) -> list:
@@ -750,6 +787,4 @@ def import_racqix():
     except Exception as exc:
         flash(f'Erreur : {exc}', 'error')
     return redirect(url_for('shop.racquets'))
-
-
 

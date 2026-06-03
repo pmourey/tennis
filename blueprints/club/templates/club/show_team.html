@@ -140,7 +140,7 @@ tr.joker-row td {
             <td class="team-player-main">
                 {% set icon_brule = "&#x1F525; " if loop.index <= team.championship.singlesCount else '' %}
                 {% set icon_injury = "&#127973; " if player.injuries else '' %}
-                {{ icon_brule|safe }}{{ icon_injury|safe }}<a href="{{ url_for('club.show_player', id=player.id, back=request.url) }}" title="{{ racquet_tooltips.get(player.id, 'Raquette: Non renseignee  Cordage: Non renseigne') }}">{{ player.full_info }}</a>
+                {{ icon_brule|safe }}{{ icon_injury|safe }}<a href="{{ url_for('club.show_player', id=player.id) }}" title="{{ racquet_tooltips.get(player.id, 'Raquette: Non renseignee  Cordage: Non renseigne') }}">{{ player.full_info }}</a>
             </td>
             <td class="team-equipment-col team-equipment-cell">
                 <div class="team-racquet-name">🎾 {{ current_racquet.get('racquet', 'Non renseignee') }}</div>
@@ -219,7 +219,7 @@ tr.joker-row td {
         <tr>
             <td class="player-name">
                 {% set icon_brule = "🔥 " if loop.index <= singles_count else '' %}
-                {{ icon_brule }}<a href="{{ url_for('club.show_player', id=player.id, back=request.url) }}" title="{{ racquet_tooltips.get(player.id, 'Raquette: Non renseignee  Cordage: Non renseigne') }}">{{ player.name }}</a>
+                {{ icon_brule }}<a href="{{ url_for('club.show_player', id=player.id) }}" title="{{ racquet_tooltips.get(player.id, 'Raquette: Non renseignee  Cordage: Non renseigne') }}">{{ player.name }}</a>
             </td>
             <td class="ranking-cell">{{ player.ranking }}</td>
             {% for matchday in team.match_days %}

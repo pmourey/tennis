@@ -91,9 +91,9 @@
 
     <div class="rq-form-actions">
       <button type="submit" class="btn-rq btn-save">💾 Enregistrer les modifications</button>
-      <a href="{{ url_for('club.show_player', id=player.id, back=back) }}" class="btn-rq btn-cancel">
+      <button type="button" class="btn-rq btn-cancel" onclick="history.back()">
         Annuler
-      </a>
+      </button>
     </div>
 
   </form>

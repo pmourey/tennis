@@ -888,11 +888,9 @@ def add_player_racquet(player_id):
         _sync_player_current_racquet(player, preferred_entry=entry if entry.is_playing else None)
         db.session.commit()
         flash(f'Raquette ajoutée pour {player.name}.', 'success')
-        back = request.form.get('back') or url_for('club.show_player', id=player_id)
-        return redirect(url_for('club.show_player', id=player_id, back=back))
+        return redirect(url_for('club.show_player', id=player_id))
 
-    back = request.args.get('back') or url_for('club.show_player', id=player_id)
-    return render_template('add_player_racquet.html', player=player, racquets=racquets, back=back)
+    return render_template('add_player_racquet.html', player=player, racquets=racquets)
 
 
 @club_management_bp.route('/racquets/entry/<int:entry_id>/edit', methods=['GET', 'POST'])
@@ -916,11 +914,9 @@ def edit_player_racquet(entry_id):
         _sync_player_current_racquet(player, preferred_entry=entry if entry.is_playing else None)
         db.session.commit()
         flash(f'Fiche raquette mise à jour pour {player.name}.', 'success')
-        back = request.form.get('back') or url_for('club.show_player', id=player.id)
-        return redirect(url_for('club.show_player', id=player.id, back=back))
+        return redirect(url_for('club.show_player', id=player.id))
 
-    back = request.args.get('back') or url_for('club.show_player', id=player.id)
-    return render_template('edit_player_racquet.html', entry=entry, player=player, racquets=racquets, back=back)
+    return render_template('edit_player_racquet.html', entry=entry, player=player, racquets=racquets)
 
 
 @club_management_bp.route('/racquets/entry/<int:entry_id>/delete', methods=['POST'])
@@ -928,13 +924,13 @@ def delete_player_racquet(entry_id):
     entry = PlayerRacquet.query.get_or_404(entry_id)
     player = Player.query.get_or_404(entry.player_id)
     player_id = entry.player_id
-    back = request.form.get('back') or url_for('club.show_player', id=player_id)
+    back = None
     db.session.delete(entry)
     db.session.flush()
     _sync_player_current_racquet(player)
     db.session.commit()
     flash('Entrée supprimée.', 'success')
-    return redirect(url_for('club.show_player', id=player_id, back=back))
+    return redirect(url_for('club.show_player', id=player_id))
 
 
 @club_management_bp.route('/delete_player/<int:id>', methods=['GET'])

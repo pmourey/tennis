@@ -58,7 +58,7 @@
         <table class="pool">
             <caption class="table-caption">
                 Historique raquettes
-                <a href="{{ url_for('club.add_player_racquet', player_id=player.id, back=back_url) }}"
+                <a href="{{ url_for('club.add_player_racquet', player_id=player.id) }}"
                    style="margin-left:10px; font-size:.85em;">➕ Ajouter</a>
             </caption>
             {% if player.racquet_history %}
@@ -81,7 +81,7 @@
             <tr>
                     <td>
                     {% if entry.racquet %}
-                        <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id, back=back_url) }}">
+                        <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}">
                             {{ entry.racquet.brand }} {{ entry.racquet.name }}
                         </a>
                     {% else %}<em>Inconnue</em>{% endif %}
@@ -94,7 +94,7 @@
                 <td style="text-align:center;">{% if entry.is_playing %}🎾{% else %}–{% endif %}</td>
                 <td>{{ entry.purchase_date.strftime('%d/%m/%Y') if entry.purchase_date else '–' }}</td>
                 <td style="white-space:nowrap;">
-                    <a href="{{ url_for('club.edit_player_racquet', entry_id=entry.id, back=back_url) }}" title="Modifier">✏️</a>
+                    <a href="{{ url_for('club.edit_player_racquet', entry_id=entry.id) }}" title="Modifier">✏️</a>
                     <form method="post"
                           action="{{ url_for('club.delete_player_racquet', entry_id=entry.id) }}"
                           style="display:inline;"
@@ -109,7 +109,7 @@
                 <tr>
                     <td>
                         {% if entry.racquet %}
-                            <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id, back=back_url) }}">
+                            <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}">
                                 {{ entry.racquet.brand }} {{ entry.racquet.name }}
                             </a>
                         {% else %}<em>Inconnue</em>{% endif %}
@@ -122,7 +122,7 @@
                     <td style="text-align:center;">{% if entry.is_playing %}🎾{% else %}–{% endif %}</td>
                     <td>{{ entry.purchase_date.strftime('%d/%m/%Y') if entry.purchase_date else '–' }}</td>
                     <td style="white-space:nowrap;">
-                        <a href="{{ url_for('club.edit_player_racquet', entry_id=entry.id, back=back_url) }}" title="Modifier">✏️</a>
+                        <a href="{{ url_for('club.edit_player_racquet', entry_id=entry.id) }}" title="Modifier">✏️</a>
                         <form method="post"
                               action="{{ url_for('club.delete_player_racquet', entry_id=entry.id) }}"
                               style="display:inline;"
@@ -142,7 +142,7 @@
 <script>
     function updatePlayer() {
         // Rediriger vers la page de mise à jour du joueur
-        window.location.href = "{{ url_for('club.update_player', id=player.id, back=back_url) }}";
+        window.location.href = "{{ url_for('club.update_player', id=player.id) }}";
     }
 </script>
 {% endblock main %}
