@@ -313,9 +313,29 @@ def infos_club(id):
 # Définissez la route pour afficher les détails de l'équipe
 @club_management_bp.route('/show_team/<int:id>')
 def show_team(id: int):
-    # Récupérez l'objet de l'équipe à partir de la base de données
-    team = Team.query.get(id)
-    sorted_team_players = sorted(team.players, key=lambda p: p.ranking.id)
+    # Charger l'équipe avec les relations nécessaires en eager-loading pour éviter les N+1
+    from sqlalchemy.orm import joinedload, subqueryload
+    import time
+    start_total = time.perf_counter()
+    current_app.logger.debug(f"show_team start for team={id}")
+    # Use a consistent loader for Team.players (subqueryload) and apply nested loaders
+    team = (
+        Team.query
+        .options(
+            # Load players via subquery to avoid row explosion, then eager-load nested relations
+            subqueryload(Team.players).joinedload(Player.license).joinedload(License.ranking),
+            subqueryload(Team.players).joinedload(Player.license).joinedload(License.bestRanking),
+            subqueryload(Team.players).subqueryload(Player.racquet_history).joinedload(PlayerRacquet.racquet),
+            subqueryload(Team.players).subqueryload(Player.matchday_availabilities),
+        )
+        .get(id)
+    )
+    t0 = time.perf_counter()
+    current_app.logger.debug(f"loaded team in {t0 - start_total:.3f}s")
+    # Utiliser ranking via la licence déjà préchargée pour éviter des requêtes supplémentaires
+    sorted_team_players = sorted(team.players, key=lambda p: p.license.rankingId if p.license and p.license.rankingId else 0)
+    t1 = time.perf_counter()
+    current_app.logger.debug(f"sorted players in {t1 - t0:.3f}s (players={len(team.players)})")
     # Info trajet
     signed_club_id = request.cookies.get('club_id')
     try:
@@ -351,7 +371,7 @@ def show_team(id: int):
     # Dernier joueur brûlé = le N-ième joueur de la liste nominative classée
     # (les N premiers sont "brûlés", le joker ne peut pas être meilleur que le dernier)
     last_burned = sorted_team_players[singles_count - 1] if len(sorted_team_players) >= singles_count else None
-    burned_ranking_id = last_burned.ranking.id if last_burned else None  # id plus grand = moins bon classement
+    burned_ranking_id = last_burned.license.rankingId if last_burned and last_burned.license else None  # id plus grand = moins bon classement
 
     joker_query = Player.query.join(Player.license).filter(
         Player.clubId == team.club.id,
@@ -363,7 +383,13 @@ def show_team(id: int):
         # (ranking.id plus élevé = classement moins bon → joker ne peut pas être meilleur)
         joker_query = joker_query.filter(License.rankingId >= burned_ranking_id)
 
-    joker_candidates = joker_query.order_by(License.rankingId).all()
+    # Limit candidates returned to avoid huge template rendering cost when clubs have many players
+    MAX_JOKER_CANDIDATES = 200
+    joker_candidates_all = joker_query.order_by(License.rankingId)
+    joker_candidates = joker_candidates_all.limit(MAX_JOKER_CANDIDATES).all()
+    joker_truncated = joker_candidates_all.count() > MAX_JOKER_CANDIDATES
+    t2 = time.perf_counter()
+    current_app.logger.debug(f"joker candidates query in {t2 - t1:.3f}s -> {len(joker_candidates)} candidates (truncated={joker_truncated})")
 
     # Jokers actuels par journée {matchday_id: {player, plays_single, plays_double}}
     current_jokers = {
@@ -390,17 +416,14 @@ def show_team(id: int):
     racquet_tooltips = {}
     current_racquets = {}
     for player in sorted_team_players:
-        playing_entry = next(
-            (
-                e for e in sorted(
-                    player.racquet_history,
-                    key=lambda x: x.updated_at or x.created_at or datetime.min,
-                    reverse=True,
-                )
-                if e.is_playing
-            ),
-            None,
-        )
+        # chercher l'entrée is_playing dans l'historique (déjà chargé)
+        playing_entry = None
+        if getattr(player, 'racquet_history', None):
+            for e in sorted(player.racquet_history, key=lambda x: x.updated_at or x.created_at or datetime.min, reverse=True):
+                if e.is_playing:
+                    playing_entry = e
+                    break
+
         racquet_label = 'Non renseignee'
         if playing_entry and playing_entry.racquet:
             racquet_label = f'{playing_entry.racquet.brand} {playing_entry.racquet.name}'
@@ -420,17 +443,124 @@ def show_team(id: int):
             'racquet': racquet_label,
             'string': f'{string_label}{tension_label}' if string_label != 'Non renseigne' else '—',
         }
+    t3 = time.perf_counter()
+    current_app.logger.debug(f"built racquet tooltips in {t3 - t2:.3f}s")
 
-    return render_template('show_team.html', team=team, sorted_team_players=sorted_team_players,
+    t_render_start = time.perf_counter()
+    resp = render_template('show_team.html', team=team, sorted_team_players=sorted_team_players,
                            visitor_club=visitor_club, distance=distance,
                            duration=(int(elapsed_hours), round(elapsed_minutes)),
                            joker_candidates=joker_candidates,
                            current_jokers=current_jokers,
                            last_burned=last_burned,
+                           burned_ranking_id=burned_ranking_id,
                            singles_count=singles_count,
                            avail_map=avail_map,
                            racquet_tooltips=racquet_tooltips,
                            current_racquets=current_racquets)
+    t_render_end = time.perf_counter()
+    total = t_render_end - start_total
+    current_app.logger.debug(f"render_template in {t_render_end - t_render_start:.3f}s, total show_team {total:.3f}s")
+    return resp
+
+
+@club_management_bp.route('/_joker_candidates')
+def joker_candidates_api():
+    """API JSON pour chercher des candidats jokers filtrés par nom/q et limit.
+    Params: team_id (obligatoire), q (optionnel), limit (optionnel)
+    """
+    team_id = request.args.get('team_id')
+    if not team_id:
+        return jsonify({'error': 'team_id required'}), 400
+    try:
+        team = Team.query.get(int(team_id))
+    except Exception:
+        return jsonify({'error': 'invalid team_id'}), 400
+
+    q = (request.args.get('q') or '').strip()
+    limit = int(request.args.get('limit') or 50)
+
+    # Build a single optimized SQL query applying age-category and burned filters server-side
+    from sqlalchemy import func
+    q_param = q
+    limit = int(limit)
+
+    # Base query with single join to License (avoid duplicate joins)
+    joker_query = Player.query.join(Player.license).filter(
+        Player.clubId == team.club.id,
+        License.gender == team.gender,
+        ~Player.id.in_({p.id for p in team.players})
+    )
+
+    # burned_ranking_id can be provided to reproduce same restriction
+    burned = request.args.get('burned_ranking_id')
+    if burned:
+        try:
+            burned_ranking_id = int(burned)
+            joker_query = joker_query.filter(License.rankingId >= burned_ranking_id)
+        except Exception:
+            pass
+
+    # Filter by championship age category using SQL (birthDate bounds)
+    try:
+        champ = team.pool.championship if team.pool else None
+        if not champ:
+            champ = team.championship
+        if champ and champ.division and champ.division.ageCategory:
+            ac = champ.division.ageCategory
+            from datetime import datetime, date
+            today = datetime.now().date()
+            max_birth_date = date(today.year - ac.minAge, 12, 31)
+            min_birth_date = date(today.year - ac.maxAge, 1, 1)
+            joker_query = joker_query.filter(Player.birthDate <= max_birth_date, Player.birthDate >= min_birth_date)
+    except Exception:
+        # on any error, don't filter by age
+        pass
+
+    if q_param:
+        joker_query = joker_query.filter(
+            func.lower(License.lastName).like(f'%{q_param.lower()}%') | func.lower(License.firstName).like(f'%{q_param.lower()}%')
+        )
+
+    # obtain results from DB
+    results = joker_query.order_by(License.rankingId).limit(limit).all()
+    # Diagnostic logging: burned value, age category and returned ranking_ids
+    try:
+        current_app.logger.debug(f"_joker_candidates: team={team.id} burned={burned} ageCategory={getattr(getattr(champ, 'division', None), 'ageCategory', None)} db_count={len(results)}")
+        sample_ranks = [getattr(getattr(p, 'license', None), 'rankingId', None) for p in results]
+        current_app.logger.debug(f"_joker_candidates: ranking_ids(returned)={sample_ranks}")
+    except Exception:
+        pass
+    out = []
+    # Defensive filter: ensure no player better (ranking_id smaller) than burned_ranking_id is returned
+    if burned:
+        try:
+            burned_ranking_id = int(burned)
+            results = [p for p in results if (getattr(getattr(p, 'license', None), 'rankingId', None) is None) or (getattr(getattr(p, 'license', None), 'rankingId', 0) >= burned_ranking_id)]
+        except Exception:
+            pass
+
+    # Log after defensive filtering
+    try:
+        post_sample = [getattr(getattr(p, 'license', None), 'rankingId', None) for p in results]
+        current_app.logger.debug(f"_joker_candidates after defensive filter: count={len(results)} ranking_ids={post_sample}")
+    except Exception:
+        pass
+
+    for p in results:
+        out.append({'id': p.id, 'name': p.name, 'ranking': str(p.ranking), 'ranking_id': getattr(getattr(p, 'license', None), 'rankingId', None)})
+    # If app is in debug mode, include diagnostic info in the response to help tracing in browser
+    resp = {'results': out}
+    try:
+        if current_app.debug:
+            resp['_debug'] = {
+                'team_id': team.id,
+                'burned_param': burned,
+                'returned_count': len(out),
+            }
+    except Exception:
+        pass
+    return jsonify(resp)
 
 
 @club_management_bp.route('/save_joker/<int:team_id>', methods=['POST'])
@@ -455,17 +585,26 @@ def save_joker(team_id):
                 return jsonify({'success': False,
                                 'error': 'Ce joueur est déjà dans la liste nominative de l\'équipe.'}), 400
             # Vérifier la règle de classement : le joker ne peut pas être meilleur que le dernier brûlé
+            # Utiliser rankingId (champ de la licence) pour éviter des requêtes supplémentaires
             singles_count = team.championship.singlesCount if team.championship else 4
-            sorted_players = sorted(team.players, key=lambda p: p.ranking.id)
+            # trier par rankingId (id plus grand = classement moins bon)
+            sorted_players = sorted(team.players, key=lambda p: (p.license.rankingId if p.license else 0))
             if len(sorted_players) >= singles_count:
                 last_burned = sorted_players[singles_count - 1]
                 joker_player = Player.query.get(player_id)
-                if joker_player and joker_player.ranking.id < last_burned.ranking.id:
-                    return jsonify({
-                        'success': False,
-                        'error': f'Le joker ({joker_player.ranking}) ne peut pas être meilleur '
-                                 f'que le {singles_count}e joueur brûlé ({last_burned.name} – {last_burned.ranking}).'
-                    }), 400
+                # si l'un des joueurs n'a pas de licence / ranking, refuser pour sécurité
+                if joker_player and joker_player.license and last_burned.license:
+                    joker_rank_id = joker_player.license.rankingId
+                    burned_rank_id = last_burned.license.rankingId
+                    # joker_rank_id plus petit => meilleur classement -> interdit
+                    if joker_rank_id < burned_rank_id:
+                        return jsonify({
+                            'success': False,
+                            'error': f'Le joker ({joker_player.ranking}) ne peut pas être meilleur '
+                                     f'que le {singles_count}e joueur brûlé ({last_burned.name} – {last_burned.ranking}).'
+                        }), 400
+                else:
+                    return jsonify({'success': False, 'error': 'Impossible de vérifier le classement du joker (licence manquante).'}), 400
             if existing:
                 existing.player_id    = player_id
                 existing.plays_single = plays_single
@@ -798,8 +937,157 @@ def show_player(id):
     history = list(player.racquet_history)
     with_date = sorted([e for e in history if e.purchase_date], key=lambda e: e.purchase_date, reverse=True)
     without_date = [e for e in history if not e.purchase_date]
+
+    # Charger (si disponibles) les données racqix pour enrichir les infobulles
+    entry_tooltips_html = {}
+    try:
+        import json, os, unicodedata, re
+        docs_dir = os.path.join(current_app.root_path, '..', 'docs')
+        racq_path = os.path.join(docs_dir, 'racqix_racquets.json')
+        strs_path = os.path.join(docs_dir, 'racqix_strings.json')
+        racq_items = {}
+        str_items = {}
+
+        def _simple_normalize(s: str) -> str:
+            if not s:
+                return ''
+            s = s.lower()
+            s = ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+            # replace any non-alphanumeric character with a space so separators like '/', '.', '-' become separators
+            s = re.sub(r"[^a-z0-9]+", ' ', s)
+            s = re.sub(r"\s+", ' ', s).strip()
+            return s
+
+        if os.path.exists(racq_path):
+            with open(racq_path, 'r', encoding='utf-8') as f:
+                for item in json.load(f):
+                    name = (item.get('name') or '').strip()
+                    brand = (item.get('brand') or '').strip()
+                    slug = (item.get('slug') or '').strip()
+                    # register multiple variants to improve matching robustness
+                    variants = set()
+                    variants.add(_simple_normalize(f"{brand} {name}"))
+                    variants.add(_simple_normalize(name))
+                    if slug:
+                        variants.add(_simple_normalize(slug.replace('-', ' ')))
+                        variants.add(_simple_normalize(f"{brand} {slug}"))
+                    for v in variants:
+                        if v and v not in racq_items:
+                            racq_items[v] = item
+        if os.path.exists(strs_path):
+            with open(strs_path, 'r', encoding='utf-8') as f:
+                for item in json.load(f):
+                    name = (item.get('name') or '').strip()
+                    brand = (item.get('brand') or '').strip()
+                    slug = (item.get('slug') or '').strip()
+                    variants = set()
+                    variants.add(_simple_normalize(f"{brand} {name}"))
+                    variants.add(_simple_normalize(name))
+                    if slug:
+                        variants.add(_simple_normalize(slug.replace('-', ' ')))
+                        variants.add(_simple_normalize(f"{brand} {slug}"))
+                    for v in variants:
+                        if v and v not in str_items:
+                            str_items[v] = item
+    except Exception:
+        racq_items = {}
+        str_items = {}
+
+    import re
+    import unicodedata
+
+    def _normalize(s: str) -> str:
+        if not s:
+            return ''
+        s = s.lower()
+        s = ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+        s = re.sub(r"[^a-z0-9 ]+", '', s)
+        s = re.sub(r"\s+", ' ', s).strip()
+        return s
+
+    def _make_html_for(entry):
+        parts = []
+        if entry.racquet:
+            racq_label = f"{entry.racquet.brand} {entry.racquet.name}"
+            key = _normalize(racq_label)
+            current_app.logger.debug(f"racq tooltip: looking up racquet key='{key}' label='{racq_label}'")
+            item = None
+            # try direct key then normalized lookup
+            item = racq_items.get(_simple_normalize(racq_label)) or racq_items.get(racq_label.lower()) or racq_items.get(key)
+            parts.append(f"<div><strong>{racq_label}</strong></div>")
+            current_app.logger.debug(f"racq tooltip: found item={'yes' if item else 'no'} for key='{key}'")
+            if item:
+                # support multiple possible key names from racqix exports
+                p = item.get('scoresPower') or item.get('scores_power') or item.get('scoresPower') or item.get('rating_power') or item.get('power') or item.get('power_rating') or item.get('scoresPower')
+                c = item.get('scoresControl') or item.get('scores_control') or item.get('rating_control') or item.get('control') or item.get('control_rating')
+                s = item.get('scoresSpin') or item.get('scores_spin') or item.get('rating_spin') or item.get('spin') or item.get('spin_rating')
+                f = item.get('rating_comfort') or item.get('comfort') or item.get('comfort_rating')
+                if any(x is not None for x in (p, c, s, f)):
+                    parts.append('<div style="margin-top:6px;">')
+                    for lbl, v in [('Puissance', p), ('Contrôle', c), ('Spin', s), ('Confort', f)]:
+                        if v is None:
+                            continue
+                        try:
+                            vv = int(float(v))
+                        except Exception:
+                            vv = 0
+                        parts.append(f"<div style=\"font-size:0.8em;margin-bottom:4px;\">{lbl} <div style='display:inline-block;width:140px;margin-left:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;vertical-align:middle'><div style='width:{vv}%;height:8px;background:#3b82f6;'></div></div> <span style='margin-left:6px;color:#6b7280'>{vv}</span></div>")
+                    parts.append('</div>')
+                else:
+                    score = item.get('score') or item.get('racquet_score')
+                    if score:
+                        parts.append(f"<div style='margin-top:6px;'>Score: {score}</div>")
+                if item.get('mediaImageUrl'):
+                    parts.append(f"<div style='margin-top:6px;'><img src=\"{item.get('mediaImageUrl')}\" alt=\"{racq_label}\" style=\"max-width:200px;max-height:120px;\"></div>")
+        else:
+            parts.append('<div><strong>Raquette: Non renseignée</strong></div>')
+
+        if entry.string_name:
+            sname = entry.string_name.strip()
+            key_s = _normalize(sname)
+            current_app.logger.debug(f"string tooltip: looking up string key='{key_s}' label='{sname}'")
+            sitem = None
+            for k, it in str_items.items():
+                if _normalize(k) == key_s or _normalize(it.get('name', '')) == key_s:
+                    sitem = it
+                    break
+            current_app.logger.debug(f"string tooltip: found sitem={'yes' if sitem else 'no'} for key='{key_s}'")
+            parts.append(f"<div style='margin-top:6px;'><strong>{sname}</strong></div>")
+            if sitem:
+                # strings store ratings under 'ratings' or top-level keys
+                ratings = sitem.get('ratings') or {}
+                p = ratings.get('power') or sitem.get('rating_power') or sitem.get('power')
+                c = ratings.get('control') or sitem.get('rating_control') or sitem.get('control')
+                sp = ratings.get('spin') or sitem.get('rating_spin') or sitem.get('spin')
+                f = ratings.get('comfort') or sitem.get('rating_comfort') or sitem.get('comfort')
+                if any(x is not None for x in (p, c, sp, f)):
+                    parts.append('<div style="margin-top:6px;">')
+                    for lbl, v in [('Puissance', p), ('Contrôle', c), ('Spin', sp), ('Confort', f)]:
+                        if v is None:
+                            continue
+                        try:
+                            vv = int(float(v))
+                        except Exception:
+                            vv = 0
+                        parts.append(f"<div style=\"font-size:0.8em;margin-bottom:4px;\">{lbl} <div style='display:inline-block;width:140px;margin-left:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;vertical-align:middle'><div style='width:{vv}%;height:8px;background:#22c55e;'></div></div> <span style='margin-left:6px;color:#6b7280'>{vv}</span></div>")
+                    parts.append('</div>')
+                else:
+                    sscore = sitem.get('score') or sitem.get('string_score')
+                    if sscore:
+                        parts.append(f"<div style='margin-top:6px;'>Score: {sscore}</div>")
+                if sitem.get('image_url'):
+                    parts.append(f"<div style='margin-top:6px;'><img src=\"{sitem.get('image_url')}\" alt=\"{sname}\" style=\"max-width:200px;max-height:120px;\"></div>")
+            else:
+                parts.append(f"<div style='margin-top:6px;'>Cordage: {sname} ({entry.string_tension or '–'} kg)</div>")
+
+        return '<div style="max-width:320px;">' + ''.join(parts) + '</div>'
+
+    for entry in with_date + without_date:
+        entry_tooltips_html[entry.id] = _make_html_for(entry)
+
     return render_template('show_player.html', player=player, back_url=back_url,
-                           with_date=with_date, without_date=without_date)
+                           with_date=with_date, without_date=without_date,
+                           entry_tooltips_html=entry_tooltips_html)
 
 
 # -- Historique raquettes joueurs ----------------------------------------------

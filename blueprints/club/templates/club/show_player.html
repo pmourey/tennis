@@ -81,14 +81,18 @@
             <tr>
                     <td>
                     {% if entry.racquet %}
-                        <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}">
-                            {{ entry.racquet.brand }} {{ entry.racquet.name }}
-                        </a>
+                        <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}">{{ entry.racquet.brand }} {{ entry.racquet.name }}</a>
+                        <button type="button" class="btn btn-sm btn-light p-0 ms-2" data-bs-toggle="popover" data-bs-html="true" data-bs-content='{{ entry_tooltips_html.get(entry.id, '')|tojson|safe }}' aria-label="Infos raquette">ℹ️</button>
                     {% else %}<em>Inconnue</em>{% endif %}
                 </td>
                     <td style="text-align:center;">{{ entry.quantity }}</td>
                 <td style="text-align:center;">{{ entry.grip_size or '–' }}</td>
-                <td>{{ entry.string_name or '–' }}</td>
+                <td>
+                  {{ entry.string_name or '–' }}
+                  {% if entry.string_name %}
+                  <button type="button" class="btn btn-sm btn-light p-0 ms-2" data-bs-toggle="popover" data-bs-html="true" data-bs-content='{{ entry_tooltips_html.get(entry.id, '')|tojson|safe }}' aria-label="Infos cordage">ℹ️</button>
+                  {% endif %}
+                </td>
                 <td style="text-align:center;">{{ entry.string_tension or '–' }} kg</td>
                 <td style="text-align:center;">{% if entry.is_owner %}✅{% else %}❌{% endif %}</td>
                 <td style="text-align:center;">{% if entry.is_playing %}🎾{% else %}–{% endif %}</td>
@@ -109,14 +113,13 @@
                 <tr>
                     <td>
                         {% if entry.racquet %}
-                            <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}">
-                                {{ entry.racquet.brand }} {{ entry.racquet.name }}
-                            </a>
+                            <a href="{{ url_for('shop.racquet_detail', racquet_id=entry.racquet.id) }}">{{ entry.racquet.brand }} {{ entry.racquet.name }}</a>
+                            <button type="button" class="btn btn-sm btn-light p-0 ms-2" data-bs-toggle="popover" data-bs-html="true" data-bs-content='{{ entry_tooltips_html.get(entry.id, '')|tojson|safe }}' aria-label="Infos raquette">ℹ️</button>
                         {% else %}<em>Inconnue</em>{% endif %}
                     </td>
                     <td style="text-align:center;">{{ entry.quantity }}</td>
                     <td style="text-align:center;">{{ entry.grip_size or '–' }}</td>
-                    <td>{{ entry.string_name or '–' }}</td>
+                    <td data-bs-toggle="popover" data-bs-html="true" data-bs-content='{{ entry_tooltips_html.get(entry.id, '')|tojson|safe }}'>{{ entry.string_name or '–' }}</td>
                     <td style="text-align:center;">{{ entry.string_tension or '–' }} kg</td>
                     <td style="text-align:center;">{% if entry.is_owner %}✅{% else %}❌{% endif %}</td>
                     <td style="text-align:center;">{% if entry.is_playing %}🎾{% else %}–{% endif %}</td>
@@ -144,5 +147,36 @@
         // Rediriger vers la page de mise à jour du joueur
         window.location.href = "{{ url_for('club.update_player', id=player.id) }}";
     }
+</script>
+<script>
+  // Initialiser les popovers Bootstrap pour les éléments ajoutés.
+  // Si bootstrap n'est pas disponible ou si l'initialisation échoue, on attache
+  // un fallback qui affiche le contenu dans une alert pour faciliter le debug.
+  document.addEventListener('DOMContentLoaded', function () {
+    var popEls = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    if (!popEls.length) return;
+    if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Popover) {
+      popEls.forEach(function (el) {
+        try {
+          // trigger both click and hover/focus for better UX on desktop and mobile
+          new window.bootstrap.Popover(el, {container: 'body', trigger: 'click hover focus'})
+        } catch (e) {
+          console.warn('bootstrap.Popover init failed for element', el, e);
+          el.addEventListener('click', function (ev) {
+            ev.preventDefault(); ev.stopPropagation();
+            try { alert(el.getAttribute('data-bs-content')); } catch(_){}
+          });
+        }
+      });
+    } else {
+      console.warn('Bootstrap not available; using fallback for popovers');
+      popEls.forEach(function (el) {
+        el.addEventListener('click', function (ev) {
+          ev.preventDefault(); ev.stopPropagation();
+          try { alert(el.getAttribute('data-bs-content')); } catch(_){}
+        });
+      });
+    }
+  });
 </script>
 {% endblock main %}

@@ -14,6 +14,7 @@ from logging import basicConfig, DEBUG
 import locale
 
 from models import License
+from common import load_age_categories, AgeCategory
 
 
 def create_app():
@@ -60,6 +61,15 @@ def create_app():
 	with app.app_context():
 		db.create_all()
 		_run_column_migrations(app, db)
+
+		# Charger les catégories d'âge par défaut si elles n'existent pas
+		try:
+			if AgeCategory.query.count() == 0:
+				load_age_categories(db)
+				app.logger.info('Catégories d\'âge chargées via common.load_age_categories')
+		except Exception as e:
+			# Ne pas empêcher le démarrage de l'app si l'opération échoue
+			app.logger.debug(f"Impossible de charger les catégories d\'âge: {e}")
 
 	@app.route('/admin/run-migration')
 	def run_migration_endpoint():

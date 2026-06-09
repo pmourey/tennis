@@ -273,15 +273,11 @@ tr.joker-row td {
             {% set jk = current_jokers.get(matchday.id) %}
             <td>
                 <!-- Sélection du joueur joker -->
-                <select data-matchday-id="{{ matchday.id }}" class="joker-select">
-                    <option value="">— aucun —</option>
-                    {% for candidate in joker_candidates %}
-                    <option value="{{ candidate.id }}"
-                        {% if jk and jk.player.id == candidate.id %}selected{% endif %}>
-                        {{ candidate.name }} ({{ candidate.ranking }})
-                    </option>
-                    {% endfor %}
-                </select>
+                <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
+                    <input type="text" class="joker-search" data-matchday-id="{{ matchday.id }}" placeholder="Rechercher un joker..." autocomplete="off" value="{% if jk and jk.player %}{{ jk.player.name }}{% endif %}">
+                    <input type="hidden" class="joker-selected-id" data-matchday-id="{{ matchday.id }}" value="{% if jk and jk.player %}{{ jk.player.id }}{% endif %}">
+                    <div class="joker-results" data-matchday-id="{{ matchday.id }}" style="position:relative;z-index:50;width:220px;"></div>
+                </div>
                 <!-- Rôles du joker : Simple et/ou Double (pas Remplaçant) -->
                 <div class="role-group" style="margin-top:5px;">
                     <label class="role-item single">
@@ -341,6 +337,84 @@ tr.joker-row td {
         button.textContent = shouldShow ? 'Masquer matériel joueur' : 'Afficher matériel joueur';
     }
 
+    // --- AJAX search for joker candidates ---
+    const burnedRankingId = {{ burned_ranking_id if burned_ranking_id else 'null' }};
+    function makeResultItem(player) {
+        const div = document.createElement('div');
+        div.className = 'joker-result-item';
+        div.style.padding = '6px';
+        div.style.cursor = 'pointer';
+        div.style.background = '#fff';
+        div.style.border = '1px solid #eee';
+        div.textContent = `${player.name} (${player.ranking})`;
+        div.dataset.playerId = player.id;
+        return div;
+    }
+
+    function attachSearchHandlers() {
+        document.querySelectorAll('.joker-search').forEach(input => {
+            const matchdayId = input.dataset.matchdayId;
+            const resultsBox = document.querySelector(`.joker-results[data-matchday-id="${matchdayId}"]`);
+            let timeout = null;
+            // state to avoid hiding when clicking a result
+            let ignoreBlur = false;
+            input.addEventListener('input', function() {
+                const q = this.value.trim();
+                if (timeout) clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                     fetch(`{{ url_for('club.joker_candidates_api') }}?team_id={{ team.id }}&q=${encodeURIComponent(q)}&limit=20&burned_ranking_id=${encodeURIComponent(burnedRankingId || '')}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            resultsBox.innerHTML = '';
+                            if (data.results && data.results.length) {
+                                data.results.forEach(p => {
+                                    const item = makeResultItem(p);
+                                    item.addEventListener('click', function() {
+                                        // set hidden input
+                                        const hid = document.querySelector(`.joker-selected-id[data-matchday-id="${matchdayId}"]`);
+                                        hid.value = this.dataset.playerId;
+                                        input.value = this.textContent;
+                                        resultsBox.innerHTML = '';
+                                    });
+                                    resultsBox.appendChild(item);
+                                });
+                            } else {
+                                const none = document.createElement('div');
+                                none.style.padding = '6px';
+                                none.style.color = '#666';
+                                none.textContent = 'Aucun résultat';
+                                resultsBox.appendChild(none);
+                            }
+                        })
+                        .catch(e => { console.error('joker search error', e); });
+                }, 250);
+            });
+            // show results box only when input focused
+            input.addEventListener('focus', function() {
+                if (resultsBox && resultsBox.children.length > 0) resultsBox.style.display = 'block';
+            });
+            // hide results when leaving the input (but allow click on results)
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    if (!ignoreBlur && resultsBox) {
+                        resultsBox.innerHTML = '';
+                        resultsBox.style.display = 'none';
+                    }
+                    ignoreBlur = false;
+                }, 150);
+            });
+            // when user presses mouse down on results, prevent blur hiding
+            resultsBox.addEventListener('mousedown', function(ev) {
+                ignoreBlur = true;
+                // keep results visible while clicking
+                ev.preventDefault();
+            });
+        });
+    }
+
+    // init search handlers on DOM ready
+    document.addEventListener('DOMContentLoaded', attachSearchHandlers);
+
     function saveAvailability() {
         // Construire un map { "playerId_date": { player_id, date, single, double, sub } }
         const map = {};
@@ -389,15 +463,14 @@ tr.joker-row td {
     }
 
     function saveJokers() {
-        const selects = document.querySelectorAll('select.joker-select');
+        const inputs = document.querySelectorAll('.joker-selected-id');
         let saved = 0, errors = 0;
-        const total = selects.length;
+        const total = inputs.length;
         if (total === 0) { alert('Aucune journée trouvée.'); return; }
 
-        selects.forEach(select => {
-            const matchdayId = select.dataset.matchdayId;
-            const playerId   = select.value || null;
-            // Lire les checkboxes simple/double du joker pour cette journée
+        inputs.forEach(input => {
+            const matchdayId = input.dataset.matchdayId;
+            const playerId = input.value || null;
             const cbSingle = document.querySelector(`.cb-joker-single[data-matchday-id="${matchdayId}"]`);
             const cbDouble = document.querySelector(`.cb-joker-double[data-matchday-id="${matchdayId}"]`);
             const plays_single = cbSingle ? cbSingle.checked : false;
@@ -416,7 +489,7 @@ tr.joker-row td {
             .then(r => r.json())
             .then(data => {
                 if (data.success) saved++;
-                else { errors++; console.error('Joker error:', data.error); }
+                else { errors++; console.error('Joker error:', data.error); alert('Erreur en enregistrant le joker pour la journée ' + matchdayId + " : " + (data.error || 'Erreur serveur')); }
                 if (saved + errors === total) {
                     if (errors === 0)
                         alert('Jokers enregistrés avec succès (' + saved + ' journée(s)) ✅');
