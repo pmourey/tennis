@@ -35,7 +35,7 @@
           <p class="mb-2 small text-truncate"><strong>Dernière raquette :</strong> {{ p.racquet_history[0].racquet.brand }} {{ p.racquet_history[0].racquet.name }}</p>
         {% endif %}
         <div class="mt-auto d-flex justify-content-between align-items-center">
-          <a href="{{ url_for('club.show_player', id=p.id, next=request.full_path) }}" class="btn btn-sm btn-outline-secondary">Voir fiche</a>
+          <a href="{{ url_for('club.show_player', id=p.id, back=url_for('shop.racquet_lab', q=request.args.get('q'))) }}" class="btn btn-sm btn-outline-secondary">Voir fiche</a>
           {% if p.racquet_id %}
             <a href="{{ url_for('shop.racquet_detail', racquet_id=p.racquet_id) }}" class="btn btn-sm btn-outline-primary">Raquette actuelle</a>
           {% else %}
